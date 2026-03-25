@@ -2,6 +2,7 @@ import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import Panel from "@/components/Panel";
 import Intro from "@/components/Intro";
+import Footer from "@/components/Footer";
 
 export default function Home() {
   return (
@@ -9,6 +10,7 @@ export default function Home() {
       <Navbar></Navbar>
       <Panel></Panel>
       <Intro></Intro>
+      <Footer></Footer>
     </div>
    
 
