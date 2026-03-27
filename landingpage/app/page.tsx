@@ -1,16 +1,16 @@
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
-import Panel from "@/components/Panel";
-import Intro from "@/components/Intro";
+import Panel from "@/app/Panel";
+import Intro from "@/app/Intro";
 import Footer from "@/components/Footer";
+import Booking from "@/app/Booking";
 
 export default function Home() {
   return (
     <div>
-      <Navbar></Navbar>
       <Panel></Panel>
       <Intro></Intro>
-      <Footer></Footer>
+      <Booking></Booking>
     </div>
    
 

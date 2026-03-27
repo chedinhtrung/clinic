@@ -3,7 +3,7 @@
 export default function Navbar(){
     return (
         <nav className="h-20 items-center px-8 bg-bg-tinted flex gap-4">
-            <a href="#" className="text-txt-primary  font-bold">TS.BS Chế Đình Nghĩa</a>
+            <a href="/" className="text-txt-primary  font-bold">TS.BS Chế Đình Nghĩa</a>
             <ul className="flex gap-4 justify-center items-center flex-1  font-bold hidden sm:flex">
                 <li>
                     <a href="#" className="text-txt-gray hover:text-primary">Bác sỹ</a>

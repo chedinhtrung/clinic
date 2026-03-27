@@ -1,7 +1,7 @@
 from openai import OpenAI
 import json
 from datetime import datetime
-from chatbot.system import *
+from system import *
 from config import *
 
 class ChatBot: 

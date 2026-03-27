@@ -1,10 +1,11 @@
 "use client"
 import Chat from "@/components/ChatUI";
 import ContactForm from "@/components/ContactForm";
+import { Chathura } from "next/font/google";
 import { useSearchParams } from "next/navigation"
 import CalendarSVG from "@/components/CalendarSVG";
 
-export default function Booking() {
+export default function Screening() {
 
     // TODO: Change pending in database first then load it using ID, not via URL param passing
     const searchParams = useSearchParams();
@@ -16,10 +17,13 @@ export default function Booking() {
     console.log(date, from, to);
 
     return (
-        <div className="flex justify-center gap-6 p-10 flex-col sm:flex-row bg-tinted-gray">
-            <div>
+        <div className="flex justify-center gap-6 p-10 flex-col sm:flex-row sm:bg-tinted-gray items-stretch sm:h-[760px] h-full">
+            <div className="sm:bg-white sm:p-10 sm:shadow-xl rounded-lg">
                 <h1 className="text-primary font-bold mb-1 text-3xl">ĐẶT CHỖ CỦA BẠN</h1>
-                <p className="text-txt-gray text-sm">Vui lòng điền thông tin liên hệ và chúng tôi sẽ xác nhận lịch hẹn của bạn</p>
+                <p className="text-txt-gray text-sm">
+                    Lịch hẹn của bạn đã được xác nhận. <br></br>
+                    Bạn có thể  chỉnh sửa thông tin liên lạc nếu cần thiết.
+                </p>
                 {
                     <div className="bg-tinted-blue rounded-lg shadow-lg p-4 my-6 flex items-center gap-4">
                         <CalendarSVG></CalendarSVG>
@@ -39,8 +43,9 @@ export default function Booking() {
                     </div>
                 }
                 <h3 className="font-bold mb-4">THÔNG TIN LIÊN HỆ</h3>
-                <ContactForm></ContactForm>
+                <ContactForm confirmed={true}></ContactForm>
             </div>
+            <Chat></Chat>
         </div>
     )
 }

@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+
 :root {
   --color-primary: #0d6e56;
   --color-primary-light: #e1f5ee;
@@ -13,6 +14,9 @@
   --color-txt-gray: #6b6a64;
   --color-txt-light: #ffffff;
   --color-light-gray: #e8e6df;
+  --color-tinted-blue: #eef5fc;
+  --color-tinted-gray: #e9edf1;
+
 }
 
 
@@ -29,4 +33,13 @@
   --color-txt-gray: #6b6a64;
   --color-txt-light: #ffffff;
   --color-light-gray: #e8e6df;
+  --color-tinted-blue: #eef5fc;
+  --color-tinted-gray: #e9edf1;
+}
+
+/* calendar stylings */
+
+.rdp-root {
+  --rdp-accent-color: #0a5a45;
+  --rdp-background-color: #e1f5ee;
 }

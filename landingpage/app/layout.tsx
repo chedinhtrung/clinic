@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import "react-day-picker/dist/style.css";
 import "./globals.css";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: "TS.BS Chế Đình Nghĩa — Tư vấn CTCH Online",
@@ -15,7 +18,11 @@ export default function RootLayout(
     <html
       lang="vi"
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <Navbar></Navbar>
+        {children}
+        <Footer></Footer>
+      </body>
     </html>
   );
 }
