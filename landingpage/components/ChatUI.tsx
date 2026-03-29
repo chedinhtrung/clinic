@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { KeyboardEvent, useState } from "react"
 import GrayAvatarSVG from "@/components/GrayAvatarSVG";
 import { useRef } from "react";
 import { useEffect } from "react";
@@ -12,13 +12,13 @@ type Message = {
 export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("");
-  const bottomRef = useRef(null);
+  const bottomRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
   bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest",});
   }, [messages]);
 
-  const sendMessageEnter = async (e) => {
+  const sendMessageEnter = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       console.log(e.key)
       e.preventDefault(); // prevent newline

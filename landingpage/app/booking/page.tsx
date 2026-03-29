@@ -9,6 +9,8 @@ export default function Booking() {
     // TODO: Change pending in database first then load it using ID, not via URL param passing
     const searchParams = useSearchParams();
 
+    
+
     const date = new Date(searchParams.get("date"));
     const from = searchParams.get("from");
     const to = searchParams.get("to");

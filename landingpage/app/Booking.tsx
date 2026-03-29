@@ -4,18 +4,24 @@ import { DayPicker } from "react-day-picker"
 import { vi } from "date-fns/locale"
 import { useEffect } from "react"
 
-export default function Booking() {
-    const [availableDates, setAvailableDates] = useState([]);
-    const [selectedDate, setSelectedDate] = useState();
-    const [slotlist, setSlotlist] = useState([]);
-    const [selectedSlot, setSelectedSlot] = useState();
+type Slot = {
+    date: Date;
+    from:string;
+    to:string;
+}
 
-    async function onDateSelect(date) {
+export default function Booking() {
+    const [availableDates, setAvailableDates] = useState<Date[]>([]);
+    const [selectedDate, setSelectedDate] = useState<Date|undefined>();
+    const [slotlist, setSlotlist] = useState<Slot[]>([]);
+    const [selectedSlot, setSelectedSlot] = useState<Slot|undefined>();
+
+    async function onDateSelect(date:Date | undefined) {
         setSlotlist([]);
         if (date === undefined) {
-            return; 
+            return;
         }
-        setSelectedSlot(null);
+        setSelectedSlot(undefined);
         setSelectedDate(date);
         console.log(date);
 
@@ -30,14 +36,14 @@ export default function Booking() {
         const data = await res.json()
 
         console.log(data);
-        setSlotlist(data)
+        setSlotlist(data);
     }
 
-    function onSlotSelect(slot) {
+    function onSlotSelect(slot:Slot) {
         console.log(selectedSlot === slot);
         console.log(selectedSlot);
         if (slot === selectedSlot) {
-            setSelectedSlot(null);
+            setSelectedSlot(undefined);
         }
         else {
             setSelectedSlot(slot);
@@ -59,51 +65,64 @@ export default function Booking() {
     }, [])
 
     return (
-        <div className="bg-bg-tinted flex justify-center">
-            <div className="flex flex-col sm:flex-row mb-10 sm:px-20 px-6 py-10 sm:min-w-[1500px] gap-5 sm:gap-20">
-                <h3 className="text-primary font-bold">LỊCH KHÁM & BẢNG GIÁ</h3>
-                <div>
-                    
-                </div>
+        <div className="bg-bg-tinted flex justify-center sm:px-20 px-6 py-10">
 
-                <div className="ml-auto">
-                    <DayPicker
-                        mode="single"
-                        selected={selectedDate}
-                        onSelect={onDateSelect}
-                        locale={vi}
-                        modifiers={{
-                            available: availableDates
-                        }}
-                        modifiersClassNames={{
-                            available: "bg-green-100 text-green-800 rounded-full"
-                        }}
-                    />
-                </div>
+            <div className="w-[1500px] sm:px-20 flex flex-col justify-center">
+                <h3 className="text-primary font-bold mb-4">LỊCH KHÁM & BẢNG GIÁ</h3>
+                <div className="flex flex-col sm:flex-row mb-10 gap-5 sm:gap-20">
 
-                <div>
-                    <div className="h-[2.75rem] flex items-center">
-                        <h3 className="text-primary font-bold ">Khung giờ</h3>
+                    <div className="shadow-lg rounded-[20px] border-2 border-primary p-8 bg-white">
+                        <h4 className="text-txt-gray font-bold">Tư vấn chuyên sâu</h4>
+                        <h4 className="text-txt-gray font-bold"><span className="text-[3.0rem] text-black font-normal">50k </span> /lượt</h4>
+                        <p className="text-txt-gray">Đọc phim, phân tích lâm sàng, tư vấn phẫu thuật <br></br><br></br></p>
+                        <p className="text-txt-dark leading-loose ">
+                            <span className="text-primary">✓</span> Video call 30 phút <br></br>
+                            <span className="text-primary">✓</span> Phân tích X-quang / MRI / CT <br></br>
+                            <span className="text-primary">✓</span> Kê đơn thuốc (nếu phù hợp)
+                        </p>
                     </div>
-                    <div className="flex flex-col gap-2 overflow-y-auto max-h-[150px] sm:max-h-[250px] min-w-[130px]">
-                        {slotlist.map((s, i) => (
-                            <div
-                                key={i}
-                                className={`px-4 py-2 rounded-lg ${s === selectedSlot ? `bg-primary text-white` : `bg-primary-light`} hover:bg-primary hover:text-white text-center`}
-                                onClick={() => { onSlotSelect(s) }}
-                            >
-                                {s.from} - {s.to}
+                    <div className="flex gap-6 sm:ml-auto">
+                        <div className="flex justify-center">
+                            <DayPicker
+                                mode="single"
+                                selected={selectedDate}
+                                onSelect={onDateSelect}
+                                locale={vi}
+                                modifiers={{
+                                    available: availableDates
+                                }}
+                                modifiersClassNames={{
+                                    available: "bg-green-100 text-green-800 rounded-full"
+                                }}
+                                required={false}
+                            />
+                        </div>
+
+                        <div className="ml-auto">
+                            <div className="h-[2.75rem] flex items-center">
+                                <h3 className="text-primary font-bold ">Khung giờ</h3>
                             </div>
-                        ))}
+                            <div className="flex flex-col gap-2 overflow-y-auto max-h-[250px] min-w-[130px] pr-4">
+                                {slotlist.map((s, i) => (
+                                    <div
+                                        key={i}
+                                        className={`px-4 py-2 rounded-lg ${s === selectedSlot ? `bg-primary text-white` : `bg-primary-light`} hover:bg-primary hover:text-white text-center`}
+                                        onClick={() => { onSlotSelect(s) }}
+                                    >
+                                        {s.from} - {s.to}
+                                    </div>
+                                ))}
+                            </div>
+                            {
+                                selectedSlot ? (
+                                    <a href="#" className="p-2 block mt-4 bg-primary text-white rounded-lg font-bold text-center">ĐẶT LỊCH</a>
+                                ) : (
+                                    <div className="p-4"></div>
+                                )
+                            }
+
+                        </div>
                     </div>
-                    {
-                        selectedSlot ? (
-                            <a href={`/booking?date=${selectedDate.toISOString()}&from=${selectedSlot.from}&to=${selectedSlot.to}`} className="p-2 block mt-4 bg-primary text-white rounded-lg font-bold text-center">ĐẶT LỊCH</a>
-                        ) : (
-                            <div className="p-4"></div>
-                        )
-                    }
-                    
                 </div>
             </div>
         </div>

@@ -1,7 +1,7 @@
 export default function Intro(){
     return(
         <div className="flex justify-center mb-10 md:text-lg">
-        <div className="max-w-[1500px] sm:px-20 px-6 wx-auto">
+        <div className="sm:w-[1500px] sm:px-20 px-6 wx-auto">
             
             {/* Avatar */}
             <div className="relative h-30">

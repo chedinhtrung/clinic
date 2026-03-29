@@ -1,6 +1,5 @@
 @import "tailwindcss";
 
-
 :root {
   --color-primary: #0d6e56;
   --color-primary-light: #e1f5ee;
@@ -18,7 +17,6 @@
   --color-tinted-gray: #e9edf1;
 
 }
-
 
 @theme {
   --color-primary: #0d6e56;
