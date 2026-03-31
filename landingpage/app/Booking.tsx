@@ -51,6 +51,7 @@ export default function Booking() {
 
     }
 
+    // get the available dates from the database
     useEffect(() => {
         const fetchDates = async () => {
             const res = await fetch("http://localhost:5001/api/get_available_dates")

@@ -1,26 +1,86 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-primary: #0d6e56;
+  --color-primary-light: #e1f5ee;
+  --color-primary-dark: #0a5a45;
+  --color-bg-dark: #1a1a18;
+  --color-bg-light: #ffffff;
+  --color-bg-tinted: #faf9f5;
+  --color-bg-faded: #e1f5ee;
+  --color-txt-primary: #0d6e56;
+  --color-txt-dark: #3d3c38;
+  --color-txt-gray: #6b6a64;
+  --color-txt-light: #ffffff;
+  --color-light-gray: #e8e6df;
+  --color-tinted-blue: #eef5fc;
+  --color-tinted-gray: #e9edf1;
+
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+@theme {
+  --color-primary: #0d6e56;
+  --color-primary-light: #e1f5ee;
+  --color-primary-dark: #0a5a45;
+  --color-bg-dark: #1a1a18;
+  --color-bg-light: #ffffff;
+  --color-bg-tinted: #faf9f5;
+  --color-bg-faded: #e1f5ee;
+  --color-txt-primary: #0d6e56;
+  --color-txt-dark: #3d3c38;
+  --color-txt-gray: #6b6a64;
+  --color-txt-light: #ffffff;
+  --color-light-gray: #e8e6df;
+  --color-tinted-blue: #eef5fc;
+  --color-tinted-gray: #e9edf1;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* calendar stylings */
+
+.rdp-root {
+  --rdp-accent-color: #0a5a45;
+  --rdp-background-color: #e1f5ee;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.fc-daygrid-day {
+  cursor: pointer;
+
+}
+
+.fc-day .fc-daygrid-day:hover {
+  background-color: var(--color-primary-light);
+}
+
+/* Toolbar buttons */
+.fc .fc-button {
+  background-color: var(--color-primary);
+  border: none;
+  color: white;
+  border-radius: 8px;
+  padding: 6px 12px;
+  transition: all 0.2s ease;
+}
+
+/* Hover */
+.fc .fc-button:hover {
+  background-color: var(--color-primary-dark);
+}
+
+/* Active (selected view like "week") */
+.fc .fc-button-active {
+  background-color: var(--color-primary-dark) !important;
+}
+
+/* Today button (optional softer look) */
+.fc .fc-button.fc-today-button {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+.fc .fc-daygrid-day.fc-day-today {
+  background-color: var(--color-primary-light) !important;
+}
+
+.fc-event-mirror {
+  background-color: var(--color-primary) !important;
 }
