@@ -1,7 +1,6 @@
 export default function Intro(){
     return(
-        <div className="flex justify-center mb-10 md:text-lg">
-        <div className="sm:w-[1500px] sm:px-20 px-6 wx-auto">
+        <div className="sm:px-20 px-6 pb-10">
             
             {/* Avatar */}
             <div className="relative h-30">
@@ -46,7 +45,6 @@ export default function Intro(){
 
             </div>
             
-        </div>
         </div>
     )
 }

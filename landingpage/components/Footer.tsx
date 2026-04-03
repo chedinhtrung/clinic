@@ -2,7 +2,7 @@
 
 export default function Footer(){
     return (
-        <div className="bg-bg-dark p-8 sm:px-60">
+        <div className="bg-bg-dark p-8 sm:px-20">
 
             <div className="flex flex-wrap sm:gap-30 gap-10 mb-4 pb-6 border-b border-txt-gray">
                 {/* Base Info */}
