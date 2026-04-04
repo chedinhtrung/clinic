@@ -63,21 +63,6 @@ export default function SlotManagement() {
 
     }
 
-    const onEditClose = async (action: "save" | "discard" | "update", slot:Slot) => {
-        if (action === "discard") {
-            setSelectedSlot(undefined);
-            setTempSlot(undefined);
-        }
-
-        else if (action == "update"){
-            // update the slot on the frontend only without saving to the database
-        }
-
-        else if (action === "save") {
-            // Make the change on the database
-        }
-    }
-
     const onNewSlot = (info: any) => {
         if (info.allDay) {
             return; // fix the whole day event bug
@@ -151,7 +136,8 @@ export default function SlotManagement() {
             {selectedSlot && (
                 <SlotEditor
                 slot={selectedSlot}
-                closeHandler={onEditClose}
+                setSelectedSlot={setSelectedSlot}
+                setTempSlot={setTempSlot}
                 ></SlotEditor>
             )}
         </div>

@@ -66,7 +66,7 @@ export default function Booking() {
     }, [])
 
     return (
-        <div className="bg-bg-tinted sm:px-20 py-10 flex flex-col justify-center">
+        <div className="bg-bg-tinted px-6 sm:px-20 py-10 flex flex-col justify-center">
             <h3 className="text-primary font-bold mb-4">LỊCH KHÁM & BẢNG GIÁ</h3>
             <div className="flex flex-col sm:flex-row mb-10 gap-5 sm:gap-20">
 
