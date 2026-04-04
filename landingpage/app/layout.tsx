@@ -10,12 +10,17 @@ import "./globals.css";
 
 const sourceSans = Source_Sans_3({
   subsets: ["latin", "vietnamese"],
+  weight: ["300", "400", "600", "700"],
+  display: "swap",
+  fallback: ["Arial", "Helvetica", "sans-serif"],
   variable: "--font-source-sans",
 });
 
 const merriweather = Merriweather({
   subsets: ["latin", "vietnamese"],
   weight: ["300", "400", "700", "900"],
+  display: "swap",
+  fallback: ["Georgia", "Times New Roman", "serif"],
   variable: "--font-merriweather",
 });
 
@@ -32,7 +37,7 @@ export default function RootLayout(
     <html
       lang="vi"
     >
-      <body className={`min-h-full flex flex-col`}>
+      <body className={`${sourceSans.className} ${sourceSans.variable} ${merriweather.variable} min-h-full flex flex-col`}>
         
         {children}
         <Footer></Footer>

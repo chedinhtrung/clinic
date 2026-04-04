@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
 :root {
+    --font-source-sans-fallback: Arial, Helvetica, sans-serif;
+    --font-merriweather-fallback: Georgia, "Times New Roman", serif;
     --navy: #0a2342;
     --navy-dark: #071a33;
     --navy-mid: #153560;
@@ -22,6 +24,11 @@
     --shadow-lg: 0 8px 40px rgba(10, 35, 66, .16);
 }
 
+@theme inline {
+    --font-sans: var(--font-source-sans), var(--font-source-sans-fallback);
+    --font-serif: var(--font-merriweather), var(--font-merriweather-fallback);
+}
+
 @theme {
     --color-navy: #0a2342;
     --color-navy-dark: #071a33;
@@ -39,6 +46,15 @@
     --color-text: #1a2035;
     --color-green: #1a7a4a;
     --color-red: #c0392b;
+}
+
+html,
+body {
+  font-family: var(--font-source-sans), var(--font-source-sans-fallback);
+}
+
+.font-serif {
+  font-family: var(--font-merriweather), var(--font-merriweather-fallback);
 }
 
 /* calendar stylings */

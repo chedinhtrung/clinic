@@ -96,10 +96,10 @@ export default function Blogs() {
         <div className="relative px-6 py-12 sm:px-20 sm:py-16">
           <div className="max-w-4xl">
             <div className="mb-5 h-1.5 w-20 rounded-full bg-gold" />
-            <h2 className=" text-2xl font-black tracking-tight text-white sm:text-4xl">
+            <h2 className="font-serif text-2xl font-black tracking-tight text-white sm:text-4xl">
               Bài viết &amp; Kiến thức Y khoa
             </h2>
-            <p className="mt-3 max-w-3xl text-sm leading-7 text-white/80 sm:text-base">
+            <p className="font-sans mt-3 max-w-3xl text-sm leading-7 text-white/80 sm:text-base">
               Thông tin y tế chuyên sâu, ca lâm sàng và hoạt động chuyên môn
             </p>
           </div>
@@ -138,7 +138,7 @@ export default function Blogs() {
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">
                 {categories.find((category) => category.id === post.category)?.label}
               </p>
-              <h3 className="mt-2 text-lg font-bold text-navy sm:text-xl">
+              <h3 className="font-serif mt-2 text-lg font-bold text-navy sm:text-xl">
                 {post.title}
               </h3>
             </a>

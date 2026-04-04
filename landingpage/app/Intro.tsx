@@ -14,7 +14,7 @@ export default function Intro() {
                                 ⭐ Chuyên gia hàng đầu Việt Nam
                             </span>
                         </div>
-                        <h1 className="text-4xl font-bold py-2">TS.BS. Chế Đình Nghĩa</h1>
+                        <h1 className="font-serif text-4xl font-bold py-2">TS.BS. Chế Đình Nghĩa</h1>
                         <p className="text-gold font-bold">Tiến sĩ · Bác sĩ Chuyên khoa Chấn thương Chỉnh hình</p>
                     </div>
                 </div>

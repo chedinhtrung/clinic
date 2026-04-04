@@ -15,7 +15,7 @@ export default function Navbar(
                 className="tracking-normal leading-relaxed text-white"
                 style={{ fontKerning: "auto" }}
             >
-                <span className="font-bold">TS.BS. Chế Đình Nghĩa</span>
+                <span className="font-bold font-serif">TS.BS. Chế Đình Nghĩa</span>
                 <br />
                 <span className="font-sans text-xs text-gold tracking-normal uppercase">
                     Chấn Thương Chỉnh Hình · Hà Nội
@@ -23,27 +23,27 @@ export default function Navbar(
             </a>
             </div>
             <ul className="flex h-[100%] gap-8 justify-center items-center flex-1 text-sm font-bold hidden lg:flex">
-                <a href="/" className="hover:text-gold flex h-[100%] text-center items-center hover:border-b-4 border-navy-mid hover:border-b-gold border-b-2"
+                <a href="/" className="hover:text-gold flex h-[100%] text-center items-center hover:border-b-4 border-navy-mid hover:border-b-gold border-b-2 cursor-pointer"
                 onClick={() => {setSelectedPage("home")}}>
                     TRANG CHỦ
                 </a>
-                <a  className=" hover:text-gold flex h-[100%] text-center items-center hover:border-b-4 border-navy-mid hover:border-b-gold border-b-2"
+                <a  className=" hover:text-gold flex h-[100%] text-center items-center hover:border-b-4 border-navy-mid hover:border-b-gold border-b-2 cursor-pointer"
                 onClick={() => {setSelectedPage("intro")}}>
                     GIỚI THIỆU
                 </a>
-                <a  className="hover:text-gold flex h-[100%] text-center items-center hover:border-b-4 border-navy-mid hover:border-b-gold border-b-2"
+                <a  className="hover:text-gold flex h-[100%] text-center items-center hover:border-b-4 border-navy-mid hover:border-b-gold border-b-2 cursor-pointer"
                 onClick={() => {setSelectedPage("injuries")}}>
                     CHẤN THƯƠNG
                 </a>
-                <a  className="hover:text-gold flex h-[100%] text-center items-center hover:border-b-4 border-navy-mid hover:border-b-gold border-b-2"
+                <a  className="hover:text-gold flex h-[100%] text-center items-center hover:border-b-4 border-navy-mid hover:border-b-gold border-b-2 cursor-pointer"
                 onClick={() => {setSelectedPage("methods")}}>
                     PHẪU THUẬT
                 </a>
-                <a className="hover:text-gold flex h-[100%] text-center items-center hover:border-b-4 border-navy-mid hover:border-b-gold border-b-2"
+                <a className="hover:text-gold flex h-[100%] text-center items-center hover:border-b-4 border-navy-mid hover:border-b-gold border-b-2 cursor-pointer"
                 onClick={() => {setSelectedPage("blog")}}>
                     BÀI VIẾT
                 </a>
-                <a  className="hover:text-gold flex h-[100%] text-center items-center hover:border-b-4 border-navy-mid hover:border-b-gold border-b-2"
+                <a  className="hover:text-gold flex h-[100%] text-center items-center hover:border-b-4 border-navy-mid hover:border-b-gold border-b-2 cursor-pointer"
                 onClick={() => {setSelectedPage("contact")}}>
                     LIÊN HỆ
                 </a>

@@ -11,6 +11,7 @@ type InjuryCard = {
   badge: string;
   description: string;
   tags: string[];
+  href: string;
 };
 
 const groups: InjuryGroup[] = [
@@ -40,6 +41,7 @@ const featuredInjuries: InjuryCard[] = [
     description:
       "Đứt ACL là chấn thương khớp gối nghiêm trọng, phổ biến ở vận động viên. Biểu hiện: tiếng \"bụp\", sưng nề nhanh, mất vững khớp gối. Chẩn đoán qua nghiệm pháp Lachman, Pivot Shift và MRI. Điều trị phẫu thuật nội soi tái tạo gần ghép tự thân.",
     tags: ["Nội soi", "Gân ghép tự thân", "Phục hồi 6-9 tháng"],
+    href: "/injuries/dut-day-chang-cheo-truoc-acl",
   },
   {
     icon: "🌀",
@@ -48,6 +50,7 @@ const featuredInjuries: InjuryCard[] = [
     description:
       "Sụn chêm là hai miếng sụn hình chữ C trong khớp gối, hấp thụ lực và bôi trơn khớp. Rách sụn chêm do chấn thương cấp hoặc thoái hóa. Điều trị: bảo tồn hoặc phẫu thuật nội soi khâu / cắt bán phần.",
     tags: ["Khâu sụn chêm", "Cắt bán phần", "Nội soi"],
+    href: "/injuries/rach-sun-chem",
   },
   {
     icon: "🦴",
@@ -56,6 +59,7 @@ const featuredInjuries: InjuryCard[] = [
     description:
       "Các trường hợp gãy xương nhiều mảnh, gãy phạm khớp hoặc kèm tổn thương phần mềm cần được đánh giá hình ảnh kỹ lưỡng. Mục tiêu điều trị là phục hồi trục chi, vững khớp và chức năng vận động lâu dài.",
     tags: ["X-quang / CT", "Kết hợp xương", "Phục hồi chức năng"],
+    href: "/injuries/gay-xuong-phuc-tap",
   },
 ];
 
@@ -101,18 +105,21 @@ export default function Injuries() {
           </div>
         </aside>
 
-        <div className="space-y-8">
+        <div className="max-h-[44rem] space-y-8 overflow-y-auto pr-2
+        [scrollbar-width:none] [-ms-overflow-style:none]
+        [&::-webkit-scrollbar]:hidden">
           {featuredInjuries.map((injury) => (
-            <article
+            <a
               key={injury.title}
-              className="border border-[#d7dfed] bg-white p-8 shadow-[0_18px_36px_rgba(10,35,66,0.07)] sm:p-10"
+              href={injury.href}
+              className="block border border-[#d7dfed] bg-white p-8 shadow-[0_18px_36px_rgba(10,35,66,0.07)] transition hover:border-navy/40 hover:shadow-[0_22px_42px_rgba(10,35,66,0.1)] sm:p-10"
             >
               <div className="flex gap-5">
                 <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#eef1ff] text-3xl">
                   {injury.icon}
                 </div>
                 <div className="min-w-0">
-                  <h3 className=" text-3xl font-black tracking-tight text-navy">
+                  <h3 className="font-serif text-3xl font-black tracking-tight text-navy">
                     {injury.title}
                   </h3>
                   <div className="mt-3 inline-flex rounded-sm bg-gold px-3 py-1 text-xs font-extrabold uppercase tracking-[0.16em] text-white">
@@ -135,7 +142,7 @@ export default function Injuries() {
                   </span>
                 ))}
               </div>
-            </article>
+            </a>
           ))}
         </div>
       </div>
