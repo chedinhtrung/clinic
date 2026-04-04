@@ -80,7 +80,7 @@ export default function Booking() {
                         <span className="text-primary">✓</span> Kê đơn thuốc (nếu phù hợp)
                     </p>
                 </div>
-                <div className="flex gap-6 sm:ml-auto">
+                <div className="flex gap-6 sm:ml-auto flex-col sm:flex-row">
                     <div className="flex justify-center">
                         <DayPicker
                             mode="single"
@@ -97,7 +97,7 @@ export default function Booking() {
                         />
                     </div>
 
-                    <div className="ml-auto">
+                    <div className="sm:ml-auto">
                         <div className="h-[2.75rem] flex items-center">
                             <h3 className="text-primary font-bold ">Khung giờ</h3>
                         </div>

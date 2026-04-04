@@ -1,9 +1,23 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "react-day-picker/dist/style.css";
-import "./globals.css";
+import "./globals_v1.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+
+import { Source_Sans_3, Merriweather } from "next/font/google";
+import "./globals.css";
+
+const sourceSans = Source_Sans_3({
+  subsets: ["latin", "vietnamese"],
+  variable: "--font-source-sans",
+});
+
+const merriweather = Merriweather({
+  subsets: ["latin", "vietnamese"],
+  weight: ["300", "400", "700", "900"],
+  variable: "--font-merriweather",
+});
 
 export const metadata: Metadata = {
   title: "TS.BS Chế Đình Nghĩa — Tư vấn CTCH Online",
@@ -18,8 +32,8 @@ export default function RootLayout(
     <html
       lang="vi"
     >
-      <body className="min-h-full flex flex-col">
-        <Navbar></Navbar>
+      <body className={`${sourceSans.variable} ${merriweather.variable} min-h-full flex flex-col`}>
+        
         {children}
         <Footer></Footer>
       </body>

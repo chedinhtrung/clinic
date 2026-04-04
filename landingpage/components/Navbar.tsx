@@ -1,41 +1,51 @@
 
 
-export default function Navbar(){
+export default function Navbar(
+    { selectedPage, setSelectedPage }
+        : { selectedPage: string, setSelectedPage: (page: string) => void }
+) {
     return (
-        <nav className="h-20 items-center px-8 bg-bg-tinted flex gap-4">
-            <a href="/" className="text-txt-primary  font-bold">TS.BS Chế Đình Nghĩa</a>
-            <ul className="flex gap-4 justify-center items-center flex-1  font-bold hidden sm:flex">
-                <li>
-                    <a href="#" className="text-txt-gray hover:text-primary">Bác sỹ</a>
-                </li>
-                <li>
-                    <a href="#" className="text-txt-gray hover:text-primary">Quy trình</a>
-                </li>
-                <li>
-                    <a href="#" className="text-txt-gray hover:text-primary">Bảng giá</a>
-                </li>
-                <li>
-                    <a href="#" className="text-txt-gray hover:text-primary">Theo dõi</a>
-                </li>
+        <nav className="h-20 items-center px-8 bg-navy-mid flex gap-4 text-white leading-relaxed sticky top-0">
+            <div className="flex items-center gap-4">
+            <div className="p-1 rounded-full bg-gold aspect-square flex items-center">
+                CĐN
+            </div>
+            <a
+                href="/"
+                className="tracking-normal leading-relaxed text-white"
+                style={{ fontKerning: "auto" }}
+            >
+                <span className="font-bold">TS.BS. Chế Đình Nghĩa</span>
+                <br />
+                <span className="font-sans text-xs text-gold tracking-normal uppercase">
+                    Chấn Thương Chỉnh Hình · Hà Nội
+                </span>
+            </a>
+            </div>
+            <ul className="flex h-[100%] gap-8 justify-center items-center flex-1 text-sm font-bold hidden lg:flex">
+                <a href="/" className="hover:text-gold flex h-[100%] text-center items-center hover:border-b-4 border-navy-mid hover:border-b-gold border-b-2">
+                    TRANG CHỦ
+                </a>
+                <a href="#" className=" hover:text-gold flex h-[100%] text-center items-center hover:border-b-4 border-navy-mid hover:border-b-gold border-b-2">
+                    GIỚI THIỆU
+                </a>
+                <a href="#" className="hover:text-gold flex h-[100%] text-center items-center hover:border-b-4 border-navy-mid hover:border-b-gold border-b-2">
+                    CHẤN THƯƠNG
+                </a>
+                <a href="#" className="hover:text-gold flex h-[100%] text-center items-center hover:border-b-4 border-navy-mid hover:border-b-gold border-b-2">
+                    PHẪU THUẬT
+                </a>
+                <a href="#" className="hover:text-gold flex h-[100%] text-center items-center hover:border-b-4 border-navy-mid hover:border-b-gold border-b-2">
+                    BÀI VIẾT
+                </a>
+                <a href="#" className="hover:text-gold flex h-[100%] text-center items-center hover:border-b-4 border-navy-mid hover:border-b-gold border-b-2">
+                    LIÊN HỆ
+                </a>
             </ul>
-            <div className="flex gap-2 justify-center items-center ml-auto  h-full font-bold">
-                <a href="#" className="bg-bg-light h-1/2 aspect-square flex justify-center items-center rounded-sm border border-light-gray hover:border-primary hover:text-primary"
-                title="YouTube">
-                ▶
+            <div className="flex gap-2 justify-center items-center ml-auto  h-full font-bold uppercase">
+                <a href="#" className="bg-gold hover:bg-gold-light flex justify-center items-center rounded-sm p-2 flex-shrink-0">
+                    Đặt lịch khám →
                 </a>
-                <a href="#" className="bg-bg-light h-1/2 aspect-square flex justify-center items-center rounded-sm border border-light-gray hover:border-primary hover:text-primary"
-                title="TikTok">
-                ♪
-                </a>
-                <a href="#" className="bg-bg-light h-1/2 aspect-square flex justify-center items-center rounded-sm border border-light-gray hover:border-primary hover:text-primary"
-                title="Facebook">
-                f
-                </a>
-                
-                <a href= "#" className="bg-primary hover:bg-primary-dark text-txt-light flex justify-center items-center rounded-sm p-2 flex-shrink-0">
-                Đặt lịch →
-                </a>
-                
             </div>
         </nav>
     )

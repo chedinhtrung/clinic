@@ -1,38 +1,49 @@
 @import "tailwindcss";
 
 :root {
-  --color-primary: #0d6e56;
-  --color-primary-light: #e1f5ee;
-  --color-primary-dark: #0a5a45;
-  --color-bg-dark: #1a1a18;
-  --color-bg-light: #ffffff;
-  --color-bg-tinted: #faf9f5;
-  --color-bg-faded: #e1f5ee;
-  --color-txt-primary: #0d6e56;
-  --color-txt-dark: #3d3c38;
-  --color-txt-gray: #6b6a64;
-  --color-txt-light: #ffffff;
-  --color-light-gray: #e8e6df;
-  --color-tinted-blue: #eef5fc;
-  --color-tinted-gray: #e9edf1;
+    --navy: #0a2342;
+    --navy-dark: #071a33;
+    --navy-mid: #153560;
+    --navy-light: #1e4a80;
+    --gold: #c4922a;
+    --gold-light: #e8b84b;
+    --white: #fff;
+    --off-white: #f8f9fc;
+    --gray-100: #f0f2f7;
+    --gray-200: #e2e6ef;
+    --gray-400: #9aa3b8;
+    --gray-600: #5a6480;
+    --gray-800: #2d3550;
+    --text: #1a2035;
+    --green: #1a7a4a;
+    --red: #c0392b;
+    --radius: 3px;
+    --shadow: 0 2px 16px rgba(10, 35, 66, .10);
+    --shadow-lg: 0 8px 40px rgba(10, 35, 66, .16);
+}
 
+@theme inline {
+  --font-sans: var(--font-source-sans);
+  --font-serif: var(--font-merriweather);
 }
 
 @theme {
-  --color-primary: #0d6e56;
-  --color-primary-light: #e1f5ee;
-  --color-primary-dark: #0a5a45;
-  --color-bg-dark: #1a1a18;
-  --color-bg-light: #ffffff;
-  --color-bg-tinted: #faf9f5;
-  --color-bg-faded: #e1f5ee;
-  --color-txt-primary: #0d6e56;
-  --color-txt-dark: #3d3c38;
-  --color-txt-gray: #6b6a64;
-  --color-txt-light: #ffffff;
-  --color-light-gray: #e8e6df;
-  --color-tinted-blue: #eef5fc;
-  --color-tinted-gray: #e9edf1;
+    --color-navy: #0a2342;
+    --color-navy-dark: #071a33;
+    --color-navy-mid: #153560;
+    --color-navy-light: #1e4a80;
+    --color-gold: #c4922a;
+    --color-gold-light: #e8b84b;
+    --color-white: #fff;
+    --color-off-white: #f8f9fc;
+    --color-gray-100: #f0f2f7;
+    --color-gray-200: #e2e6ef;
+    --color-gray-400: #9aa3b8;
+    --color-gray-600: #5a6480;
+    --color-gray-800: #2d3550;
+    --color-text: #1a2035;
+    --color-green: #1a7a4a;
+    --color-red: #c0392b;
 }
 
 /* calendar stylings */
