@@ -31,7 +31,7 @@ CREATE TABLE bookings (
   session_id text,
   patient_id uuid REFERENCES patients(id),
   created_at timestamptz NOT NULL DEFAULT now(),
-  expires_at timestamptz,
+  expires_at timestamptz NOT NULL,
   confirmed_at timestamptz,
   confirmation_hash text,
   status booking_status NOT NULL DEFAULT 'hold'
