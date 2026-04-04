@@ -27,29 +27,29 @@ export default function Navbar(
                 onClick={() => {setSelectedPage("home")}}>
                     TRANG CHỦ
                 </a>
-                <a href="#" className=" hover:text-gold flex h-[100%] text-center items-center hover:border-b-4 border-navy-mid hover:border-b-gold border-b-2"
+                <a  className=" hover:text-gold flex h-[100%] text-center items-center hover:border-b-4 border-navy-mid hover:border-b-gold border-b-2"
                 onClick={() => {setSelectedPage("intro")}}>
                     GIỚI THIỆU
                 </a>
-                <a href="#" className="hover:text-gold flex h-[100%] text-center items-center hover:border-b-4 border-navy-mid hover:border-b-gold border-b-2"
+                <a  className="hover:text-gold flex h-[100%] text-center items-center hover:border-b-4 border-navy-mid hover:border-b-gold border-b-2"
                 onClick={() => {setSelectedPage("injuries")}}>
                     CHẤN THƯƠNG
                 </a>
-                <a href="#" className="hover:text-gold flex h-[100%] text-center items-center hover:border-b-4 border-navy-mid hover:border-b-gold border-b-2"
+                <a  className="hover:text-gold flex h-[100%] text-center items-center hover:border-b-4 border-navy-mid hover:border-b-gold border-b-2"
                 onClick={() => {setSelectedPage("methods")}}>
                     PHẪU THUẬT
                 </a>
-                <a href="#" className="hover:text-gold flex h-[100%] text-center items-center hover:border-b-4 border-navy-mid hover:border-b-gold border-b-2"
+                <a className="hover:text-gold flex h-[100%] text-center items-center hover:border-b-4 border-navy-mid hover:border-b-gold border-b-2"
                 onClick={() => {setSelectedPage("blog")}}>
                     BÀI VIẾT
                 </a>
-                <a href="#" className="hover:text-gold flex h-[100%] text-center items-center hover:border-b-4 border-navy-mid hover:border-b-gold border-b-2"
+                <a  className="hover:text-gold flex h-[100%] text-center items-center hover:border-b-4 border-navy-mid hover:border-b-gold border-b-2"
                 onClick={() => {setSelectedPage("contact")}}>
                     LIÊN HỆ
                 </a>
             </ul>
             <div className="flex gap-2 justify-center items-center ml-auto  h-full font-bold uppercase">
-                <a href="#" className="bg-gold hover:bg-gold-light flex justify-center items-center rounded-sm p-2 flex-shrink-0">
+                <a  className="bg-gold hover:bg-gold-light flex justify-center items-center rounded-sm p-2 flex-shrink-0">
                     Đặt lịch khám →
                 </a>
             </div>

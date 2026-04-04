@@ -22,11 +22,6 @@
     --shadow-lg: 0 8px 40px rgba(10, 35, 66, .16);
 }
 
-@theme inline {
-  --font-sans: var(--font-source-sans);
-  --font-serif: var(--font-merriweather);
-}
-
 @theme {
     --color-navy: #0a2342;
     --color-navy-dark: #071a33;

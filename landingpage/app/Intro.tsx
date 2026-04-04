@@ -83,9 +83,9 @@ export default function Intro() {
             </div>
 
             <div className="rounded-xl bg-navy-light py-6 px-8 text-white ml-auto hidden xl:block">
-                <p className="text-gold text-sm font-semibold uppercase tracking-[0.25em] mt-8">
+                <h2 className="text-gold text-sm font-semibold uppercase tracking-[0.25em] mt-8">
                     Chuyên khoa điều trị
-                </p>
+                </h2>
 
                 <div className="mt-4 divide-y divide-white/10">
                     <div className="py-6 cursor-pointer">
