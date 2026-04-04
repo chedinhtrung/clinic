@@ -17,11 +17,7 @@ export default function RootLayout(
       lang="vi"
     >
       <body className="min-h-full flex flex-col">
-        <div className="p-8">
-          <div className="border-1 border-light-gray rounded-4xl">
           {children}
-          </div>
-        </div>
       </body>
     </html>
   );

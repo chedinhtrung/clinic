@@ -7,7 +7,7 @@ import SlotManagement from "@/components/SlotMgmt";
 export default function Home() {
   const [selectedTab, setSelectedTab] = useState<string>("dashboard");
   return (
-    <div className="flex">
+    <div className="flex h-[100vh]">
       <Navbar
         selectedTab={selectedTab}
         setSelectedTab={setSelectedTab}

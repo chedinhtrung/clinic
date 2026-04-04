@@ -1,7 +1,5 @@
 "use client"
 import { useState } from "react"
-import { DayPicker } from "react-day-picker"
-import { vi } from "date-fns/locale"
 import { useEffect } from "react"
 
 import FullCalendar from "@fullcalendar/react";
@@ -12,63 +10,16 @@ import { useRef } from "react";
 import interactionPlugin from "@fullcalendar/interaction";
 import { Slot } from "./Slot"
 
-import SlotEdit from "./SlotEdit"
+import viLocale from '@fullcalendar/core/locales/vi'
+
+import SlotEditor from "./SlotEditor";
 
 export default function SlotManagement() {
-
-    const POPUP_WIDTH = 400;
-    const POPUP_HEIGHT = 300;
-    const OFFSET = 10;
 
     const [slotlist, setSlotlist] = useState<Slot[]>([]); // for slots coming from database 
     const [selectedSlot, setSelectedSlot] = useState<Slot | undefined>(); // For editing existing slots
     const [popupPos, setPopupPos] = useState<{ x: number, y: number } | undefined>(); // For editing existing slots
     const [tempSlot, setTempSlot] = useState<Slot | undefined>(undefined); // For adding a new slot 
-
-    useEffect(() => {
-
-        if (!selectedSlot) return;
-
-        const updatePosition = () => {
-
-            const el = document.querySelector(
-                `[data-slot-id="${selectedSlot.id}"]`
-            );
-
-            if (!el) return;
-
-            const rect = el.getBoundingClientRect();
-
-            let x = rect.right + OFFSET;
-            let y = rect.top;
-
-            // Flip horizontally if overflowing right
-            if (x + POPUP_WIDTH > window.innerWidth) {
-                x = rect.left - POPUP_WIDTH - OFFSET;
-            }
-
-            // Clamp vertically
-            if (y + POPUP_HEIGHT > window.innerHeight) {
-                y = window.innerHeight - POPUP_HEIGHT - OFFSET;
-            }
-
-            if (y < OFFSET) {
-                y = OFFSET;
-            }
-
-            setPopupPos({ x, y });
-        };
-
-        updatePosition();
-
-        window.addEventListener("scroll", updatePosition);
-        window.addEventListener("resize", updatePosition);
-
-        return () => {
-            window.removeEventListener("scroll", updatePosition);
-            window.removeEventListener("resize", updatePosition);
-        };
-    }, [selectedSlot]);
 
     const calendarRef = useRef<FullCalendar | null>(null);
 
@@ -105,22 +56,27 @@ export default function SlotManagement() {
             (tempSlot && tempSlot.id === slotId ? tempSlot : undefined);
 
         setSelectedSlot(slot);
-        
-        if (slot !== tempSlot){
+
+        if (slot !== tempSlot) {
             setTempSlot(undefined);
         }
-       
+
     }
 
-    const onEditClose = async (action: "save" | "discard") => {
-        if (action === "discard"){
+    const onEditClose = async (action: "save" | "discard" | "update", slot:Slot) => {
+        if (action === "discard") {
             setSelectedSlot(undefined);
             setTempSlot(undefined);
         }
-        else if (action === "save"){
-            // TODO: query database
+
+        else if (action == "update"){
+            // update the slot on the frontend only without saving to the database
         }
-    }   
+
+        else if (action === "save") {
+            // Make the change on the database
+        }
+    }
 
     const onNewSlot = (info: any) => {
         if (info.allDay) {
@@ -140,14 +96,16 @@ export default function SlotManagement() {
     }
 
     return (
-        <div className="">
-            <div className="bg-bg-tinted p-4">
+        <div className="h-[100%] flex-1">
+            <div className="bg-bg-tinted p-4 h-[100vh]">
                 <FullCalendar
                     ref={calendarRef}
                     plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
                     initialView="dayGridMonth"
                     dayMaxEvents={3}
-                    height="auto"
+                    allDaySlot={false}
+                    locale={viLocale}
+                    height="100%"
                     selectable={true}
                     selectMirror={true}
                     select={onNewSlot}
@@ -177,8 +135,8 @@ export default function SlotManagement() {
                         title: slot.title,
                         color: slot.status === "free" ? "#0d6e56"
                             : slot.status === "pending" ? "#f59e0b"
-                            : slot.status === "creating" ? "#4d756bff"
-                            : "#ef4444",
+                                : slot.status === "creating" ? "#4d756bff"
+                                    : "#ef4444",
                         extendedProps: {
                             id: slot.id,
                             status: slot.status
@@ -190,14 +148,11 @@ export default function SlotManagement() {
 
                 />
             </div>
-            {selectedSlot && popupPos && (
-                <SlotEdit
-                    slot={selectedSlot}
-                    closeHandler={onEditClose}
-                    position={popupPos}
-                    height={POPUP_HEIGHT}
-                    width={POPUP_WIDTH}
-                ></SlotEdit>
+            {selectedSlot && (
+                <SlotEditor
+                slot={selectedSlot}
+                closeHandler={onEditClose}
+                ></SlotEditor>
             )}
         </div>
     )

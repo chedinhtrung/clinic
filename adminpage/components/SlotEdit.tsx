@@ -1,5 +1,5 @@
 import { Slot } from "./Slot"
-import CalendarSVG from "./CalendarSVG";
+import CalendarSVG from "./icons/CalendarSVG";
 import { CreditCard } from "lucide-react";
 import { User } from "lucide-react";
 <CreditCard className="text-white w-5 h-5" />
@@ -15,7 +15,7 @@ export default function SlotEdit(
     }:
         {
             slot: Slot;
-            closeHandler: (action: "save" | "discard") => void,
+            closeHandler: (action: "save" | "discard" | "update") => void,
             position: { x: number, y: number },
             width: number,
             height: number
