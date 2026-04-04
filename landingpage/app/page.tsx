@@ -12,11 +12,19 @@ export default function Home() {
   return (
     <div>
       <Navbar
-      selectedPage={selectedPage}
-      setSelectedPage={setSelectedPage}
+        selectedPage={selectedPage}
+        setSelectedPage={setSelectedPage}
       ></Navbar>
-      <Intro></Intro>
-      <Booking></Booking>
+
+      {
+        selectedPage === "home" && (
+          <div>
+            <Intro />
+            <Booking />
+          </div>
+        )
+      }
+
     </div>
   );
 }
