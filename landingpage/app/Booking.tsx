@@ -6,13 +6,20 @@ import { vi } from "date-fns/locale"
 
 type Slot = {
     id: string;
-    from: string;
-    to: string;
+    startAt: string;
+    endAt: string;
 }
 
 // Convert a calendar day into the YYYY-MM-DD format expected by the backend.
 function toDateKey(date: Date) {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function formatSlotTime(isoTimestamp: string) {
+    return new Date(isoTimestamp).toLocaleTimeString(undefined, {
+        hour: "2-digit",
+        minute: "2-digit",
+    });
 }
 
 export default function Booking() {
@@ -73,6 +80,7 @@ export default function Booking() {
         try {
             const data = await fetchSlotsForDate(dateKey);
             setSlotlist(data);
+            console.log(data)
             setCachedSlotsByDate((current) => ({
                 ...current,
                 [dateKey]: data,
@@ -259,7 +267,7 @@ export default function Booking() {
                                     className={`px-4 py-2 rounded-lg ${selectedSlot && s.id === selectedSlot.id ? `bg-primary text-white` : `bg-primary-light`} hover:bg-primary hover:text-white text-center`}
                                     onClick={() => { onSlotSelect(s) }}
                                 >
-                                    {s.from} - {s.to}
+                                    {formatSlotTime(s.startAt)} - {formatSlotTime(s.endAt)}
                                 </div>
                             ))}
                         </div>

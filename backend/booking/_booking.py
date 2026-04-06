@@ -45,16 +45,23 @@ def db_get_available_dates() -> list[str]:
     return dates
 
 
-"""Return all slots for one YYYY-MM-DD date in a frontend-friendly shape."""
+"""Return all slots for one YYYY-MM-DD date with timezone-aware timestamps."""
 def db_get_available_slots(selected_date_raw: str) -> list[dict[str, str]]:
     selected_date = _parse_selected_date(selected_date_raw)
     day_start = datetime.combine(selected_date, time.min)
     day_end = day_start + timedelta(days=1)
 
     query = """
-        SELECT start_at, end_at, id
-        FROM slots
-        WHERE start_at >= %s AND start_at < %s
+        SELECT s.start_at, s.end_at, s.id
+        FROM slots s
+        WHERE s.start_at >= %s
+          AND s.start_at < %s
+          AND NOT EXISTS (
+              SELECT 1
+              FROM bookings b
+              WHERE b.slot_id = s.id
+                AND b.status IN ('pending', 'confirmed')
+          )
         ORDER BY start_at ASC
     """
 
@@ -66,9 +73,9 @@ def db_get_available_slots(selected_date_raw: str) -> list[dict[str, str]]:
     print(rows)
     return [
         {
-            "from": row[0].strftime("%H:%M"),
-            "to": row[1].strftime("%H:%M"),
             "id": str(row[2]),
+            "startAt": row[0].isoformat(),
+            "endAt": row[1].isoformat(),
         }
         for row in rows
     ]
