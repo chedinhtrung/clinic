@@ -89,7 +89,7 @@ def db_claim_slot(*, slot_id: str, session_id: str) -> dict[str, str | int]:
                     with conn.cursor() as cur:
                         cur.execute(
                             """
-                            SELECT id
+                            SELECT id, start_at, end_at
                             FROM slots
                             WHERE id = %s
                             FOR UPDATE
@@ -128,6 +128,9 @@ def db_claim_slot(*, slot_id: str, session_id: str) -> dict[str, str | int]:
                 "id": str(booking_row[0]),
                 "reservationCode": booking_row[1],
                 "status": booking_row[2],
+                "slotId": str(slot_row[0]),
+                "startAt": slot_row[1].isoformat(),
+                "endAt": slot_row[2].isoformat(),
             }
         except UniqueViolation:
             continue

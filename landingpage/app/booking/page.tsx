@@ -5,36 +5,37 @@ import { useSearchParams } from "next/navigation"
 import CalendarSVG from "@/components/CalendarSVG";
 
 export default function Booking() {
-
-    // TODO: Change pending in database first then load it using ID, not via URL param passing
     const searchParams = useSearchParams();
 
-    
+    const bookingId = searchParams.get("bookingId");
+    const reservationCode = searchParams.get("reservationCode");
+    const startAtParam = searchParams.get("startAt");
+    const endAtParam = searchParams.get("endAt");
 
-    const date = new Date(searchParams.get("date"));
-    const from = searchParams.get("from");
-    const to = searchParams.get("to");
-
-    console.log(date, from, to);
+    const startAt = startAtParam ? new Date(startAtParam) : null;
+    const endAt = endAtParam ? new Date(endAtParam) : null;
+    const from = startAt ? startAt.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }) : "";
+    const to = endAt ? endAt.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }) : "";
 
     return (
-        <div className="flex justify-center gap-6 p-10 flex-col sm:flex-row bg-tinted-gray">
+        <div className="flex justify-center gap-6 p-6 sm:p-10 flex-col sm:flex-row bg-tinted-gray">
             <div>
                 <h1 className="text-primary font-bold mb-1 text-3xl">ĐẶT CHỖ CỦA BẠN</h1>
                 <p className="text-txt-gray text-sm">Vui lòng điền thông tin liên hệ và chúng tôi sẽ xác nhận lịch hẹn của bạn</p>
                 {
                     <div className="bg-tinted-blue rounded-lg shadow-lg p-4 my-6 flex items-center gap-4">
-                        <CalendarSVG></CalendarSVG>
+                        <div className=" sm:block"><CalendarSVG></CalendarSVG></div>
                         <div>
                             <h1 className="text-primary font-bold mb-1 text-lg">THÔNG TIN LỊCH HẸN</h1>
                             <p className="font-bold text-md">
-                                {date.toLocaleString("vi-VN", {
+                                {startAt?.toLocaleString("vi-VN", {
                                     weekday: "long",
                                     year: "numeric",
                                     month: "long",
                                     day: "numeric",
                                 })}   <br></br>   {from} - {to}
                             </p>
+                            <p className="text-txt-gray text-sm">Mã đặt chỗ: {reservationCode}</p>
                             <p className="text-txt-gray">Tư vấn online</p>
                         </div>
 

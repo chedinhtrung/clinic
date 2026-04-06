@@ -1,5 +1,6 @@
 "use client"
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { DayPicker } from "react-day-picker"
 import { vi } from "date-fns/locale"
 
@@ -15,6 +16,7 @@ function toDateKey(date: Date) {
 }
 
 export default function Booking() {
+    const router = useRouter();
     // All bookable days returned by the backend.
     const [availableDates, setAvailableDates] = useState<Date[]>([]);
     // The day currently selected in the calendar.
@@ -115,7 +117,15 @@ export default function Booking() {
                 throw new Error(data?.error ?? "Khong dat duoc lich");
             }
 
-            console.log(data);
+            const booking = data.booking;
+            const params = new URLSearchParams({
+                bookingId: booking.id,
+                reservationCode: String(booking.reservationCode),
+                slotId: booking.slotId,
+                startAt: booking.startAt,
+                endAt: booking.endAt,
+            });
+            router.push(`/booking?${params.toString()}`);
         } catch (error) {
             console.error(error);
         } finally {
@@ -255,7 +265,14 @@ export default function Booking() {
                         </div>
                         {
                             selectedSlot ? (
-                                <a href="#" className="p-2 block mt-4 bg-primary text-white rounded-lg font-bold text-center">ĐẶT LỊCH</a>
+                                <button
+                                    type="button"
+                                    className="p-2 block mt-4 w-full bg-primary text-white rounded-lg font-bold text-center disabled:opacity-60"
+                                    onClick={onClaimSlot}
+                                    disabled={isClaimingSlot}
+                                >
+                                    {isClaimingSlot ? "Đang tải..." : "ĐẶT LỊCH"}
+                                </button>
                             ) : (
                                 <div className="p-4"></div>
                             )

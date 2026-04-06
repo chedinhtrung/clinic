@@ -2,15 +2,19 @@
 
 import { useState } from "react"
 
-export default function ContactForm({confirmed = false}) {
+export default function ContactForm({ confirmed = false }) {
   const [form, setForm] = useState({
     name: "",
     email: "",
     phone: "",
+    birthdate: "",
+    gender: "",
     message: "",
   })
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     setForm({
       ...form,
       [e.target.name]: e.target.value,
@@ -24,7 +28,6 @@ export default function ContactForm({confirmed = false}) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-md grid grid-cols-2 gap-3">
-      
       <div>
         <label className="block text-sm font-medium mb-1">Họ và tên <span className="text-red-500">*</span></label>
         <input
@@ -56,6 +59,34 @@ export default function ContactForm({confirmed = false}) {
           onChange={handleChange}
           className="w-full border rounded p-2"
         />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-1">Ngày sinh <span className="text-red-500">*</span></label>
+        <input
+          name="birthdate"
+          type="date"
+          value={form.birthdate}
+          onChange={handleChange}
+          className="w-full border rounded p-2"
+          required
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-1">Giới tính <span className="text-red-500">*</span></label>
+        <select
+          name="gender"
+          value={form.gender}
+          onChange={handleChange}
+          className="w-full border rounded p-2 bg-white"
+          required
+        >
+          <option value="">Chọn giới tính</option>
+          <option value="male">Nam</option>
+          <option value="female">Nữ</option>
+          <option value="other">Khác</option>
+        </select>
       </div>
 
       <div>
