@@ -3,7 +3,29 @@ from flask_cors import CORS
 from _booking import *
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, supports_credentials=True)
+
+BOOKING_SESSION_COOKIE = "booking_session_id"
+BOOKING_SESSION_MAX_AGE = 60 * 60 * 24 * 30
+
+
+@app.route("/api/session", methods=["GET"])
+def ensure_session():
+    existing_session_id = request.cookies.get(BOOKING_SESSION_COOKIE)
+    response = jsonify({"ok": True})
+
+    if existing_session_id:
+        print(existing_session_id)
+        return response
+
+    response.set_cookie(
+        BOOKING_SESSION_COOKIE,
+        create_booking_session_id(),
+        max_age=BOOKING_SESSION_MAX_AGE,
+        httponly=True,
+        samesite="Lax",
+    )
+    return response
 
 @app.route("/api/get_available_slots", methods=["POST"])
 def get_available_slots():

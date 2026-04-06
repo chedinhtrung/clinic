@@ -10,11 +10,11 @@ export default function Intro() {
                     </div>
                     <div className="h-[100%] flex flex-col py-auto">
                         <div className="inline-flex items-center gap-2 rounded-md border border-[#C9952E]/50 bg-gold/20 px-4 py-2">
-                            <span className="text-gold text-sm font-semibold tracking-widest uppercase">
+                            <span className="text-gold text-sm font-semibold tracking-widest uppercase text-[0.5rem] sm:text-[0.8rem]">
                                 ⭐ Chuyên gia hàng đầu Việt Nam
                             </span>
                         </div>
-                        <h1 className="font-serif text-4xl font-bold py-2">TS.BS. Chế Đình Nghĩa</h1>
+                        <h1 className="font-serif text-lg sm:text-3xl font-bold py-2">TS.BS. Chế Đình Nghĩa</h1>
                         <p className="text-gold font-bold">Tiến sĩ · Bác sĩ Chuyên khoa Chấn thương Chỉnh hình</p>
                     </div>
                 </div>

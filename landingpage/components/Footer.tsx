@@ -2,35 +2,35 @@
 
 export default function Footer(){
     return (
-        <div className="bg-bg-dark p-8 sm:px-20">
+        <div className="bg-navy-dark p-8 sm:px-20">
 
             <div className="flex flex-wrap sm:gap-30 gap-10 mb-4 pb-6 border-b border-txt-gray">
                 {/* Base Info */}
                 <div className="max-w-60">
-                    <h3 className="text-txt-light mb-2">TS. BS. Chế Đình Nghĩa</h3>
+                    <h3 className="text-txt-light mb-2 font-serif">TS. BS. Chế Đình Nghĩa</h3>
                     <p className="text-txt-gray ">
                         Tư vấn chuyên khoa chấn thương chỉnh hình — khớp gối, vai, háng. Hoạt động theo Thông tư 30/2023/TT-BYT.
                     </p>
                 </div>
                 <div className="sm:ml-auto text-txt-gray sm:min-w-40">
                     <h3 className=" font-bold flex-col mb-2">DỊCH VỤ</h3>
-                    <a href="#" className=" font-bold hover:text-primary block my-1">Mô hình tư vấn</a>
-                    <a href="#" className=" font-bold hover:text-primary block my-1">Quy trình khám</a>
-                    <a href="#" className=" font-bold hover:text-primary block my-1">Bảng giá</a>
-                    <a href="#" className=" font-bold hover:text-primary block my-1">Đặt lịch</a>
+                    <a href="#" className=" font-bold hover:text-gold block my-1">Mô hình tư vấn</a>
+                    <a href="#" className=" font-bold hover:text-gold block my-1">Quy trình khám</a>
+                    <a href="#" className=" font-bold hover:text-gold block my-1">Bảng giá</a>
+                    <a href="#" className=" font-bold hover:text-gold block my-1">Đặt lịch</a>
                 </div>
                 <div className="text-txt-gray sm:min-w-40">
                     <h3 className="text-txt-gray  font-bold mb-2">THEO DÕI</h3>
-                    <a href="#" className=" font-bold hover:text-primary block my-1">YouTube</a>
-                    <a href="#" className=" font-bold hover:text-primary block my-1">TikTok</a>
-                    <a href="#" className=" font-bold hover:text-primary block my-1">Facebook</a>
+                    <a href="#" className=" font-bold hover:text-gold block my-1">YouTube</a>
+                    <a href="#" className=" font-bold hover:text-gold block my-1">TikTok</a>
+                    <a href="#" className=" font-bold hover:text-gold block my-1">Facebook</a>
                 </div>
                 <div className="text-txt-gray sm:min-w-40">
                     <h3 className="text-txt-gray  font-bold mb-2">LIÊN HỆ</h3>
-                    <a href="#" className=" font-bold hover:text-primary block my-1">Hotline</a>
-                    <a href="#" className=" font-bold hover:text-primary block my-1">Email</a>
-                    <a href="#" className=" font-bold hover:text-primary block my-1">Chính sách bảo mật</a>
-                    <a href="#" className=" font-bold hover:text-primary block my-1">Điều khoản dịch vụ</a>
+                    <a href="#" className=" font-bold hover:text-gold block my-1">Hotline</a>
+                    <a href="#" className=" font-bold hover:text-gold block my-1">Email</a>
+                    <a href="#" className=" font-bold hover:text-gold block my-1">Chính sách bảo mật</a>
+                    <a href="#" className=" font-bold hover:text-gold block my-1">Điều khoản dịch vụ</a>
                 </div>
             </div>
 

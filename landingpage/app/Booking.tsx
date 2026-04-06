@@ -5,7 +5,7 @@ import { vi } from "date-fns/locale"
 import { useEffect } from "react"
 
 type Slot = {
-    date: Date;
+    id:string;
     from: string;
     to: string;
 }
@@ -49,6 +49,7 @@ export default function Booking() {
             const data = await res.json()
 
             setSlotlist(data);
+            console.log(data)
             setCachedSlotsByDate((current) => ({
                 ...current,
                 [dateKey]: data,
@@ -59,7 +60,7 @@ export default function Booking() {
     }
 
     function onSlotSelect(slot: Slot) {
-        if (slot === selectedSlot) {
+        if (selectedSlot && slot.id === selectedSlot.id) {
             setSelectedSlot(undefined);
         }
         else {
@@ -133,8 +134,8 @@ export default function Booking() {
                             )}
                             {slotlist.map((s, i) => (
                                 <div
-                                    key={i}
-                                    className={`px-4 py-2 rounded-lg ${s === selectedSlot ? `bg-primary text-white` : `bg-primary-light`} hover:bg-primary hover:text-white text-center`}
+                                    key={s.id}
+                                    className={`px-4 py-2 rounded-lg ${selectedSlot && s.id === selectedSlot.id ? `bg-primary text-white` : `bg-primary-light`} hover:bg-primary hover:text-white text-center`}
                                     onClick={() => { onSlotSelect(s) }}
                                 >
                                     {s.from} - {s.to}

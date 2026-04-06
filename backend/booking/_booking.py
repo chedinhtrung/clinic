@@ -1,5 +1,6 @@
 from config import *
 from datetime import date, datetime, time, timedelta
+from secrets import token_urlsafe
 
 import psycopg
 from psycopg_pool import ConnectionPool
@@ -12,6 +13,10 @@ if not DB_URL:
 # Reuse PostgreSQL connections across requests so we don't pay the cost of
 # opening a brand new database connection on every API call.
 DB_POOL = ConnectionPool(conninfo=DB_URL, min_size=1, max_size=10)
+
+
+def create_booking_session_id() -> str:
+    return token_urlsafe(32)
 
 
 def db_get_available_dates() -> list[str]:
@@ -27,7 +32,9 @@ def db_get_available_dates() -> list[str]:
             cur.execute(query)
             rows = cur.fetchall()
 
-    return [row[0].isoformat() for row in rows]
+    dates = [row[0].isoformat() for row in rows]
+    print(dates)
+    return dates
 
 
 def db_get_available_slots(selected_date_raw: str) -> list[dict[str, str]]:
@@ -36,7 +43,7 @@ def db_get_available_slots(selected_date_raw: str) -> list[dict[str, str]]:
     day_end = day_start + timedelta(days=1)
 
     query = """
-        SELECT start_at, end_at
+        SELECT start_at, end_at, id
         FROM slots
         WHERE start_at >= %s AND start_at < %s
         ORDER BY start_at ASC
@@ -47,10 +54,12 @@ def db_get_available_slots(selected_date_raw: str) -> list[dict[str, str]]:
             cur.execute(query, (day_start, day_end))
             rows = cur.fetchall()
 
+    print(rows)
     return [
         {
             "from": row[0].strftime("%H:%M"),
             "to": row[1].strftime("%H:%M"),
+            "id": str(row[2]),
         }
         for row in rows
     ]
