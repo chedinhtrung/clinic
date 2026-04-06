@@ -41,6 +41,20 @@ export default function Booking() {
     // Visible loading state while the selected slot is being claimed.
     const [isClaimingSlot, setIsClaimingSlot] = useState(false);
 
+    // Reload the available date list from the backend after availability changes.
+    async function reloadAvailableDates() {
+        const res = await fetch("http://localhost:5001/api/get_available_dates", {
+            credentials: "include",
+        });
+        const data: string[] = await res.json();
+
+        const parsed = data.map((d) => {
+            const [year, month, day] = d.split("-").map(Number);
+            return new Date(year, month - 1, day);
+        });
+        setAvailableDates(parsed);
+    }
+
     // Fetch the slots for a single calendar day from the backend.
     async function fetchSlotsForDate(dateKey: string) {
         const res = await fetch("http://localhost:5001/api/get_available_slots", {
@@ -55,6 +69,26 @@ export default function Booking() {
 
         const data: Slot[] = await res.json();
         return data;
+    }
+
+    // Drop the stale cache for one day and reload its slots from the backend.
+    async function refreshDateAvailability(date: Date) {
+        const dateKey = toDateKey(date);
+
+        setCachedSlotsByDate((current) => {
+            const next = { ...current };
+            delete next[dateKey];
+            return next;
+        });
+
+        const freshSlots = await fetchSlotsForDate(dateKey);
+        setSlotlist(freshSlots);
+        setCachedSlotsByDate((current) => ({
+            ...current,
+            [dateKey]: freshSlots,
+        }));
+        setSelectedSlot(undefined);
+        await reloadAvailableDates();
     }
 
     // Load slots for the selected day, using the cache first when possible.
@@ -80,7 +114,6 @@ export default function Booking() {
         try {
             const data = await fetchSlotsForDate(dateKey);
             setSlotlist(data);
-            console.log(data)
             setCachedSlotsByDate((current) => ({
                 ...current,
                 [dateKey]: data,
@@ -135,6 +168,10 @@ export default function Booking() {
             });
             router.push(`/booking?${params.toString()}`);
         } catch (error) {
+            if (selectedDate) {
+                await refreshDateAvailability(selectedDate);
+            }
+
             const message = error instanceof Error
                 ? error.message
                 : "Khung giờ này hiện không còn khả dụng. Vui lòng chọn khung giờ khác.";
@@ -151,16 +188,7 @@ export default function Booking() {
                 credentials: "include",
             });
 
-            const res = await fetch("http://localhost:5001/api/get_available_dates", {
-                credentials: "include",
-            });
-            const data: string[] = await res.json();
-
-            const parsed = data.map((d) => {
-                const [year, month, day] = d.split("-").map(Number);
-                return new Date(year, month - 1, day);
-            });
-            setAvailableDates(parsed);
+            await reloadAvailableDates();
         }
 
         fetchDates();
@@ -239,6 +267,15 @@ export default function Booking() {
                             month={displayedMonth}
                             onMonthChange={setDisplayedMonth}
                             locale={vi}
+                            disabled={[
+                                { before: new Date() },
+                                (date) => !availableDates.some(
+                                    (availableDate) =>
+                                        availableDate.getFullYear() === date.getFullYear() &&
+                                        availableDate.getMonth() === date.getMonth() &&
+                                        availableDate.getDate() === date.getDate()
+                                ),
+                            ]}
                             modifiers={{
                                 available: availableDates
                             }}
