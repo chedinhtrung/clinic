@@ -15,6 +15,8 @@ export default function Booking() {
     const [selectedDate, setSelectedDate] = useState<Date | undefined>();
     const [slotlist, setSlotlist] = useState<Slot[]>([]);
     const [selectedSlot, setSelectedSlot] = useState<Slot | undefined>();
+    const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+    const [cachedSlotsByDate, setCachedSlotsByDate] = useState<Record<string, Slot[]>>({});
 
     async function onDateSelect(date: Date | undefined) {
         setSlotlist([]);
@@ -23,25 +25,40 @@ export default function Booking() {
         }
         setSelectedSlot(undefined);
         setSelectedDate(date);
-        console.log(date);
+        const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+
+        // Cache slot lists by date on the client so revisiting a day feels instant
+        // and doesn't hit the backend again unless the page is reloaded.
+        if (cachedSlotsByDate[dateKey]) {
+            setSlotlist(cachedSlotsByDate[dateKey]);
+            return;
+        }
+
+        setIsLoadingSlots(true);
 
         // get the slots at the selected date
-        const res = await fetch("http://localhost:5001/api/get_available_slots", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(date),
-        })
-        const data = await res.json()
+        try {
+            const res = await fetch("http://localhost:5001/api/get_available_slots", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                // Must send raw date strings, not date objects. Timezones are cursed
+                body: JSON.stringify(dateKey),
+            })
+            const data = await res.json()
 
-        console.log(data);
-        setSlotlist(data);
+            setSlotlist(data);
+            setCachedSlotsByDate((current) => ({
+                ...current,
+                [dateKey]: data,
+            }));
+        } finally {
+            setIsLoadingSlots(false);
+        }
     }
 
     function onSlotSelect(slot: Slot) {
-        console.log(selectedSlot === slot);
-        console.log(selectedSlot);
         if (slot === selectedSlot) {
             setSelectedSlot(undefined);
         }
@@ -55,10 +72,12 @@ export default function Booking() {
     useEffect(() => {
         const fetchDates = async () => {
             const res = await fetch("http://localhost:5001/api/get_available_dates")
-            const data = await res.json();
+            const data: string[] = await res.json();
 
-            console.log(data);
-            const parsed = data.map((d: string) => new Date(d));
+            const parsed = data.map((d) => {
+                const [year, month, day] = d.split("-").map(Number);
+                return new Date(year, month - 1, day);
+            });
             setAvailableDates(parsed);
         }
 
@@ -101,7 +120,17 @@ export default function Booking() {
                         <div className="h-[2.75rem] flex items-center">
                             <h3 className="text-primary font-bold ">Khung giờ</h3>
                         </div>
-                        <div className="flex flex-col gap-2 overflow-y-auto max-h-[250px] min-w-[130px] pr-4">
+                        <div className="flex flex-col gap-2 overflow-y-auto max-h-[250px] sm:w-[130px]">
+                            {!selectedDate && (
+                                <p className="text-sm text-gray-500">
+                                    Vui lòng chọn ngày để xem khung giờ.
+                                </p>
+                            )}
+                            {isLoadingSlots && (
+                                <p className="text-sm text-gray-500 text-center">
+                                    Đang tải khung giờ...
+                                </p>
+                            )}
                             {slotlist.map((s, i) => (
                                 <div
                                     key={i}

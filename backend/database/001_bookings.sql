@@ -1,13 +1,5 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
-CREATE TYPE booking_status AS ENUM (
-  'hold',
-  'pending',
-  'confirmed',
-  'expired',
-  'cancelled'
-);
-
 CREATE TABLE patients (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name text NOT NULL,
@@ -34,10 +26,13 @@ CREATE TABLE bookings (
   expires_at timestamptz NOT NULL,
   confirmed_at timestamptz,
   confirmation_hash text,
-  status booking_status NOT NULL DEFAULT 'hold'
+  status text NOT NULL DEFAULT 'hold',
+  reservation_code bigint NOT NULL UNIQUE,
+  CHECK (status IN ('hold', 'pending', 'confirmed', 'expired', 'cancelled'))
 );
 
 CREATE INDEX idx_bookings_slot_id ON bookings(slot_id);
+CREATE INDEX idx_bookings_rev_code ON bookings(rev_code);
 CREATE INDEX idx_bookings_patient_id ON bookings(patient_id);
 CREATE INDEX idx_bookings_confirmation_hash ON bookings(confirmation_hash);
 CREATE INDEX idx_slots_start_at ON slots(start_at);
