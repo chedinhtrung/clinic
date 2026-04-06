@@ -10,6 +10,7 @@ BOOKING_SESSION_MAX_AGE = 60 * 60 * 24 * 30
 
 
 @app.route("/api/session", methods=["GET"])
+# Ensure the browser has an anonymous booking session cookie.
 def ensure_session():
     existing_session_id = request.cookies.get(BOOKING_SESSION_COOKIE)
     response = jsonify({"ok": True})
@@ -28,6 +29,7 @@ def ensure_session():
     return response
 
 @app.route("/api/get_available_slots", methods=["POST"])
+# Return the available slots for one selected calendar day.
 def get_available_slots():
     data = request.get_json()
     try:
@@ -37,6 +39,7 @@ def get_available_slots():
     return jsonify(slots)
 
 @app.route("/api/get_available_dates", methods=["GET"])
+# Return all currently available booking dates.
 def get_available_dates():
     dates = db_get_available_dates()
     return jsonify(dates)

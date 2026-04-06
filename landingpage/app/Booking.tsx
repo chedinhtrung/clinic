@@ -1,31 +1,60 @@
 "use client"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { DayPicker } from "react-day-picker"
 import { vi } from "date-fns/locale"
-import { useEffect } from "react"
 
 type Slot = {
-    id:string;
+    id: string;
     from: string;
     to: string;
 }
 
-export default function Booking() {
-    const [availableDates, setAvailableDates] = useState<Date[]>([]);
-    const [selectedDate, setSelectedDate] = useState<Date | undefined>();
-    const [slotlist, setSlotlist] = useState<Slot[]>([]);
-    const [selectedSlot, setSelectedSlot] = useState<Slot | undefined>();
-    const [isLoadingSlots, setIsLoadingSlots] = useState(false);
-    const [cachedSlotsByDate, setCachedSlotsByDate] = useState<Record<string, Slot[]>>({});
+// Convert a calendar day into the YYYY-MM-DD format expected by the backend.
+function toDateKey(date: Date) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
 
+export default function Booking() {
+    // All bookable days returned by the backend.
+    const [availableDates, setAvailableDates] = useState<Date[]>([]);
+    // The day currently selected in the calendar.
+    const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+    // The slots currently shown for the selected day.
+    const [slotlist, setSlotlist] = useState<Slot[]>([]);
+    // The slot currently selected by the user.
+    const [selectedSlot, setSelectedSlot] = useState<Slot | undefined>();
+    // Visible loading state for the user-triggered slot fetch.
+    const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+    // Cached slot lists keyed by YYYY-MM-DD so repeat visits to a day are instant.
+    const [cachedSlotsByDate, setCachedSlotsByDate] = useState<Record<string, Slot[]>>({});
+    // The month currently visible in DayPicker, used for background prefetching.
+    const [displayedMonth, setDisplayedMonth] = useState<Date>(new Date());
+
+    // Fetch the slots for a single calendar day from the backend.
+    async function fetchSlotsForDate(dateKey: string) {
+        const res = await fetch("http://localhost:5001/api/get_available_slots", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            // Must send raw date strings, not date objects. Timezones are cursed
+            body: JSON.stringify(dateKey),
+        });
+
+        const data: Slot[] = await res.json();
+        return data;
+    }
+
+    // Load slots for the selected day, using the cache first when possible.
     async function onDateSelect(date: Date | undefined) {
         setSlotlist([]);
         if (date === undefined) {
             return;
         }
+
         setSelectedSlot(undefined);
         setSelectedDate(date);
-        const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+        const dateKey = toDateKey(date);
 
         // Cache slot lists by date on the client so revisiting a day feels instant
         // and doesn't hit the backend again unless the page is reloaded.
@@ -36,20 +65,9 @@ export default function Booking() {
 
         setIsLoadingSlots(true);
 
-        // get the slots at the selected date
         try {
-            const res = await fetch("http://localhost:5001/api/get_available_slots", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                // Must send raw date strings, not date objects. Timezones are cursed
-                body: JSON.stringify(dateKey),
-            })
-            const data = await res.json()
-
+            const data = await fetchSlotsForDate(dateKey);
             setSlotlist(data);
-            console.log(data)
             setCachedSlotsByDate((current) => ({
                 ...current,
                 [dateKey]: data,
@@ -59,6 +77,7 @@ export default function Booking() {
         }
     }
 
+    // Toggle the currently selected slot card.
     function onSlotSelect(slot: Slot) {
         if (selectedSlot && slot.id === selectedSlot.id) {
             setSelectedSlot(undefined);
@@ -69,10 +88,10 @@ export default function Booking() {
 
     }
 
-    // get the available dates from the database
     useEffect(() => {
+        // Load the set of calendar dates that have at least one available slot.
         const fetchDates = async () => {
-            const res = await fetch("http://localhost:5001/api/get_available_dates")
+            const res = await fetch("http://localhost:5001/api/get_available_dates");
             const data: string[] = await res.json();
 
             const parsed = data.map((d) => {
@@ -84,6 +103,55 @@ export default function Booking() {
 
         fetchDates();
     }, [])
+
+    useEffect(() => {
+        if (availableDates.length === 0) {
+            return;
+        }
+
+        const visibleDates = availableDates.filter((date) =>
+            date.getFullYear() === displayedMonth.getFullYear() &&
+            date.getMonth() === displayedMonth.getMonth()
+        );
+
+        const uncachedDateKeys = visibleDates
+            .map(toDateKey)
+            .filter((dateKey) => !cachedSlotsByDate[dateKey]);
+
+        if (uncachedDateKeys.length === 0) {
+            return;
+        }
+
+        let isCancelled = false;
+
+        // Warm the cache in the background for the dates visible in the current month.
+        const prefetchVisibleMonthSlots = async () => {
+            const prefetchedEntries = await Promise.all(
+                uncachedDateKeys.map(async (dateKey) => ({
+                    dateKey,
+                    slots: await fetchSlotsForDate(dateKey),
+                }))
+            );
+
+            if (isCancelled) {
+                return;
+            }
+
+            setCachedSlotsByDate((current) => {
+                const next = { ...current };
+                for (const entry of prefetchedEntries) {
+                    next[entry.dateKey] = entry.slots;
+                }
+                return next;
+            });
+        };
+
+        prefetchVisibleMonthSlots();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [availableDates, cachedSlotsByDate, displayedMonth])
 
     return (
         <div className="bg-bg-tinted px-6 sm:px-20 py-10 flex flex-col justify-center">
@@ -106,6 +174,8 @@ export default function Booking() {
                             mode="single"
                             selected={selectedDate}
                             onSelect={onDateSelect}
+                            month={displayedMonth}
+                            onMonthChange={setDisplayedMonth}
                             locale={vi}
                             modifiers={{
                                 available: availableDates
@@ -132,7 +202,7 @@ export default function Booking() {
                                     Đang tải khung giờ...
                                 </p>
                             )}
-                            {slotlist.map((s, i) => (
+                            {slotlist.map((s) => (
                                 <div
                                     key={s.id}
                                     className={`px-4 py-2 rounded-lg ${selectedSlot && s.id === selectedSlot.id ? `bg-primary text-white` : `bg-primary-light`} hover:bg-primary hover:text-white text-center`}

@@ -15,10 +15,12 @@ if not DB_URL:
 DB_POOL = ConnectionPool(conninfo=DB_URL, min_size=1, max_size=10)
 
 
+"""Create a secure anonymous session id for browser-side booking identity."""
 def create_booking_session_id() -> str:
     return token_urlsafe(32)
 
 
+"""Return all distinct slot dates from tomorrow onward as YYYY-MM-DD strings."""
 def db_get_available_dates() -> list[str]:
     query = """
         SELECT DISTINCT DATE(start_at) AS available_date
@@ -37,6 +39,7 @@ def db_get_available_dates() -> list[str]:
     return dates
 
 
+"""Return all slots for one YYYY-MM-DD date in a frontend-friendly shape."""
 def db_get_available_slots(selected_date_raw: str) -> list[dict[str, str]]:
     selected_date = _parse_selected_date(selected_date_raw)
     day_start = datetime.combine(selected_date, time.min)
@@ -65,6 +68,7 @@ def db_get_available_slots(selected_date_raw: str) -> list[dict[str, str]]:
     ]
 
 
+"""Validate and parse the YYYY-MM-DD date string sent by the frontend."""
 def _parse_selected_date(selected_date_raw: str) -> date:
     if not selected_date_raw:
         raise ValueError("selected date is required")
