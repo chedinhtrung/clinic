@@ -32,7 +32,7 @@ CREATE TABLE bookings (
 );
 
 CREATE INDEX idx_bookings_slot_id ON bookings(slot_id);
-CREATE INDEX idx_bookings_rev_code ON bookings(rev_code);
+CREATE INDEX idx_bookings_rev_code ON bookings(reservation_code);
 CREATE INDEX idx_bookings_patient_id ON bookings(patient_id);
 CREATE INDEX idx_bookings_confirmation_hash ON bookings(confirmation_hash);
 CREATE INDEX idx_slots_start_at ON slots(start_at);
