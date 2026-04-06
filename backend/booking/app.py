@@ -66,5 +66,21 @@ def claim_booking():
     return jsonify({"booking": booking}), 201
 
 
+@app.route("/api/booking/<booking_id>", methods=["GET"])
+def get_booking(booking_id: str):
+    session_id = request.cookies.get(BOOKING_SESSION_COOKIE)
+    if not session_id:
+        return jsonify({"error": "missing booking session"}), 400
+
+    try:
+        booking = db_get_booking(booking_id=booking_id, session_id=session_id)
+    except BookingAccessError as exc:
+        return jsonify({"error": str(exc)}), 404
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    return jsonify({"booking": booking})
+
+
 if __name__=="__main__":
     app.run(port=5001)

@@ -161,10 +161,6 @@ export default function Booking() {
             const booking = data.booking;
             const params = new URLSearchParams({
                 bookingId: booking.id,
-                reservationCode: String(booking.reservationCode),
-                slotId: booking.slotId,
-                startAt: booking.startAt,
-                endAt: booking.endAt,
             });
             router.push(`/booking?${params.toString()}`);
         } catch (error) {

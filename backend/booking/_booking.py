@@ -26,6 +26,10 @@ class BookingConflictError(ValueError):
     """Raised when a slot is already held by an active booking."""
 
 
+class BookingAccessError(ValueError):
+    """Raised when a booking cannot be accessed by the current session."""
+
+
 """Return all distinct slot dates from tomorrow onward that this session may claim."""
 def db_get_available_dates(session_id: str | None = None) -> list[str]:
     query = """
@@ -215,6 +219,40 @@ def db_claim_slot(*, slot_id: str, session_id: str) -> dict[str, str | int]:
             continue
 
     raise RuntimeError("could not generate a unique reservation code")
+
+
+"""Return one booking if it belongs to the current session."""
+def db_get_booking(*, booking_id: str, session_id: str) -> dict[str, str | int]:
+    if not booking_id:
+        raise ValueError("booking_id is required")
+    if not session_id:
+        raise ValueError("session_id is required")
+
+    query = """
+        SELECT b.id, b.reservation_code, b.status, b.slot_id, s.start_at, s.end_at
+        FROM bookings b
+        JOIN slots s ON s.id = b.slot_id
+        WHERE b.id = %s
+          AND b.session_id = %s
+        LIMIT 1
+    """
+
+    with DB_POOL.connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(query, (booking_id, session_id))
+            row = cur.fetchone()
+
+    if row is None:
+        raise BookingAccessError("booking not found")
+
+    return {
+        "id": str(row[0]),
+        "reservationCode": row[1],
+        "status": row[2],
+        "slotId": str(row[3]),
+        "startAt": row[4].isoformat(),
+        "endAt": row[5].isoformat(),
+    }
 
 
 """Validate and parse the YYYY-MM-DD date string sent by the frontend."""
