@@ -26,27 +26,34 @@ class BookingConflictError(ValueError):
     """Raised when a slot is already held by an active booking."""
 
 
-"""Return all distinct slot dates from tomorrow onward as YYYY-MM-DD strings."""
-def db_get_available_dates() -> list[str]:
+"""Return all distinct slot dates from tomorrow onward that this session may claim."""
+def db_get_available_dates(session_id: str | None = None) -> list[str]:
     query = """
-        SELECT DISTINCT DATE(start_at) AS available_date
-        FROM slots
-        WHERE start_at >= date_trunc('day', now()) + interval '1 day'
+        SELECT DISTINCT DATE(s.start_at) AS available_date
+        FROM slots s
+        WHERE s.start_at >= date_trunc('day', now()) + interval '1 day'
+          AND NOT EXISTS (
+              SELECT 1
+              FROM bookings b
+              WHERE b.slot_id = s.id
+                AND (
+                    b.status = 'confirmed'
+                    OR (b.status = 'pending' AND (b.session_id IS DISTINCT FROM %s))
+                )
+          )
         ORDER BY available_date ASC
     """
 
     with DB_POOL.connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(query)
+            cur.execute(query, (session_id,))
             rows = cur.fetchall()
 
-    dates = [row[0].isoformat() for row in rows]
-    print(dates)
-    return dates
+    return [row[0].isoformat() for row in rows]
 
 
-"""Return all slots for one YYYY-MM-DD date with timezone-aware timestamps."""
-def db_get_available_slots(selected_date_raw: str) -> list[dict[str, str]]:
+"""Return all slots for one YYYY-MM-DD date that this session may claim."""
+def db_get_available_slots(selected_date_raw: str, session_id: str | None = None) -> list[dict[str, str]]:
     selected_date = _parse_selected_date(selected_date_raw)
     day_start = datetime.combine(selected_date, time.min)
     day_end = day_start + timedelta(days=1)
@@ -60,17 +67,19 @@ def db_get_available_slots(selected_date_raw: str) -> list[dict[str, str]]:
               SELECT 1
               FROM bookings b
               WHERE b.slot_id = s.id
-                AND b.status IN ('pending', 'confirmed')
+                AND (
+                    b.status = 'confirmed'
+                    OR (b.status = 'pending' AND (b.session_id IS DISTINCT FROM %s))
+                )
           )
-        ORDER BY start_at ASC
+        ORDER BY s.start_at ASC
     """
 
     with DB_POOL.connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(query, (day_start, day_end))
+            cur.execute(query, (day_start, day_end, session_id))
             rows = cur.fetchall()
 
-    print(rows)
     return [
         {
             "id": str(row[2]),
@@ -81,12 +90,14 @@ def db_get_available_slots(selected_date_raw: str) -> list[dict[str, str]]:
     ]
 
 
-"""Claim a slot for the current anonymous session if it has no active booking."""
+"""Create or move the current session's pending booking onto the requested slot."""
 def db_claim_slot(*, slot_id: str, session_id: str) -> dict[str, str | int]:
     if not slot_id:
         raise ValueError("slot_id is required")
     if not session_id:
         raise ValueError("session_id is required")
+
+    expires_at = datetime.now() + timedelta(minutes=15)
 
     for _ in range(10):
         reservation_code = randint(100000000, 999999999)
@@ -109,16 +120,77 @@ def db_claim_slot(*, slot_id: str, session_id: str) -> dict[str, str | int]:
 
                         cur.execute(
                             """
-                            SELECT id
+                            SELECT id, session_id, status, reservation_code
                             FROM bookings
                             WHERE slot_id = %s
                               AND status IN ('pending', 'confirmed')
+                            FOR UPDATE
                             LIMIT 1
                             """,
                             (slot_id,),
                         )
-                        active_booking = cur.fetchone()
-                        if active_booking is not None:
+                        target_booking = cur.fetchone()
+
+                        cur.execute(
+                            """
+                            SELECT id, slot_id, reservation_code, status
+                            FROM bookings
+                            WHERE session_id = %s
+                              AND status = 'pending'
+                            ORDER BY created_at DESC
+                            FOR UPDATE
+                            LIMIT 1
+                            """,
+                            (session_id,),
+                        )
+                        existing_pending_booking = cur.fetchone()
+
+                        if target_booking is not None:
+                            target_booking_id = str(target_booking[0])
+                            target_booking_session_id = target_booking[1]
+                            target_booking_status = target_booking[2]
+
+                            # Clicking the same slot again should simply reuse the
+                            # existing pending booking owned by this session.
+                            if (
+                                existing_pending_booking is not None
+                                and target_booking_id == str(existing_pending_booking[0])
+                            ):
+                                return {
+                                    "id": target_booking_id,
+                                    "reservationCode": target_booking[3],
+                                    "status": target_booking_status,
+                                    "slotId": str(slot_row[0]),
+                                    "startAt": slot_row[1].isoformat(),
+                                    "endAt": slot_row[2].isoformat(),
+                                }
+
+                            if target_booking_status == "confirmed" or target_booking_session_id != session_id:
+                                raise BookingConflictError("slot is already booked")
+
+                        if existing_pending_booking is not None:
+                            cur.execute(
+                                """
+                                UPDATE bookings
+                                SET slot_id = %s,
+                                    expires_at = %s,
+                                    status = 'pending'
+                                WHERE id = %s
+                                RETURNING id, reservation_code, status
+                                """,
+                                (slot_id, expires_at, existing_pending_booking[0]),
+                            )
+                            booking_row = cur.fetchone()
+                            return {
+                                "id": str(booking_row[0]),
+                                "reservationCode": booking_row[1],
+                                "status": booking_row[2],
+                                "slotId": str(slot_row[0]),
+                                "startAt": slot_row[1].isoformat(),
+                                "endAt": slot_row[2].isoformat(),
+                            }
+
+                        if target_booking is not None:
                             raise BookingConflictError("slot is already booked")
 
                         cur.execute(
@@ -127,7 +199,7 @@ def db_claim_slot(*, slot_id: str, session_id: str) -> dict[str, str | int]:
                             VALUES (%s, %s, %s, 'pending', %s)
                             RETURNING id, reservation_code, status
                             """,
-                            (slot_id, session_id, datetime.now() + timedelta(minutes=15), reservation_code),
+                            (slot_id, session_id, expires_at, reservation_code),
                         )
                         booking_row = cur.fetchone()
 

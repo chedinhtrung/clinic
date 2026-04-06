@@ -32,8 +32,9 @@ def ensure_session():
 # Return the available slots for one selected calendar day.
 def get_available_slots():
     data = request.get_json()
+    session_id = request.cookies.get(BOOKING_SESSION_COOKIE)
     try:
-        slots = db_get_available_slots(data)
+        slots = db_get_available_slots(data, session_id=session_id)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
     return jsonify(slots)
@@ -41,7 +42,8 @@ def get_available_slots():
 @app.route("/api/get_available_dates", methods=["GET"])
 # Return all currently available booking dates.
 def get_available_dates():
-    dates = db_get_available_dates()
+    session_id = request.cookies.get(BOOKING_SESSION_COOKIE)
+    dates = db_get_available_dates(session_id=session_id)
     return jsonify(dates)
 
 

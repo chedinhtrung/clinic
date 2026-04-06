@@ -135,7 +135,10 @@ export default function Booking() {
             });
             router.push(`/booking?${params.toString()}`);
         } catch (error) {
-            console.error(error);
+            const message = error instanceof Error
+                ? error.message
+                : "Khung giờ này hiện không còn khả dụng. Vui lòng chọn khung giờ khác.";
+            alert(message);
         } finally {
             setIsClaimingSlot(false);
         }
