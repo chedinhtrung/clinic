@@ -45,5 +45,24 @@ def get_available_dates():
     return jsonify(dates)
 
 
+@app.route("/api/claim_booking", methods=["POST"])
+def claim_booking():
+    session_id = request.cookies.get(BOOKING_SESSION_COOKIE)
+    if not session_id:
+        return jsonify({"error": "missing booking session"}), 400
+
+    data = request.get_json() or {}
+    slot_id = data.get("slotId")
+
+    try:
+        booking = db_claim_slot(slot_id=slot_id, session_id=session_id)
+    except BookingConflictError as exc:
+        return jsonify({"error": str(exc)}), 409
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    return jsonify({"booking": booking}), 201
+
+
 if __name__=="__main__":
     app.run(port=5001)

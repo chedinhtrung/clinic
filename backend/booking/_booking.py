@@ -1,8 +1,10 @@
 from config import *
 from datetime import date, datetime, time, timedelta
+from random import randint
 from secrets import token_urlsafe
 
 import psycopg
+from psycopg.errors import UniqueViolation
 from psycopg_pool import ConnectionPool
 
 
@@ -18,6 +20,10 @@ DB_POOL = ConnectionPool(conninfo=DB_URL, min_size=1, max_size=10)
 """Create a secure anonymous session id for browser-side booking identity."""
 def create_booking_session_id() -> str:
     return token_urlsafe(32)
+
+
+class BookingConflictError(ValueError):
+    """Raised when a slot is already held by an active booking."""
 
 
 """Return all distinct slot dates from tomorrow onward as YYYY-MM-DD strings."""
@@ -66,6 +72,67 @@ def db_get_available_slots(selected_date_raw: str) -> list[dict[str, str]]:
         }
         for row in rows
     ]
+
+
+"""Claim a slot for the current anonymous session if it has no active booking."""
+def db_claim_slot(*, slot_id: str, session_id: str) -> dict[str, str | int]:
+    if not slot_id:
+        raise ValueError("slot_id is required")
+    if not session_id:
+        raise ValueError("session_id is required")
+
+    for _ in range(10):
+        reservation_code = randint(100000000, 999999999)
+        try:
+            with DB_POOL.connection() as conn:
+                with conn.transaction():
+                    with conn.cursor() as cur:
+                        cur.execute(
+                            """
+                            SELECT id
+                            FROM slots
+                            WHERE id = %s
+                            FOR UPDATE
+                            """,
+                            (slot_id,),
+                        )
+                        slot_row = cur.fetchone()
+                        if slot_row is None:
+                            raise ValueError("slot not found")
+
+                        cur.execute(
+                            """
+                            SELECT id
+                            FROM bookings
+                            WHERE slot_id = %s
+                              AND status IN ('pending', 'confirmed')
+                            LIMIT 1
+                            """,
+                            (slot_id,),
+                        )
+                        active_booking = cur.fetchone()
+                        if active_booking is not None:
+                            raise BookingConflictError("slot is already booked")
+
+                        cur.execute(
+                            """
+                            INSERT INTO bookings (slot_id, session_id, expires_at, status, reservation_code)
+                            VALUES (%s, %s, %s, 'pending', %s)
+                            RETURNING id, reservation_code, status
+                            """,
+                            (slot_id, session_id, datetime.now() + timedelta(minutes=15), reservation_code),
+                        )
+                        booking_row = cur.fetchone()
+
+            return {
+                "id": str(booking_row[0]),
+                "reservationCode": booking_row[1],
+                "status": booking_row[2],
+            }
+        except UniqueViolation:
+            continue
+
+    raise RuntimeError("could not generate a unique reservation code")
 
 
 """Validate and parse the YYYY-MM-DD date string sent by the frontend."""

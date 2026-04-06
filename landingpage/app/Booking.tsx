@@ -29,11 +29,14 @@ export default function Booking() {
     const [cachedSlotsByDate, setCachedSlotsByDate] = useState<Record<string, Slot[]>>({});
     // The month currently visible in DayPicker, used for background prefetching.
     const [displayedMonth, setDisplayedMonth] = useState<Date>(new Date());
+    // Visible loading state while the selected slot is being claimed.
+    const [isClaimingSlot, setIsClaimingSlot] = useState(false);
 
     // Fetch the slots for a single calendar day from the backend.
     async function fetchSlotsForDate(dateKey: string) {
         const res = await fetch("http://localhost:5001/api/get_available_slots", {
             method: "POST",
+            credentials: "include",
             headers: {
                 "Content-Type": "application/json",
             },
@@ -88,10 +91,48 @@ export default function Booking() {
 
     }
 
+    // Claim the selected slot for the current anonymous booking session.
+    async function onClaimSlot() {
+        if (!selectedSlot) {
+            return;
+        }
+
+        setIsClaimingSlot(true);
+        try {
+            const res = await fetch("http://localhost:5001/api/claim_booking", {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    slotId: selectedSlot.id,
+                }),
+            });
+
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data?.error ?? "Khong dat duoc lich");
+            }
+
+            console.log(data);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsClaimingSlot(false);
+        }
+    }
+
     useEffect(() => {
         // Load the set of calendar dates that have at least one available slot.
         const fetchDates = async () => {
-            const res = await fetch("http://localhost:5001/api/get_available_dates");
+            await fetch("http://localhost:5001/api/session", {
+                credentials: "include",
+            });
+
+            const res = await fetch("http://localhost:5001/api/get_available_dates", {
+                credentials: "include",
+            });
             const data: string[] = await res.json();
 
             const parsed = data.map((d) => {
