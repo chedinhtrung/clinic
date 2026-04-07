@@ -1,5 +1,5 @@
 from config import *
-from datetime import date, datetime, time, timedelta
+from datetime import date, datetime, time, timedelta, timezone
 from random import randint
 from secrets import token_urlsafe
 
@@ -101,7 +101,7 @@ def db_claim_slot(*, slot_id: str, session_id: str) -> dict[str, str | int]:
     if not session_id:
         raise ValueError("session_id is required")
 
-    expires_at = datetime.now() + timedelta(minutes=15)
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=16)
 
     for _ in range(10):
         reservation_code = randint(100000000, 999999999)
@@ -124,7 +124,7 @@ def db_claim_slot(*, slot_id: str, session_id: str) -> dict[str, str | int]:
 
                         cur.execute(
                             """
-                            SELECT id, session_id, status, reservation_code
+                            SELECT id, session_id, status, reservation_code, expires_at
                             FROM bookings
                             WHERE slot_id = %s
                               AND status IN ('pending', 'confirmed')
@@ -164,6 +164,8 @@ def db_claim_slot(*, slot_id: str, session_id: str) -> dict[str, str | int]:
                                     "id": target_booking_id,
                                     "reservationCode": target_booking[3],
                                     "status": target_booking_status,
+                                    "expiresAt": target_booking[4].isoformat(),
+                                    "displayExpiresAt": (target_booking[4] - timedelta(minutes=1)).isoformat(),
                                     "slotId": str(slot_row[0]),
                                     "startAt": slot_row[1].isoformat(),
                                     "endAt": slot_row[2].isoformat(),
@@ -180,7 +182,7 @@ def db_claim_slot(*, slot_id: str, session_id: str) -> dict[str, str | int]:
                                     expires_at = %s,
                                     status = 'pending'
                                 WHERE id = %s
-                                RETURNING id, reservation_code, status
+                                RETURNING id, reservation_code, status, expires_at
                                 """,
                                 (slot_id, expires_at, existing_pending_booking[0]),
                             )
@@ -189,6 +191,8 @@ def db_claim_slot(*, slot_id: str, session_id: str) -> dict[str, str | int]:
                                 "id": str(booking_row[0]),
                                 "reservationCode": booking_row[1],
                                 "status": booking_row[2],
+                                "expiresAt": booking_row[3].isoformat(),
+                                "displayExpiresAt": (booking_row[3] - timedelta(minutes=1)).isoformat(),
                                 "slotId": str(slot_row[0]),
                                 "startAt": slot_row[1].isoformat(),
                                 "endAt": slot_row[2].isoformat(),
@@ -201,7 +205,7 @@ def db_claim_slot(*, slot_id: str, session_id: str) -> dict[str, str | int]:
                             """
                             INSERT INTO bookings (slot_id, session_id, expires_at, status, reservation_code)
                             VALUES (%s, %s, %s, 'pending', %s)
-                            RETURNING id, reservation_code, status
+                            RETURNING id, reservation_code, status, expires_at
                             """,
                             (slot_id, session_id, expires_at, reservation_code),
                         )
@@ -211,6 +215,8 @@ def db_claim_slot(*, slot_id: str, session_id: str) -> dict[str, str | int]:
                 "id": str(booking_row[0]),
                 "reservationCode": booking_row[1],
                 "status": booking_row[2],
+                "expiresAt": booking_row[3].isoformat(),
+                "displayExpiresAt": (booking_row[3] - timedelta(minutes=1)).isoformat(),
                 "slotId": str(slot_row[0]),
                 "startAt": slot_row[1].isoformat(),
                 "endAt": slot_row[2].isoformat(),
@@ -229,7 +235,7 @@ def db_get_booking(*, booking_id: str, session_id: str) -> dict[str, str | int]:
         raise ValueError("session_id is required")
 
     query = """
-        SELECT b.id, b.reservation_code, b.status, b.slot_id, s.start_at, s.end_at
+        SELECT b.id, b.reservation_code, b.status, b.slot_id, b.expires_at, s.start_at, s.end_at
         FROM bookings b
         JOIN slots s ON s.id = b.slot_id
         WHERE b.id = %s
@@ -250,8 +256,10 @@ def db_get_booking(*, booking_id: str, session_id: str) -> dict[str, str | int]:
         "reservationCode": row[1],
         "status": row[2],
         "slotId": str(row[3]),
-        "startAt": row[4].isoformat(),
-        "endAt": row[5].isoformat(),
+        "expiresAt": row[4].isoformat(),
+        "displayExpiresAt": (row[4] - timedelta(minutes=1)).isoformat(),
+        "startAt": row[5].isoformat(),
+        "endAt": row[6].isoformat(),
     }
 
 
@@ -277,6 +285,22 @@ def db_cancel_pending_booking_for_session(*, session_id: str) -> None:
         with conn.transaction():
             with conn.cursor() as cur:
                 cur.execute(query, (session_id,))
+
+
+"""Mark expired pending bookings so they stop blocking slot availability."""
+def db_expire_pending_bookings() -> int:
+    query = """
+        UPDATE bookings
+        SET status = 'expired'
+        WHERE status = 'pending'
+          AND expires_at <= now()
+    """
+
+    with DB_POOL.connection() as conn:
+        with conn.transaction():
+            with conn.cursor() as cur:
+                cur.execute(query)
+                return cur.rowcount
 
 
 """Validate and parse the YYYY-MM-DD date string sent by the frontend."""

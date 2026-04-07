@@ -1,12 +1,15 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from _booking import *
+import threading
+import time
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
 
 BOOKING_SESSION_COOKIE = "booking_session_id"
 BOOKING_SESSION_MAX_AGE = 60 * 60 * 24 * 30
+EXPIRY_SWEEP_INTERVAL_SECONDS = 60
 
 
 @app.route("/api/session", methods=["GET"])
@@ -28,6 +31,7 @@ def ensure_session():
     )
     return response
 
+
 @app.route("/api/get_available_slots", methods=["POST"])
 # Return the available slots for one selected calendar day.
 def get_available_slots():
@@ -38,6 +42,7 @@ def get_available_slots():
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
     return jsonify(slots)
+
 
 @app.route("/api/get_available_dates", methods=["GET"])
 # Return all currently available booking dates.
@@ -96,5 +101,15 @@ def cancel_booking():
     return jsonify({"ok": True})
 
 
+def run_expiry_sweeper():
+    while True:
+        try:
+            db_expire_pending_bookings()
+        finally:
+            time.sleep(EXPIRY_SWEEP_INTERVAL_SECONDS)
+
+
 if __name__=="__main__":
+    expiry_thread = threading.Thread(target=run_expiry_sweeper, daemon=True)
+    expiry_thread.start()
     app.run(port=5001)

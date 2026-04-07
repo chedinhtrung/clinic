@@ -10,6 +10,10 @@ type Slot = {
     endAt: string;
 }
 
+function getBrowserTimeZone() {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+}
+
 // Convert a calendar day into the YYYY-MM-DD format expected by the backend.
 function toDateKey(date: Date) {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
@@ -19,6 +23,7 @@ function formatSlotTime(isoTimestamp: string) {
     return new Date(isoTimestamp).toLocaleTimeString(undefined, {
         hour: "2-digit",
         minute: "2-digit",
+        timeZone: getBrowserTimeZone(),
     });
 }
 

@@ -9,17 +9,23 @@ type BookingDetails = {
     reservationCode: number;
     status: string;
     slotId: string;
+    expiresAt: string;
+    displayExpiresAt: string;
     startAt: string;
     endAt: string;
 }
 
-export default function Booking() {
+function getBrowserTimeZone() {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+}
 
+export default function Booking() {
+    const router = useRouter();
     const searchParams = useSearchParams();
     const bookingId = searchParams.get("bookingId");
     const [booking, setBooking] = useState<BookingDetails | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
-    
+    const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
 
     useEffect(() => {
         if (!bookingId) {
@@ -47,18 +53,38 @@ export default function Booking() {
         loadBooking();
     }, [bookingId])
 
+    useEffect(() => {
+        if (!booking?.displayExpiresAt) {
+            setSecondsLeft(null);
+            return;
+        }
+
+        const updateCountdown = () => {
+            const remaining = Math.max(
+                0,
+                Math.floor((new Date(booking.displayExpiresAt).getTime() - Date.now()) / 1000)
+            );
+            setSecondsLeft(remaining);
+        };
+
+        updateCountdown();
+        const intervalId = window.setInterval(updateCountdown, 1000);
+        return () => window.clearInterval(intervalId);
+    }, [booking?.displayExpiresAt])
+
     const startAt = booking?.startAt ? new Date(booking.startAt) : null;
     const endAt = booking?.endAt ? new Date(booking.endAt) : null;
-    const from = startAt ? startAt.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }) : "";
-    const to = endAt ? endAt.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }) : "";
-
-    
+    const from = startAt ? startAt.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", timeZone: getBrowserTimeZone() }) : "";
+    const to = endAt ? endAt.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", timeZone: getBrowserTimeZone() }) : "";
+    const minutes = secondsLeft !== null ? String(Math.floor(secondsLeft / 60)).padStart(2, "0") : "00";
+    const seconds = secondsLeft !== null ? String(secondsLeft % 60).padStart(2, "0") : "00";
 
     return (
         <div className="flex justify-center gap-6 p-6 sm:p-10 flex-col sm:flex-row bg-tinted-gray">
             <div>
                 <h1 className="text-primary font-bold mb-1 text-3xl">ĐẶT CHỖ CỦA BẠN</h1>
-                <p className="text-txt-gray text-sm">Vui lòng điền thông tin liên hệ và chúng tôi sẽ xác nhận lịch hẹn của bạn</p>
+                <p className="text-txt-gray text-sm">Vui lòng điền thông tin liên hệ và chúng tôi sẽ xác nhận lịch hẹn của bạn.</p>
+                <p className="text-txt-gray text-sm">Thời gian giữ chỗ còn lại: <span className="text-red-600">{minutes}:{seconds}</span></p>
                 {errorMessage ? (
                     <p className="text-red-500 text-sm my-6">{errorMessage}</p>
                 ) : booking ? (
@@ -72,16 +98,17 @@ export default function Booking() {
                                     year: "numeric",
                                     month: "long",
                                     day: "numeric",
+                                    timeZone: getBrowserTimeZone(),
                                 })}   <br></br>   {from} - {to}
                             </p>
                             <p className="text-txt-gray text-sm">Mã đặt chỗ: {booking.reservationCode}</p>
+                            
                             <p className="text-txt-gray">Tư vấn online</p>
                         </div>
                     </div>
                 ) : null}
                 <div className="flex items-center gap-3 mb-4">
                     <h3 className="font-bold">THÔNG TIN LIÊN HỆ</h3>
-                    
                 </div>
                 <ContactForm></ContactForm>
             </div>
