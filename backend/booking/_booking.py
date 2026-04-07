@@ -45,8 +45,17 @@ class BookingEmailConflictError(ValueError):
     """Raised when an email already owns a confirmed booking."""
 
 
+class BookingPaymentVerificationError(ValueError):
+    """Raised when VNPay callback data is invalid or cannot be verified."""
+
+
 def _normalize_email(email: str) -> str:
     return email.strip().lower()
+
+
+def _build_vnpay_hash_data(params: dict[str, str]) -> str:
+    sorted_items = sorted(params.items())
+    return "&".join(f"{key}={quote_plus(str(value))}" for key, value in sorted_items)
 
 
 """Return all distinct slot dates from tomorrow onward that this session may claim."""
@@ -520,8 +529,7 @@ def db_create_vnpay_payment_url(*, booking_id: str, session_id: str, client_ip: 
         "vnp_ExpireDate": expires_at.astimezone(timezone(timedelta(hours=7))).strftime("%Y%m%d%H%M%S"),
     }
 
-    sorted_items = sorted(params.items())
-    hash_data = "&".join(f"{key}={quote_plus(str(value))}" for key, value in sorted_items)
+    hash_data = _build_vnpay_hash_data(params)
     secure_hash = hmac.new(
         VNPAY_HASH_SECRET.encode("utf-8"),
         hash_data.encode("utf-8"),
@@ -530,10 +538,96 @@ def db_create_vnpay_payment_url(*, booking_id: str, session_id: str, client_ip: 
 
     query_string = f"{hash_data}&vnp_SecureHash={secure_hash}"
 
-    print(params)
-
-    print(query_string)
     return f"{VNPAY_PAYMENT_URL}?{query_string}"
+
+
+"""Verify VNPay callback parameters and confirm the corresponding booking when payment succeeds."""
+def db_process_vnpay_callback(callback_params: dict[str, str]) -> dict[str, str | bool | int]:
+    if not VNPAY_HASH_SECRET:
+        raise BookingPaymentConfigError("VNPay configuration is incomplete. Please set VNPAY_HASH_SECRET.")
+
+    if not callback_params:
+        raise BookingPaymentVerificationError("missing VNPay callback parameters")
+
+    secure_hash = callback_params.get("vnp_SecureHash")
+    txn_ref = callback_params.get("vnp_TxnRef")
+    response_code = callback_params.get("vnp_ResponseCode")
+    transaction_status = callback_params.get("vnp_TransactionStatus")
+    amount_raw = callback_params.get("vnp_Amount")
+
+    if not secure_hash or not txn_ref or not response_code or not amount_raw:
+        raise BookingPaymentVerificationError("missing required VNPay callback fields")
+
+    params_to_verify = {
+        key: value
+        for key, value in callback_params.items()
+        if key.startswith("vnp_") and key not in {"vnp_SecureHash", "vnp_SecureHashType"}
+    }
+    hash_data = _build_vnpay_hash_data(params_to_verify)
+    expected_hash = hmac.new(
+        VNPAY_HASH_SECRET.encode("utf-8"),
+        hash_data.encode("utf-8"),
+        sha512,
+    ).hexdigest()
+
+    if expected_hash.lower() != secure_hash.lower():
+        raise BookingPaymentVerificationError("invalid VNPay signature")
+
+    try:
+        amount_vnd = int(amount_raw) // 100
+    except ValueError as exc:
+        raise BookingPaymentVerificationError("invalid VNPay amount") from exc
+
+    successful_payment = response_code == "00" and (transaction_status in (None, "", "00"))
+
+    with DB_POOL.connection() as conn:
+        with conn.transaction():
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT id, status, confirmed_at
+                    FROM bookings
+                    WHERE reservation_code = %s
+                    FOR UPDATE
+                    LIMIT 1
+                    """,
+                    (txn_ref,),
+                )
+                booking_row = cur.fetchone()
+
+                if booking_row is None:
+                    raise BookingPaymentVerificationError("booking not found for VNPay transaction reference")
+
+                booking_id = booking_row[0]
+                booking_status = booking_row[1]
+
+                if amount_vnd != 50000:
+                    raise BookingPaymentVerificationError("unexpected VNPay amount")
+
+                if successful_payment and booking_status != "confirmed":
+                    cur.execute(
+                        """
+                        UPDATE bookings
+                        SET status = 'confirmed',
+                            confirmed_at = now()
+                        WHERE id = %s
+                        RETURNING confirmed_at
+                        """,
+                        (booking_id,),
+                    )
+                    confirmed_at = cur.fetchone()[0]
+                else:
+                    confirmed_at = booking_row[2]
+
+    return {
+        "ok": successful_payment,
+        "bookingId": str(booking_id),
+        "reservationCode": txn_ref,
+        "responseCode": response_code,
+        "transactionStatus": transaction_status or "",
+        "confirmed": successful_payment,
+        "confirmedAt": confirmed_at.isoformat() if confirmed_at else None,
+    }
 
 
 """Mark expired pending bookings so they stop blocking slot availability."""

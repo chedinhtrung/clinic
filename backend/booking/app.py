@@ -13,8 +13,15 @@ EXPIRY_SWEEP_INTERVAL_SECONDS = 60
 
 
 @app.route("/api/session", methods=["GET"])
-# Ensure the browser has an anonymous booking session cookie.
 def ensure_session():
+    """Ensure the browser has an anonymous booking session cookie.
+
+    This endpoint is called by the frontend when the booking UI first loads.
+    If the browser already has `booking_session_id`, the endpoint simply
+    acknowledges success. Otherwise it creates a fresh anonymous session id and
+    sends it back as an HttpOnly cookie so later booking actions can be tied to
+    the same browser session.
+    """
     existing_session_id = request.cookies.get(BOOKING_SESSION_COOKIE)
     response = jsonify({"ok": True})
 
@@ -33,8 +40,15 @@ def ensure_session():
 
 
 @app.route("/api/get_available_slots", methods=["POST"])
-# Return the available slots for one selected calendar day.
 def get_available_slots():
+    """Return all claimable slots for one selected calendar day.
+
+    The frontend sends a raw `YYYY-MM-DD` string in the request body. The
+    backend evaluates availability in a session-aware way so that:
+    - confirmed slots are hidden from everyone
+    - pending slots are hidden from other sessions
+    - the current session may still see its own pending slot
+    """
     data = request.get_json()
     session_id = request.cookies.get(BOOKING_SESSION_COOKIE)
     try:
@@ -45,8 +59,12 @@ def get_available_slots():
 
 
 @app.route("/api/get_available_dates", methods=["GET"])
-# Return all currently available booking dates.
 def get_available_dates():
+    """Return all currently bookable dates for the current session.
+
+    A date is included only if it still contains at least one slot that this
+    session may claim under the current booking rules.
+    """
     session_id = request.cookies.get(BOOKING_SESSION_COOKIE)
     dates = db_get_available_dates(session_id=session_id)
     return jsonify(dates)
@@ -54,6 +72,13 @@ def get_available_dates():
 
 @app.route("/api/claim_booking", methods=["POST"])
 def claim_booking():
+    """Claim the requested slot for the current anonymous booking session.
+
+    The frontend sends `slotId`. The backend performs the claim atomically:
+    it verifies the slot, checks for active ownership, and either creates a new
+    pending booking or moves/reuses the current session's existing pending
+    booking according to the booking rules.
+    """
     session_id = request.cookies.get(BOOKING_SESSION_COOKIE)
     if not session_id:
         return jsonify({"error": "missing booking session"}), 400
@@ -73,6 +98,12 @@ def claim_booking():
 
 @app.route("/api/booking/<booking_id>", methods=["GET"])
 def get_booking(booking_id: str):
+    """Load one booking authoritatively for the current session.
+
+    This is the read endpoint used by the booking and payment pages. It only
+    returns the booking if the supplied `booking_id` belongs to the current
+    browser session, and includes slot timing plus any attached patient details.
+    """
     session_id = request.cookies.get(BOOKING_SESSION_COOKIE)
     if not session_id:
         return jsonify({"error": "missing booking session"}), 400
@@ -89,6 +120,12 @@ def get_booking(booking_id: str):
 
 @app.route("/api/booking/cancel", methods=["POST"])
 def cancel_booking():
+    """Cancel the current session's active pending booking.
+
+    This mutation is intentionally session-based rather than URL-id-based so a
+    user cannot cancel another booking simply by tampering with a booking id in
+    the browser location bar.
+    """
     session_id = request.cookies.get(BOOKING_SESSION_COOKIE)
     if not session_id:
         return jsonify({"error": "missing booking session"}), 400
@@ -103,6 +140,14 @@ def cancel_booking():
 
 @app.route("/api/booking/proceed_to_payment", methods=["POST"])
 def proceed_to_payment():
+    """Validate the in-progress booking, persist patient details, and continue.
+
+    This endpoint is triggered by the contact form submit action. It verifies
+    that the current session still owns a valid pending booking, expires it
+    immediately if it has timed out, applies the email-based booking rules,
+    creates or updates the patient record, extends the hold for the payment
+    stage, and returns the canonical booking that should continue to payment.
+    """
     session_id = request.cookies.get(BOOKING_SESSION_COOKIE)
     if not session_id:
         return jsonify({"error": "missing booking session"}), 400
@@ -132,6 +177,13 @@ def proceed_to_payment():
 
 @app.route("/api/payment/vnpay", methods=["POST"])
 def create_vnpay_payment():
+    """Create a signed VNPay payment URL for the current booking.
+
+    The frontend sends `bookingId`. The backend verifies that the booking still
+    belongs to the current session and is still payable, then signs the VNPay
+    request parameters using the merchant secret and returns the final redirect
+    URL for the browser to navigate to.
+    """
     session_id = request.cookies.get(BOOKING_SESSION_COOKIE)
     if not session_id:
         return jsonify({"error": "missing booking session"}), 400
@@ -156,6 +208,46 @@ def create_vnpay_payment():
         return jsonify({"error": str(exc)}), 400
 
     return jsonify({"paymentUrl": payment_url})
+
+
+@app.route("/api/payment/vnpay/return", methods=["GET"])
+def verify_vnpay_return():
+    """Verify the browser-facing VNPay return payload.
+
+    VNPay redirects the customer back to the frontend with query parameters.
+    The frontend forwards those parameters here so the backend can verify the
+    signature and return a trusted payment result for display.
+    """
+    try:
+        result = db_process_vnpay_callback({key: value for key, value in request.args.items()})
+    except BookingPaymentVerificationError as exc:
+        return jsonify({"error": str(exc)}), 400
+    except BookingPaymentConfigError as exc:
+        return jsonify({"error": str(exc)}), 500
+
+    return jsonify({"result": result})
+
+
+@app.route("/api/payment/vnpay/ipn", methods=["GET"])
+def handle_vnpay_ipn():
+    """Process VNPay's server-to-server payment notification (IPN).
+
+    This is the authoritative callback path for payment reconciliation. The
+    backend verifies the VNPay signature, updates the booking to `confirmed`
+    when payment succeeds, and returns the response structure VNPay expects.
+    The implementation is designed to be idempotent so repeated callbacks are
+    safe.
+    """
+    try:
+        result = db_process_vnpay_callback({key: value for key, value in request.args.items()})
+    except BookingPaymentVerificationError:
+        return jsonify({"RspCode": "97", "Message": "Invalid signature"})
+    except BookingPaymentConfigError:
+        return jsonify({"RspCode": "99", "Message": "Unknown error"})
+
+    if result["confirmed"]:
+        return jsonify({"RspCode": "00", "Message": "Confirm Success"})
+    return jsonify({"RspCode": "00", "Message": "Payment not successful"})
 
 
 def run_expiry_sweeper():
