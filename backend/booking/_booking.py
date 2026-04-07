@@ -1,7 +1,10 @@
 from config import *
 from datetime import date, datetime, time, timedelta, timezone
+from hashlib import sha512
+import hmac
 from random import randint
 from secrets import token_urlsafe
+from urllib.parse import quote_plus
 
 import psycopg
 from psycopg.errors import UniqueViolation
@@ -32,6 +35,10 @@ class BookingAccessError(ValueError):
 
 class BookingExpiredError(ValueError):
     """Raised when a pending booking has expired and can no longer continue."""
+
+
+class BookingPaymentConfigError(ValueError):
+    """Raised when VNPay configuration is incomplete."""
 
 
 """Return all distinct slot dates from tomorrow onward that this session may claim."""
@@ -405,6 +412,79 @@ def db_proceed_to_payment_for_session(
         "expiresAt": updated_booking[4].isoformat(),
         "displayExpiresAt": (updated_booking[4] - timedelta(minutes=1)).isoformat(),
     }
+
+
+"""Create a signed VNPay redirect URL for the given booking owned by this session."""
+def db_create_vnpay_payment_url(*, booking_id: str, session_id: str, client_ip: str) -> str:
+    if not booking_id:
+        raise ValueError("booking_id is required")
+    if not session_id:
+        raise ValueError("session_id is required")
+    if not VNPAY_TMN_CODE or not VNPAY_HASH_SECRET or not VNPAY_RETURN_URL:
+        raise BookingPaymentConfigError("VNPay configuration is incomplete. Please set VNPAY_TMN_CODE, VNPAY_HASH_SECRET, and VNPAY_RETURN_URL.")
+
+    now_gmt7 = datetime.now(timezone(timedelta(hours=7)))
+
+    query = """
+        SELECT b.id, b.status, b.expires_at, b.reservation_code, p.name
+        FROM bookings b
+        LEFT JOIN patients p ON p.id = b.patient_id
+        WHERE b.id = %s
+          AND b.session_id = %s
+        LIMIT 1
+    """
+
+    with DB_POOL.connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(query, (booking_id, session_id))
+            row = cur.fetchone()
+
+    if row is None:
+        raise BookingAccessError("booking not found")
+
+    booking_status = row[1]
+    expires_at = row[2]
+    reservation_code = row[3]
+    patient_name = row[4] or "Dat lich tu van online"
+
+    if booking_status != "pending":
+        raise BookingAccessError("booking is no longer pending")
+    if expires_at <= datetime.now(timezone.utc):
+        raise BookingExpiredError("booking has expired")
+
+    amount_vnd = 50000
+    vnp_txn_ref = booking_id.replace("-", "")
+
+    params = {
+        "vnp_Version": "2.1.0",
+        "vnp_Command": "pay",
+        "vnp_TmnCode": VNPAY_TMN_CODE,
+        "vnp_Amount": str(int(amount_vnd * 100)),
+        "vnp_CreateDate": now_gmt7.strftime("%Y%m%d%H%M%S"),
+        "vnp_CurrCode": "VND",
+        "vnp_IpAddr": client_ip or "127.0.0.1",
+        "vnp_Locale": "vn",
+        "vnp_OrderInfo": f"Thanh toan lich hen {reservation_code} {patient_name}",
+        "vnp_OrderType": "other",
+        "vnp_ReturnUrl": VNPAY_RETURN_URL,
+        "vnp_TxnRef": vnp_txn_ref,
+        "vnp_ExpireDate": expires_at.astimezone(timezone(timedelta(hours=7))).strftime("%Y%m%d%H%M%S"),
+    }
+
+    sorted_items = sorted(params.items())
+    hash_data = "&".join(f"{key}={quote_plus(str(value))}" for key, value in sorted_items)
+    secure_hash = hmac.new(
+        VNPAY_HASH_SECRET.encode("utf-8"),
+        hash_data.encode("utf-8"),
+        sha512,
+    ).hexdigest()
+
+    query_string = f"{hash_data}&vnp_SecureHash={secure_hash}"
+
+    print(params)
+
+    print(query_string)
+    return f"{VNPAY_PAYMENT_URL}?{query_string}"
 
 
 """Mark expired pending bookings so they stop blocking slot availability."""

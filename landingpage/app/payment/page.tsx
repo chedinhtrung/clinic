@@ -32,6 +32,7 @@ export default function PaymentPage() {
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
     const [hasHandledExpiry, setHasHandledExpiry] = useState(false);
+    const [isRedirectingToPayment, setIsRedirectingToPayment] = useState(false);
 
     useEffect(() => {
         if (!bookingId) {
@@ -88,6 +89,37 @@ export default function PaymentPage() {
         router.push("/");
     }, [hasHandledExpiry, router, secondsLeft]);
 
+    async function onStartVNPayPayment() {
+        if (!booking) {
+            return;
+        }
+
+        setIsRedirectingToPayment(true);
+        try {
+            const res = await fetch("http://localhost:5001/api/payment/vnpay", {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    bookingId: booking.id,
+                }),
+            });
+
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data?.error ?? "Không tạo được thanh toán, vui lòng thử lại sau.");
+            }
+
+            window.location.href = data.paymentUrl;
+        } catch (error) {
+            alert(error instanceof Error ? error.message : "Không tạo được thanh toán, vui lòng thử lại sau.");
+        } finally {
+            setIsRedirectingToPayment(false);
+        }
+    }
+
     const startAt = booking?.startAt ? new Date(booking.startAt) : null;
     const endAt = booking?.endAt ? new Date(booking.endAt) : null;
     const from = startAt ? startAt.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", timeZone: getBrowserTimeZone() }) : "";
@@ -134,9 +166,11 @@ export default function PaymentPage() {
 
                         <button
                             type="button"
-                            className="w-full rounded-lg bg-primary px-4 py-3 font-bold text-white"
+                            className="w-full rounded-lg bg-primary px-4 py-3 font-bold text-white disabled:opacity-60"
+                            onClick={onStartVNPayPayment}
+                            disabled={isRedirectingToPayment}
                         >
-                            Thanh toán qua VNPay
+                            {isRedirectingToPayment ? "Đang chuyển hướng..." : "Thanh toán qua VNPay"}
                         </button>
                     </div>
                 ) : null}

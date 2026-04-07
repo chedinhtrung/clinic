@@ -128,6 +128,34 @@ def proceed_to_payment():
     return jsonify({"booking": booking})
 
 
+@app.route("/api/payment/vnpay", methods=["POST"])
+def create_vnpay_payment():
+    session_id = request.cookies.get(BOOKING_SESSION_COOKIE)
+    if not session_id:
+        return jsonify({"error": "missing booking session"}), 400
+
+    data = request.get_json() or {}
+    booking_id = data.get("bookingId")
+    client_ip = request.headers.get("X-Forwarded-For", request.remote_addr or "127.0.0.1").split(",")[0].strip()
+
+    try:
+        payment_url = db_create_vnpay_payment_url(
+            booking_id=booking_id,
+            session_id=session_id,
+            client_ip=client_ip,
+        )
+    except BookingPaymentConfigError as exc:
+        return jsonify({"error": str(exc)}), 500
+    except BookingExpiredError as exc:
+        return jsonify({"error": str(exc)}), 410
+    except BookingAccessError as exc:
+        return jsonify({"error": str(exc)}), 404
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    return jsonify({"paymentUrl": payment_url})
+
+
 def run_expiry_sweeper():
     while True:
         try:
