@@ -101,6 +101,33 @@ def cancel_booking():
     return jsonify({"ok": True})
 
 
+@app.route("/api/booking/proceed_to_payment", methods=["POST"])
+def proceed_to_payment():
+    session_id = request.cookies.get(BOOKING_SESSION_COOKIE)
+    if not session_id:
+        return jsonify({"error": "missing booking session"}), 400
+
+    data = request.get_json() or {}
+
+    try:
+        booking = db_proceed_to_payment_for_session(
+            session_id=session_id,
+            name=data.get("name", "").strip(),
+            email=data.get("email", "").strip(),
+            phone=(data.get("phone") or "").strip() or None,
+            birthdate=data.get("birthdate", "").strip(),
+            gender=data.get("gender", "").strip(),
+        )
+    except BookingExpiredError as exc:
+        return jsonify({"error": str(exc)}), 410
+    except BookingAccessError as exc:
+        return jsonify({"error": str(exc)}), 404
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    return jsonify({"booking": booking})
+
+
 def run_expiry_sweeper():
     while True:
         try:

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 
 export default function ContactForm({ confirmed = false }) {
   const [form, setForm] = useState({
@@ -14,6 +14,7 @@ export default function ContactForm({ confirmed = false }) {
   })
 
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
   const handleChange = (
@@ -25,9 +26,32 @@ export default function ContactForm({ confirmed = false }) {
     })
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("Form submitted:", form)
+    setIsSubmitting(true);
+    try {
+      const res = await fetch("http://localhost:5001/api/booking/proceed_to_payment", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(form),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.error ?? "Khong the tiep tuc thanh toan");
+      }
+
+      router.push(`/payment?bookingId=${encodeURIComponent(data.booking.id)}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Khong the tiep tuc thanh toan";
+      alert(message);
+      router.push("/");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   async function onCancelBooking() {
@@ -126,7 +150,8 @@ export default function ContactForm({ confirmed = false }) {
       </button>
       <button
         type="submit"
-        className="bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark text-bold sm:text-sm text-xs"
+        className="bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark text-bold sm:text-sm text-xs disabled:opacity-60"
+        disabled={isSubmitting}
       >
         {confirmed ? `CHỈNH SỬA` : `XÁC NHẬN ĐẶT CHỖ `}
       </button>

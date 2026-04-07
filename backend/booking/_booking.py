@@ -30,6 +30,10 @@ class BookingAccessError(ValueError):
     """Raised when a booking cannot be accessed by the current session."""
 
 
+class BookingExpiredError(ValueError):
+    """Raised when a pending booking has expired and can no longer continue."""
+
+
 """Return all distinct slot dates from tomorrow onward that this session may claim."""
 def db_get_available_dates(session_id: str | None = None) -> list[str]:
     query = """
@@ -285,6 +289,113 @@ def db_cancel_pending_booking_for_session(*, session_id: str) -> None:
         with conn.transaction():
             with conn.cursor() as cur:
                 cur.execute(query, (session_id,))
+
+
+"""Persist patient details for the current session's active booking and allow payment to continue."""
+def db_proceed_to_payment_for_session(
+    *,
+    session_id: str,
+    name: str,
+    email: str,
+    phone: str | None,
+    birthdate: str,
+    gender: str,
+) -> dict[str, str | int]:
+    if not session_id:
+        raise ValueError("session_id is required")
+    if not name:
+        raise ValueError("name is required")
+    if not email:
+        raise ValueError("email is required")
+    if not birthdate:
+        raise ValueError("birthdate is required")
+    if not gender:
+        raise ValueError("gender is required")
+
+    now_utc = datetime.now(timezone.utc)
+
+    with DB_POOL.connection() as conn:
+        with conn.transaction():
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT id, patient_id, status, expires_at
+                    FROM bookings
+                    WHERE session_id = %s
+                      AND status = 'pending'
+                    ORDER BY created_at DESC
+                    FOR UPDATE
+                    LIMIT 1
+                    """,
+                    (session_id,),
+                )
+                booking_row = cur.fetchone()
+
+                if booking_row is None:
+                    raise BookingAccessError("booking not found")
+
+                booking_id = booking_row[0]
+                patient_id = booking_row[1]
+                booking_status = booking_row[2]
+                expires_at = booking_row[3]
+
+                if booking_status != "pending":
+                    raise BookingAccessError("booking is no longer pending")
+
+                if expires_at <= now_utc:
+                    cur.execute(
+                        """
+                        UPDATE bookings
+                        SET status = 'expired'
+                        WHERE id = %s
+                        """,
+                        (booking_id,),
+                    )
+                    raise BookingExpiredError("booking has expired")
+
+                if patient_id is None:
+                    cur.execute(
+                        """
+                        INSERT INTO patients (name, gender, email, birthdate, phone)
+                        VALUES (%s, %s, %s, %s, %s)
+                        RETURNING id
+                        """,
+                        (name, gender, email, birthdate, phone),
+                    )
+                    patient_id = cur.fetchone()[0]
+                else:
+                    cur.execute(
+                        """
+                        UPDATE patients
+                        SET name = %s,
+                            gender = %s,
+                            email = %s,
+                            birthdate = %s,
+                            phone = %s
+                        WHERE id = %s
+                        """,
+                        (name, gender, email, birthdate, phone, patient_id),
+                    )
+
+                cur.execute(
+                    """
+                    UPDATE bookings
+                    SET patient_id = %s
+                    WHERE id = %s
+                    RETURNING id, reservation_code, status, slot_id, expires_at
+                    """,
+                    (patient_id, booking_id),
+                )
+                updated_booking = cur.fetchone()
+
+    return {
+        "id": str(updated_booking[0]),
+        "reservationCode": updated_booking[1],
+        "status": updated_booking[2],
+        "slotId": str(updated_booking[3]),
+        "expiresAt": updated_booking[4].isoformat(),
+        "displayExpiresAt": (updated_booking[4] - timedelta(minutes=1)).isoformat(),
+    }
 
 
 """Mark expired pending bookings so they stop blocking slot availability."""
