@@ -72,14 +72,19 @@ export default function ContactForm({
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data?.error ?? "Khong the tiep tuc thanh toan");
+        const error = new Error(data?.error ?? "Khong the tiep tuc thanh toan");
+        (error as Error & { status?: number }).status = res.status;
+        throw error;
       }
 
       router.push(`/payment?bookingId=${encodeURIComponent(data.booking.id)}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Khong the tiep tuc thanh toan";
       alert(message);
-      router.push("/");
+      const status = error instanceof Error ? (error as Error & { status?: number }).status : undefined;
+      if (status !== 409) {
+        router.push("#");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -93,7 +98,7 @@ export default function ContactForm({
         credentials: "include",
       });
     } finally {
-      router.push("/");
+      router.push("#");
     }
   }
 
@@ -153,7 +158,7 @@ export default function ContactForm({
           className="w-full border rounded p-2 bg-white"
           required
         >
-          <option value="">Chọn giới tính</option>
+          <option value=""></option>
           <option value="male">Nam</option>
           <option value="female">Nữ</option>
         </select>

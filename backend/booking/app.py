@@ -118,6 +118,8 @@ def proceed_to_payment():
             birthdate=data.get("birthdate", "").strip(),
             gender=data.get("gender", "").strip(),
         )
+    except BookingEmailConflictError as exc:
+        return jsonify({"error": str(exc)}), 409
     except BookingExpiredError as exc:
         return jsonify({"error": str(exc)}), 410
     except BookingAccessError as exc:

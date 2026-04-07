@@ -41,6 +41,14 @@ class BookingPaymentConfigError(ValueError):
     """Raised when VNPay configuration is incomplete."""
 
 
+class BookingEmailConflictError(ValueError):
+    """Raised when an email already owns a confirmed booking."""
+
+
+def _normalize_email(email: str) -> str:
+    return email.strip().lower()
+
+
 """Return all distinct slot dates from tomorrow onward that this session may claim."""
 def db_get_available_dates(session_id: str | None = None) -> list[str]:
     query = """
@@ -326,6 +334,7 @@ def db_proceed_to_payment_for_session(
     if not gender:
         raise ValueError("gender is required")
 
+    normalized_email = _normalize_email(email)
     now_utc = datetime.now(timezone.utc)
     payment_expires_at = now_utc + timedelta(minutes=16)
 
@@ -334,7 +343,7 @@ def db_proceed_to_payment_for_session(
             with conn.cursor() as cur:
                 cur.execute(
                     """
-                    SELECT id, patient_id, status, expires_at
+                    SELECT id, slot_id, patient_id, status, expires_at
                     FROM bookings
                     WHERE session_id = %s
                       AND status = 'pending'
@@ -350,9 +359,10 @@ def db_proceed_to_payment_for_session(
                     raise BookingAccessError("booking not found")
 
                 booking_id = booking_row[0]
-                patient_id = booking_row[1]
-                booking_status = booking_row[2]
-                expires_at = booking_row[3]
+                slot_id = booking_row[1]
+                patient_id = booking_row[2]
+                booking_status = booking_row[3]
+                expires_at = booking_row[4]
 
                 if booking_status != "pending":
                     raise BookingAccessError("booking is no longer pending")
@@ -368,16 +378,43 @@ def db_proceed_to_payment_for_session(
                     )
                     raise BookingExpiredError("booking has expired")
 
-                if patient_id is None:
+                cur.execute(
+                    """
+                    SELECT b.id, b.slot_id, b.patient_id, b.status
+                    FROM bookings b
+                    JOIN patients p ON p.id = b.patient_id
+                    WHERE lower(trim(p.email)) = %s
+                      AND b.status IN ('pending', 'confirmed')
+                    ORDER BY CASE WHEN b.status = 'confirmed' THEN 0 ELSE 1 END, b.created_at DESC
+                    FOR UPDATE
+                    """,
+                    (normalized_email,),
+                )
+                email_bookings = cur.fetchall()
+
+                confirmed_booking = next((row for row in email_bookings if row[3] == "confirmed"), None)
+                pending_booking = next((row for row in email_bookings if row[3] == "pending"), None)
+
+                if confirmed_booking is not None and str(confirmed_booking[0]) != str(booking_id):
+                    raise BookingEmailConflictError("Email nay da co mot lich hen da xac nhan. Vui long kiem tra email va huy lich cu neu can.")
+
+                canonical_booking_id = booking_id
+                canonical_patient_id = patient_id
+
+                if pending_booking is not None and str(pending_booking[0]) != str(booking_id):
+                    canonical_booking_id = pending_booking[0]
+                    canonical_patient_id = pending_booking[2]
+
+                if canonical_patient_id is None:
                     cur.execute(
                         """
                         INSERT INTO patients (name, gender, email, birthdate, phone)
                         VALUES (%s, %s, %s, %s, %s)
                         RETURNING id
                         """,
-                        (name, gender, email, birthdate, phone),
+                        (name, gender, normalized_email, birthdate, phone),
                     )
-                    patient_id = cur.fetchone()[0]
+                    canonical_patient_id = cur.fetchone()[0]
                 else:
                     cur.execute(
                         """
@@ -389,20 +426,32 @@ def db_proceed_to_payment_for_session(
                             phone = %s
                         WHERE id = %s
                         """,
-                        (name, gender, email, birthdate, phone, patient_id),
+                        (name, gender, normalized_email, birthdate, phone, canonical_patient_id),
                     )
 
                 cur.execute(
                     """
                     UPDATE bookings
-                    SET patient_id = %s,
+                    SET slot_id = %s,
+                        session_id = %s,
+                        patient_id = %s,
                         expires_at = %s
                     WHERE id = %s
                     RETURNING id, reservation_code, status, slot_id, expires_at
                     """,
-                    (patient_id, payment_expires_at, booking_id),
+                    (slot_id, session_id, canonical_patient_id, payment_expires_at, canonical_booking_id),
                 )
                 updated_booking = cur.fetchone()
+
+                if str(canonical_booking_id) != str(booking_id):
+                    cur.execute(
+                        """
+                        UPDATE bookings
+                        SET status = 'cancelled'
+                        WHERE id = %s
+                        """,
+                        (booking_id,),
+                    )
 
     return {
         "id": str(updated_booking[0]),
@@ -453,7 +502,7 @@ def db_create_vnpay_payment_url(*, booking_id: str, session_id: str, client_ip: 
         raise BookingExpiredError("booking has expired")
 
     amount_vnd = 50000
-    vnp_txn_ref = booking_id.replace("-", "")
+    vnp_txn_ref = reservation_code
 
     params = {
         "vnp_Version": "2.1.0",

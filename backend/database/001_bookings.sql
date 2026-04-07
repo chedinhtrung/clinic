@@ -28,7 +28,7 @@ CREATE TABLE bookings (
   confirmation_hash text,
   status text NOT NULL DEFAULT 'hold',
   reservation_code bigint NOT NULL UNIQUE,
-  CHECK (status IN ('pending', 'confirmed', 'expired', 'cancelled'))
+  CHECK (status IN ('pending', 'confirmed', 'expired', 'cancelled', 'finished'))
 );
 
 CREATE INDEX idx_bookings_slot_id ON bookings(slot_id);
@@ -36,6 +36,9 @@ CREATE INDEX idx_bookings_rev_code ON bookings(reservation_code);
 CREATE INDEX idx_bookings_patient_id ON bookings(patient_id);
 CREATE INDEX idx_bookings_confirmation_hash ON bookings(confirmation_hash);
 CREATE INDEX idx_slots_start_at ON slots(start_at);
+CREATE UNIQUE INDEX unique_patient_email
+ON patients((lower(trim(email))))
+WHERE email IS NOT NULL;
 
 CREATE UNIQUE INDEX unique_confirmed_slot
 ON bookings(slot_id)
