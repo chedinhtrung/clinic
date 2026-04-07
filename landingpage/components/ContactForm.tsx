@@ -1,21 +1,52 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 
-export default function ContactForm({ confirmed = false }) {
+type ContactFormValues = {
+  name: string;
+  email: string;
+  phone: string;
+  birthdate: string;
+  gender: string;
+}
+
+export default function ContactForm({
+  confirmed = false,
+  initialValues,
+}: {
+  confirmed?: boolean;
+  initialValues?: Partial<ContactFormValues>;
+}) {
   const [form, setForm] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    birthdate: "",
-    gender: "",
+    name: initialValues?.name ?? "",
+    email: initialValues?.email ?? "",
+    phone: initialValues?.phone ?? "",
+    birthdate: initialValues?.birthdate ?? "",
+    gender: initialValues?.gender ?? "",
     message: "",
   })
 
   const [isCancelling, setIsCancelling] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    setForm((current) => ({
+      ...current,
+      name: initialValues?.name ?? "",
+      email: initialValues?.email ?? "",
+      phone: initialValues?.phone ?? "",
+      birthdate: initialValues?.birthdate ?? "",
+      gender: initialValues?.gender ?? "",
+    }))
+  }, [
+    initialValues?.birthdate,
+    initialValues?.email,
+    initialValues?.gender,
+    initialValues?.name,
+    initialValues?.phone,
+  ])
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>

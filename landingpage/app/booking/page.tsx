@@ -13,6 +13,11 @@ type BookingDetails = {
     displayExpiresAt: string;
     startAt: string;
     endAt: string;
+    patientName?: string | null;
+    patientEmail?: string | null;
+    patientPhone?: string | null;
+    patientBirthdate?: string | null;
+    patientGender?: string | null;
 }
 
 function getBrowserTimeZone() {
@@ -121,7 +126,15 @@ export default function Booking() {
                 <div className="flex items-center gap-3 mb-4">
                     <h3 className="font-bold">THÔNG TIN LIÊN HỆ</h3>
                 </div>
-                <ContactForm></ContactForm>
+                <ContactForm
+                    initialValues={{
+                        name: booking?.patientName ?? "",
+                        email: booking?.patientEmail ?? "",
+                        phone: booking?.patientPhone ?? "",
+                        birthdate: booking?.patientBirthdate ?? "",
+                        gender: booking?.patientGender ?? "",
+                    }}
+                ></ContactForm>
             </div>
         </div>
     )
