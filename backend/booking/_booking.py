@@ -239,9 +239,11 @@ def db_get_booking(*, booking_id: str, session_id: str) -> dict[str, str | int]:
         raise ValueError("session_id is required")
 
     query = """
-        SELECT b.id, b.reservation_code, b.status, b.slot_id, b.expires_at, s.start_at, s.end_at
+        SELECT b.id, b.reservation_code, b.status, b.slot_id, b.expires_at, s.start_at, s.end_at,
+               p.name, p.email, p.phone, p.birthdate, p.gender
         FROM bookings b
         JOIN slots s ON s.id = b.slot_id
+        LEFT JOIN patients p ON p.id = b.patient_id
         WHERE b.id = %s
           AND b.session_id = %s
         LIMIT 1
@@ -264,6 +266,11 @@ def db_get_booking(*, booking_id: str, session_id: str) -> dict[str, str | int]:
         "displayExpiresAt": (row[4] - timedelta(minutes=1)).isoformat(),
         "startAt": row[5].isoformat(),
         "endAt": row[6].isoformat(),
+        "patientName": row[7],
+        "patientEmail": row[8],
+        "patientPhone": row[9],
+        "patientBirthdate": row[10].isoformat() if row[10] else None,
+        "patientGender": row[11],
     }
 
 
@@ -313,6 +320,7 @@ def db_proceed_to_payment_for_session(
         raise ValueError("gender is required")
 
     now_utc = datetime.now(timezone.utc)
+    payment_expires_at = now_utc + timedelta(minutes=16)
 
     with DB_POOL.connection() as conn:
         with conn.transaction():
@@ -380,11 +388,12 @@ def db_proceed_to_payment_for_session(
                 cur.execute(
                     """
                     UPDATE bookings
-                    SET patient_id = %s
+                    SET patient_id = %s,
+                        expires_at = %s
                     WHERE id = %s
                     RETURNING id, reservation_code, status, slot_id, expires_at
                     """,
-                    (patient_id, booking_id),
+                    (patient_id, payment_expires_at, booking_id),
                 )
                 updated_booking = cur.fetchone()
 

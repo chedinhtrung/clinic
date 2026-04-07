@@ -26,6 +26,7 @@ export default function Booking() {
     const [booking, setBooking] = useState<BookingDetails | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
+    const [hasHandledExpiry, setHasHandledExpiry] = useState(false);
 
     useEffect(() => {
         if (!bookingId) {
@@ -71,6 +72,16 @@ export default function Booking() {
         const intervalId = window.setInterval(updateCountdown, 1000);
         return () => window.clearInterval(intervalId);
     }, [booking?.displayExpiresAt])
+
+    useEffect(() => {
+        if (secondsLeft !== 0 || hasHandledExpiry) {
+            return;
+        }
+
+        setHasHandledExpiry(true);
+        alert("Booking has expired");
+        router.push("/");
+    }, [hasHandledExpiry, router, secondsLeft])
 
     const startAt = booking?.startAt ? new Date(booking.startAt) : null;
     const endAt = booking?.endAt ? new Date(booking.endAt) : null;
