@@ -82,5 +82,19 @@ def get_booking(booking_id: str):
     return jsonify({"booking": booking})
 
 
+@app.route("/api/booking/cancel", methods=["POST"])
+def cancel_booking():
+    session_id = request.cookies.get(BOOKING_SESSION_COOKIE)
+    if not session_id:
+        return jsonify({"error": "missing booking session"}), 400
+
+    try:
+        db_cancel_pending_booking_for_session(session_id=session_id)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    return jsonify({"ok": True})
+
+
 if __name__=="__main__":
     app.run(port=5001)

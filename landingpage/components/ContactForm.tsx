@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 
 export default function ContactForm({ confirmed = false }) {
   const [form, setForm] = useState({
@@ -11,6 +12,9 @@ export default function ContactForm({ confirmed = false }) {
     gender: "",
     message: "",
   })
+
+  const [isCancelling, setIsCancelling] = useState(false);
+  const router = useRouter();
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -24,6 +28,18 @@ export default function ContactForm({ confirmed = false }) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     console.log("Form submitted:", form)
+  }
+
+  async function onCancelBooking() {
+    setIsCancelling(true);
+    try {
+      await fetch("http://localhost:5001/api/booking/cancel", {
+        method: "POST",
+        credentials: "include",
+      });
+    } finally {
+      router.push("/");
+    }
   }
 
   return (
@@ -100,13 +116,21 @@ export default function ContactForm({ confirmed = false }) {
           rows={3}
         />
       </div>
-
+      <button
+        type="button"
+        className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 text-sm disabled:opacity-60 mb-0"
+        onClick={onCancelBooking}
+        disabled={isCancelling}
+      >
+        {isCancelling ? "Đang hủy..." : "Hủy giữ chỗ"}
+      </button>
       <button
         type="submit"
         className="bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark text-bold sm:text-sm text-xs"
       >
         {confirmed ? `CHỈNH SỬA` : `XÁC NHẬN ĐẶT CHỖ `}
       </button>
+      
     </form>
   )
 }

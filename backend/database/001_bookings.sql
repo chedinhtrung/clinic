@@ -28,7 +28,7 @@ CREATE TABLE bookings (
   confirmation_hash text,
   status text NOT NULL DEFAULT 'hold',
   reservation_code bigint NOT NULL UNIQUE,
-  CHECK (status IN ('hold', 'pending', 'confirmed', 'expired', 'cancelled'))
+  CHECK (status IN ('pending', 'confirmed', 'expired', 'cancelled'))
 );
 
 CREATE INDEX idx_bookings_slot_id ON bookings(slot_id);

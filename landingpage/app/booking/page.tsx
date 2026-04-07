@@ -1,7 +1,7 @@
 "use client"
 import ContactForm from "@/components/ContactForm";
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import CalendarSVG from "@/components/CalendarSVG";
 
 type BookingDetails = {
@@ -14,10 +14,12 @@ type BookingDetails = {
 }
 
 export default function Booking() {
+
     const searchParams = useSearchParams();
     const bookingId = searchParams.get("bookingId");
     const [booking, setBooking] = useState<BookingDetails | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    
 
     useEffect(() => {
         if (!bookingId) {
@@ -50,6 +52,8 @@ export default function Booking() {
     const from = startAt ? startAt.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }) : "";
     const to = endAt ? endAt.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }) : "";
 
+    
+
     return (
         <div className="flex justify-center gap-6 p-6 sm:p-10 flex-col sm:flex-row bg-tinted-gray">
             <div>
@@ -75,7 +79,10 @@ export default function Booking() {
                         </div>
                     </div>
                 ) : null}
-                <h3 className="font-bold mb-4">THÔNG TIN LIÊN HỆ</h3>
+                <div className="flex items-center gap-3 mb-4">
+                    <h3 className="font-bold">THÔNG TIN LIÊN HỆ</h3>
+                    
+                </div>
                 <ContactForm></ContactForm>
             </div>
         </div>

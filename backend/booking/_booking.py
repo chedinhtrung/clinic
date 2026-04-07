@@ -255,6 +255,30 @@ def db_get_booking(*, booking_id: str, session_id: str) -> dict[str, str | int]:
     }
 
 
+"""Cancel the current session's active pending booking, if one exists."""
+def db_cancel_pending_booking_for_session(*, session_id: str) -> None:
+    if not session_id:
+        raise ValueError("session_id is required")
+
+    query = """
+        UPDATE bookings
+        SET status = 'cancelled'
+        WHERE id = (
+            SELECT id
+            FROM bookings
+            WHERE session_id = %s
+              AND status = 'pending'
+            ORDER BY created_at DESC
+            LIMIT 1
+        )
+    """
+
+    with DB_POOL.connection() as conn:
+        with conn.transaction():
+            with conn.cursor() as cur:
+                cur.execute(query, (session_id,))
+
+
 """Validate and parse the YYYY-MM-DD date string sent by the frontend."""
 def _parse_selected_date(selected_date_raw: str) -> date:
     if not selected_date_raw:
