@@ -396,7 +396,7 @@ def db_proceed_to_payment_for_session(
                 pending_booking = next((row for row in email_bookings if row[3] == "pending"), None)
 
                 if confirmed_booking is not None and str(confirmed_booking[0]) != str(booking_id):
-                    raise BookingEmailConflictError("Email nay da co mot lich hen da xac nhan. Vui long kiem tra email va huy lich cu neu can.")
+                    raise BookingEmailConflictError("Bạn đã có một lịch hẹn được xác nhận. Vui lòng kiểm tra email và hủy nếu muốn thay đổi lịch hẹn.")
 
                 canonical_booking_id = booking_id
                 canonical_patient_id = patient_id
