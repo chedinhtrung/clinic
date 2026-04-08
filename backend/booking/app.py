@@ -248,6 +248,7 @@ def handle_vnpay_ipn():
 
     email_payload = result.get("confirmationEmail")
     print(email_payload)
+    print(result)
     if result["confirmed"] and email_payload:
         try:
             send_booking_confirmation_email(
