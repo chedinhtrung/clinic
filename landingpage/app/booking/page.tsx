@@ -1,6 +1,6 @@
 "use client"
 import ContactForm from "@/components/ContactForm";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation"
 import CalendarSVG from "@/components/CalendarSVG";
 
@@ -24,7 +24,7 @@ function getBrowserTimeZone() {
     return Intl.DateTimeFormat().resolvedOptions().timeZone;
 }
 
-export default function Booking() {
+function BookingContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const bookingId = searchParams.get("bookingId");
@@ -138,4 +138,12 @@ export default function Booking() {
             </div>
         </div>
     )
+}
+
+export default function Booking() {
+    return (
+        <Suspense fallback={<div className="bg-tinted-gray p-6 sm:p-10" />}>
+            <BookingContent />
+        </Suspense>
+    );
 }

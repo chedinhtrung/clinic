@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 type PaymentResult = {
@@ -13,7 +13,7 @@ type PaymentResult = {
     confirmedAt?: string | null;
 }
 
-export default function PaymentResultPage() {
+function PaymentResultPageContent() {
     const searchParams = useSearchParams();
     const [result, setResult] = useState<PaymentResult | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -65,5 +65,13 @@ export default function PaymentResultPage() {
                 )}
             </div>
         </div>
+    );
+}
+
+export default function PaymentResultPage() {
+    return (
+        <Suspense fallback={<div className="bg-tinted-gray p-6 sm:p-10" />}>
+            <PaymentResultPageContent />
+        </Suspense>
     );
 }

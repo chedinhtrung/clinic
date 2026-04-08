@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import CalendarSVG from "@/components/CalendarSVG";
 
@@ -24,7 +24,7 @@ function getBrowserTimeZone() {
     return Intl.DateTimeFormat().resolvedOptions().timeZone;
 }
 
-export default function PaymentPage() {
+function PaymentPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const bookingId = searchParams.get("bookingId");
@@ -176,5 +176,13 @@ export default function PaymentPage() {
                 ) : null}
             </div>
         </div>
+    );
+}
+
+export default function PaymentPage() {
+    return (
+        <Suspense fallback={<div className="bg-tinted-gray p-6 sm:p-10" />}>
+            <PaymentPageContent />
+        </Suspense>
     );
 }
