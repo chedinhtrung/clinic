@@ -1,9 +1,11 @@
 from config import *
 from datetime import date, datetime, time, timedelta, timezone
+from email.message import EmailMessage
 from hashlib import sha512
 import hmac
 from random import randint
 from secrets import token_urlsafe
+import smtplib
 from urllib.parse import quote_plus
 
 import psycopg
@@ -56,6 +58,60 @@ def _normalize_email(email: str) -> str:
 def _build_vnpay_hash_data(params: dict[str, str]) -> str:
     sorted_items = sorted(params.items())
     return "&".join(f"{key}={quote_plus(str(value))}" for key, value in sorted_items)
+
+
+def send_booking_confirmation_email(
+    *,
+    recipient_email: str,
+    recipient_name: str | None,
+    reservation_code: str | int,
+    slot_start_at: datetime | None = None,
+    slot_end_at: datetime | None = None
+) -> None:
+    """Send a basic confirmation email after VNPay confirms the booking."""
+    if not recipient_email:
+        raise ValueError("recipient_email is required")
+    if not SMTP_HOST or not SMTP_USERNAME or not SMTP_PASSWORD or not SMTP_FROM_EMAIL:
+        raise BookingPaymentConfigError(
+            "SMTP configuration is incomplete. Please set SMTP_HOST, SMTP_USERNAME, SMTP_PASSWORD, and SMTP_FROM_EMAIL."
+        )
+
+    subject = f"Xác nhận lịch hẹn #{reservation_code}"
+    greeting_name = recipient_name or "Quy khach"
+    slot_line = ""
+    if slot_start_at is not None:
+        slot_line = (
+            "\n"
+            f"""Lịch hẹn: {slot_start_at.astimezone(timezone(timedelta(hours=7))).strftime('%H:%M')} - 
+                        {slot_end_at.astimezone(timezone(timedelta(hours=7))).strftime('%H:%M')}
+                        {slot_start_at.astimezone(timezone(timedelta(hours=7))).strftime('%d/%m%Y')}
+            """
+        )
+
+    body = (
+        f"""Xin chào {greeting_name},
+        Cảm ơn bạn đã sử dụng dịch vụ của Phòng khám Cơ Xương Khớp Bs. Chế Đình Nghĩa.
+        Chúng tôi xác nhận lịch hẹn của bạn như sau:
+        """
+        f"Mã đặt chỗ: {reservation_code}\n"
+        f"{slot_line}"
+        "\n"
+        "Nếu bạn cần hỗ trợ, vui lòng phản hồi email này.\n\n"
+        "Trân trọng,\n"
+        f"{SMTP_FROM_NAME}"
+    )
+
+    message = EmailMessage()
+    message["Subject"] = subject
+    message["From"] = f"{SMTP_FROM_NAME} <{SMTP_FROM_EMAIL}>"
+    message["To"] = recipient_email
+    message.set_content(body)
+
+    with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=30) as smtp:
+        if SMTP_USE_TLS:
+            smtp.starttls()
+        smtp.login(SMTP_USERNAME, SMTP_PASSWORD)
+        smtp.send_message(message)
 
 
 """Return all distinct slot dates from tomorrow onward that this session may claim."""
@@ -542,7 +598,7 @@ def db_create_vnpay_payment_url(*, booking_id: str, session_id: str, client_ip: 
 
 
 """Verify VNPay callback parameters and confirm the corresponding booking when payment succeeds."""
-def db_process_vnpay_callback(callback_params: dict[str, str]) -> dict[str, str | bool | int]:
+def db_process_vnpay_callback(callback_params: dict[str, str]) -> dict[str, str | bool | int | dict[str, str]]:
     if not VNPAY_HASH_SECRET:
         raise BookingPaymentConfigError("VNPay configuration is incomplete. Please set VNPAY_HASH_SECRET.")
 
@@ -580,14 +636,18 @@ def db_process_vnpay_callback(callback_params: dict[str, str]) -> dict[str, str 
 
     successful_payment = response_code == "00" and (transaction_status in (None, "", "00"))
 
+    confirmation_email_payload = None
+
     with DB_POOL.connection() as conn:
         with conn.transaction():
             with conn.cursor() as cur:
                 cur.execute(
                     """
-                    SELECT id, status, confirmed_at
-                    FROM bookings
-                    WHERE reservation_code = %s
+                    SELECT b.id, b.status, b.confirmed_at, p.email, p.name, s.start_at, s.end_at
+                    FROM bookings b
+                    LEFT JOIN patients p ON p.id = b.patient_id
+                    JOIN slots s ON s.id = b.slot_id
+                    WHERE b.reservation_code = %s
                     FOR UPDATE
                     LIMIT 1
                     """,
@@ -600,6 +660,11 @@ def db_process_vnpay_callback(callback_params: dict[str, str]) -> dict[str, str 
 
                 booking_id = booking_row[0]
                 booking_status = booking_row[1]
+                patient_email = booking_row[3]
+                patient_name = booking_row[4]
+                slot_start_at = booking_row[5]
+                slot_end_at = booking_row[6]
+                confirmation_email_sent = False
 
                 if amount_vnd != 50000:
                     raise BookingPaymentVerificationError("unexpected VNPay amount")
@@ -616,6 +681,14 @@ def db_process_vnpay_callback(callback_params: dict[str, str]) -> dict[str, str 
                         (booking_id,),
                     )
                     confirmed_at = cur.fetchone()[0]
+                    if patient_email:
+                        confirmation_email_payload = {
+                            "recipientEmail": patient_email,
+                            "recipientName": patient_name or "",
+                            "reservationCode": str(txn_ref),
+                            "slotStartAt": slot_start_at.isoformat(),
+                            "slotEndAt": slot_end_at.isoformat()
+                        }
                 else:
                     confirmed_at = booking_row[2]
 
@@ -627,6 +700,8 @@ def db_process_vnpay_callback(callback_params: dict[str, str]) -> dict[str, str 
         "transactionStatus": transaction_status or "",
         "confirmed": successful_payment,
         "confirmedAt": confirmed_at.isoformat() if confirmed_at else None,
+        "confirmationEmailSent": confirmation_email_sent,
+        "confirmationEmail": confirmation_email_payload,
     }
 
 

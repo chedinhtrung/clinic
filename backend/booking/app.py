@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from _booking import *
+from datetime import datetime
 import threading
 import time
 
@@ -244,6 +245,19 @@ def handle_vnpay_ipn():
         return jsonify({"RspCode": "97", "Message": "Invalid signature"})
     except BookingPaymentConfigError:
         return jsonify({"RspCode": "99", "Message": "Unknown error"})
+
+    email_payload = result.get("confirmationEmail")
+    if result["confirmed"] and email_payload:
+        try:
+            send_booking_confirmation_email(
+                recipient_email=email_payload["recipientEmail"],
+                recipient_name=email_payload["recipientName"],
+                reservation_code=email_payload["reservationCode"],
+                slot_start_at=datetime.fromisoformat(email_payload["slotStartAt"]),
+            )
+            result["confirmationEmailSent"] = True
+        except Exception as exc:
+            print(f"confirmation email failed for booking {result['bookingId']}: {exc}")
 
     if result["confirmed"]:
         return jsonify({"RspCode": "00", "Message": "Confirm Success"})
