@@ -107,11 +107,15 @@ def send_booking_confirmation_email(
     message["To"] = recipient_email
     message.set_content(body)
 
+    print(message)
+
     with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=30) as smtp:
         if SMTP_USE_TLS:
             smtp.starttls()
         smtp.login(SMTP_USERNAME, SMTP_PASSWORD)
         smtp.send_message(message)
+    
+    print(f"Sent email with {SMTP_USERNAME} {SMTP_PASSWORD}")
 
 
 """Return all distinct slot dates from tomorrow onward that this session may claim."""
