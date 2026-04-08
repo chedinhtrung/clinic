@@ -41,7 +41,7 @@ function BookingContent() {
 
         const loadBooking = async () => {
             try {
-                const res = await fetch(`http://localhost:5001/api/booking/${bookingId}`, {
+                const res = await fetch(`/api/booking/${bookingId}`, {
                     credentials: "include",
                 });
                 const data = await res.json();

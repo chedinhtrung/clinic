@@ -27,7 +27,7 @@ function PaymentResultPageContent() {
 
         const verifyResult = async () => {
             try {
-                const res = await fetch(`http://localhost:5001/api/payment/vnpay/return?${query}`, {
+                const res = await fetch(`/api/payment/vnpay/return?${query}`, {
                     credentials: "include",
                 });
                 const data = await res.json();

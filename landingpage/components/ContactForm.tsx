@@ -61,7 +61,7 @@ export default function ContactForm({
     e.preventDefault()
     setIsSubmitting(true);
     try {
-      const res = await fetch("http://localhost:5001/api/booking/proceed_to_payment", {
+      const res = await fetch("/api/booking/proceed_to_payment", {
         method: "POST",
         credentials: "include",
         headers: {
@@ -93,7 +93,7 @@ export default function ContactForm({
   async function onCancelBooking() {
     setIsCancelling(true);
     try {
-      await fetch("http://localhost:5001/api/booking/cancel", {
+      await fetch("/api/booking/cancel", {
         method: "POST",
         credentials: "include",
       });
