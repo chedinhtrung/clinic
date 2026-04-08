@@ -48,7 +48,7 @@ function PaymentResultPageContent() {
     return (
         <div className="flex justify-center p-6 sm:p-10 bg-tinted-gray">
             <div className="w-full max-w-2xl rounded-lg bg-white p-6 shadow-lg">
-                <h1 className="mb-4 text-3xl font-bold text-primary">KET QUA THANH TOAN</h1>
+                <h1 className="mb-4 text-3xl font-bold text-primary">KẾT QUẢ ĐẶT CHỖ</h1>
                 {errorMessage ? (
                     <p className="text-sm text-red-500">{errorMessage}</p>
                 ) : result ? (
