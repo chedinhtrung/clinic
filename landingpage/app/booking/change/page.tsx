@@ -73,7 +73,7 @@ function BookingChangeContent() {
 
   async function handleUpdate(values: BookingChangeFormValues) {
     if (!bookingId || !patientId) {
-      alert("Thiáº¿u thÃ´ng tin truy cáº­p lá»‹ch háº¹n.");
+      alert("Thiếu thông tin truy cập lịch hẹn.");
       return;
     }
 
@@ -91,16 +91,16 @@ function BookingChangeContent() {
     const data = await res.json();
 
     if (!res.ok) {
-      throw new Error(data?.error ?? "KhÃ´ng cáº­p nháº­t Ä‘Æ°á»£c thÃ´ng tin.");
+      throw new Error(data?.error ?? "Không cập nhật được thông tin liên lạc.");
     }
 
     setBooking(data.booking);
-    alert("ÄÃ£ cáº­p nháº­t thÃ´ng tin liÃªn há»‡.");
+    alert("Đã cập nhật thông tin liên lạc.");
   }
 
   async function handleDelete() {
     if (!bookingId || !patientId) {
-      alert("Thiáº¿u thÃ´ng tin truy cáº­p lá»‹ch háº¹n.");
+      alert("Thiếu thông tin truy cập lịch hẹn");
       return;
     }
 
@@ -117,7 +117,7 @@ function BookingChangeContent() {
       throw new Error(data?.error ?? "KhÃ´ng há»§y Ä‘Æ°á»£c lá»‹ch háº¹n.");
     }
 
-    alert("ÄÃ£ há»§y lá»‹ch háº¹n.");
+    alert("Không hủy được lịch hẹn. Vui lòng liên hệ Hotline để được hỗ trợ thêm.");
     router.push("/");
   }
 
@@ -141,9 +141,9 @@ function BookingChangeContent() {
   return (
     <div className="flex justify-center gap-6 p-6 sm:p-10 flex-col sm:flex-row bg-tinted-gray">
       <div>
-        <h1 className="text-primary font-bold mb-1 text-3xl">CHá»ˆNH Sá»¬A Lá»ŠCH Háº¸N</h1>
+        <h1 className="text-primary font-bold mb-1 text-3xl">CHỈNH SỬA</h1>
         <p className="text-txt-gray text-sm">
-          Báº¡n cÃ³ thá»ƒ cáº­p nháº­t thÃ´ng tin liÃªn há»‡ hoáº·c há»§y lá»‹ch háº¹n táº¡i Ä‘Ã¢y.
+          Bạn có thể thay đổi thông tin liên lạc hoặc hủy lịch hẹn tại đây.
         </p>
         {errorMessage ? (
           <p className="text-red-500 text-sm my-6">{errorMessage}</p>
@@ -151,7 +151,7 @@ function BookingChangeContent() {
           <div className="bg-tinted-blue rounded-lg shadow-lg p-4 my-6 flex items-center gap-4">
             <div className="sm:block"><CalendarSVG></CalendarSVG></div>
             <div>
-              <h1 className="text-primary font-bold mb-1 text-lg">THÃ”NG TIN Lá»ŠCH Háº¸N</h1>
+              <h1 className="text-primary font-bold mb-1 text-lg">THÔNG TIN LỊCH HẸN</h1>
               <p className="font-bold text-md">
                 {startAt?.toLocaleString("vi-VN", {
                   weekday: "long",
@@ -163,18 +163,15 @@ function BookingChangeContent() {
                 <br></br>
                 {from} - {to}
               </p>
-              <p className="text-txt-gray text-sm">MÃ£ Ä‘áº·t chá»—: {booking.reservationCode}</p>
-              <p className="text-txt-gray text-sm">
-                Tráº¡ng thÃ¡i: {booking.status === "confirmed" ? "ÄÃ£ xÃ¡c nháº­n" : booking.status}
-              </p>
-              <p className="text-txt-gray">TÆ° váº¥n online</p>
+              <p className="text-txt-gray text-sm">Mã đặt chỗ: {booking.reservationCode}</p>
+              <p className="text-txt-gray">Tư vấn online</p>
             </div>
           </div>
         ) : null}
         {booking ? (
           <>
             <div className="flex items-center gap-3 mb-4">
-              <h3 className="font-bold">THÃ”NG TIN LIÃŠN Há»†</h3>
+              <h3 className="font-bold">THÔNG TIN LIÊN LẠC</h3>
             </div>
             <BookingChangeForm
               initialValues={{
