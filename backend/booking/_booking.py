@@ -627,8 +627,12 @@ def db_create_vnpay_payment_url(*, booking_id: str, session_id: str, client_ip: 
     return f"{VNPAY_PAYMENT_URL}?{query_string}"
 
 
-"""Verify VNPay callback parameters and confirm the corresponding booking when payment succeeds."""
-def db_process_vnpay_callback(callback_params: dict[str, str]) -> dict[str, str | bool | int | dict[str, str]]:
+"""Verify VNPay callback parameters and optionally confirm the booking for IPN requests."""
+def db_process_vnpay_callback(
+    callback_params: dict[str, str],
+    *,
+    allow_confirmation: bool = False,
+) -> dict[str, str | bool | int | dict[str, str]]:
     print(f"VNP Callback: {str(callback_params)}")
     if not VNPAY_HASH_SECRET:
         raise BookingPaymentConfigError("VNPay configuration is incomplete. Please set VNPAY_HASH_SECRET.")
@@ -670,7 +674,7 @@ def db_process_vnpay_callback(callback_params: dict[str, str]) -> dict[str, str 
         "[vnpay-callback] parsed callback "
         f"txn_ref={txn_ref!r} response_code={response_code!r} "
         f"transaction_status={transaction_status!r} amount_vnd={amount_vnd!r} "
-        f"successful_payment={successful_payment!r}"
+        f"successful_payment={successful_payment!r} allow_confirmation={allow_confirmation!r}"
     )
 
     confirmation_email_payload = None
@@ -719,7 +723,9 @@ def db_process_vnpay_callback(callback_params: dict[str, str]) -> dict[str, str 
                     )
                     raise BookingPaymentVerificationError("unexpected VNPay amount")
 
-                if successful_payment and booking_status != "confirmed":
+                booking_confirmed = booking_status == "confirmed"
+
+                if successful_payment and booking_status != "confirmed" and allow_confirmation:
                     print(f"[vnpay-callback] confirming booking_id={booking_id!r}")
                     cur.execute(
                         """
@@ -732,6 +738,7 @@ def db_process_vnpay_callback(callback_params: dict[str, str]) -> dict[str, str 
                         (booking_id,),
                     )
                     confirmed_at = cur.fetchone()[0]
+                    booking_confirmed = True
                     print(
                         "[vnpay-callback] booking confirmed "
                         f"booking_id={booking_id!r} confirmed_at={confirmed_at!r}"
@@ -758,7 +765,8 @@ def db_process_vnpay_callback(callback_params: dict[str, str]) -> dict[str, str 
                     print(
                         "[vnpay-callback] booking not updated during callback "
                         f"booking_id={booking_id!r} successful_payment={successful_payment!r} "
-                        f"existing_status={booking_status!r} confirmed_at={confirmed_at!r}"
+                        f"existing_status={booking_status!r} confirmed_at={confirmed_at!r} "
+                        f"allow_confirmation={allow_confirmation!r}"
                     )
 
     print(f"Successfully processed booking for {txn_ref}")
@@ -768,7 +776,8 @@ def db_process_vnpay_callback(callback_params: dict[str, str]) -> dict[str, str 
         "reservationCode": txn_ref,
         "responseCode": response_code,
         "transactionStatus": transaction_status or "",
-        "confirmed": successful_payment,
+        "confirmed": booking_confirmed,
+        "paymentVerified": successful_payment,
         "confirmedAt": confirmed_at.isoformat() if confirmed_at else None,
         "confirmationEmailSent": confirmation_email_sent,
         "confirmationEmail": confirmation_email_payload,
