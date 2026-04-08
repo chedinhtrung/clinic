@@ -273,6 +273,7 @@ def handle_vnpay_ipn():
                 recipient_email=email_payload["recipientEmail"],
                 recipient_name=email_payload["recipientName"],
                 reservation_code=email_payload["reservationCode"],
+                booking_id=email_payload["booking_id"],
                 slot_start_at=datetime.fromisoformat(email_payload["slotStartAt"]),
                 slot_end_at=datetime.fromisoformat(email_payload["slotEndAt"]),
             )

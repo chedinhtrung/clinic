@@ -65,6 +65,7 @@ def send_booking_confirmation_email(
     recipient_email: str,
     recipient_name: str | None,
     reservation_code: str | int,
+    booking_id: str,
     slot_start_at: datetime | None = None,
     slot_end_at: datetime | None = None
 ) -> None:
@@ -92,28 +93,30 @@ def send_booking_confirmation_email(
     )
 
     subject = f"Xác nhận lịch hẹn #{reservation_code}"
-    greeting_name = recipient_name or "Quy khach"
+    greeting_name = recipient_name or "Quý Khách"
     slot_line = ""
     if slot_start_at is not None:
         slot_line = (
-            "\n"
-            f"Lịch hẹn: {slot_start_at.astimezone(timezone(timedelta(hours=7))).strftime('%H:%M')} - " \
+            f"Thời gian: {slot_start_at.astimezone(timezone(timedelta(hours=7))).strftime('%H:%M')} - " \
             f"{slot_end_at.astimezone(timezone(timedelta(hours=7))).strftime('%H:%M')}" \
             f" ngày {slot_start_at.astimezone(timezone(timedelta(hours=7))).strftime('%d/%m/%Y')}"
         )
 
     body = (
-        f"Xin chào {greeting_name}, \n" \
-        "Cảm ơn bạn đã sử dụng dịch vụ của Phòng khám Cơ Xương Khớp Bs. Chế Đình Nghĩa. \n" \
-        "Chúng tôi xác nhận lịch hẹn của bạn như sau:\n" \
+        f"Xin chào {greeting_name}, \n \n" \
+        "Cảm ơn bạn đã sử dụng dịch vụ của Phòng khám Cơ Xương Khớp BS. Chế Đình Nghĩa. \n" \
+        "Chúng tôi xác nhận lịch hẹn của bạn như sau:\n \n" \
         f"Mã đặt chỗ: {reservation_code}\n" \
-        f"Thời gian: {slot_line} \n \n" \
+        f"{slot_line} \n \n" \
         
-        f"Để tiết kiệm thời gian và giúp bác sỹ Nghĩa nắm được tổng quan tình trạng của bạn, hãy vui lòng bỏ chút thời gian để hoàn thành bước đăng ký với trợ lý của chúng tôi qua link sau:" \
-        f" #TODO: Chèn link tới Bot trợ lý " \
+        f"Cuộc gọi trực tuyến: #TODO chèn link online call\n\n" \
         
-        f"Link cuộc họp: #TODO\n"
+        f"Để tiết kiệm thời gian và giúp bác sỹ nắm được tổng quan tình trạng của bạn, hãy vui lòng bỏ chút thời gian để hoàn thành bước đăng ký với trợ lý của chúng tôi: \n" \
+        f" #TODO: Chèn link tới trợ lý \n \n" \
 
+        f"Nếu cần thay đổi hoặc hủy lịch hẹn, vui lòng click vào link dưới đây: \n" \
+        f" https://chedinhnghia.com/booking/cancel?booking_id={booking_id}\n \n" \
+        
         "Nếu bạn cần hỗ trợ, vui lòng phản hồi email này.\n\n"
         "Trân trọng,\n"
         f"{SMTP_FROM_NAME}"
@@ -670,7 +673,7 @@ def db_process_vnpay_callback(
     try:
         amount_vnd = int(amount_raw) // 100
     except ValueError as exc:
-        raise BookingPaymentVerificationError("invalid VNPay amount") from exc
+        raise BookingPaymentVerificationError("Số tiền chuyển khoản không đúng") from exc
 
     successful_payment = response_code == "00" and (transaction_status in (None, "", "00"))
     print(
@@ -703,7 +706,7 @@ def db_process_vnpay_callback(
 
                 if booking_row is None:
                     print(f"[vnpay-callback] no booking found for reservation_code={txn_ref!r}")
-                    raise BookingPaymentVerificationError("booking not found for VNPay transaction reference")
+                    raise BookingPaymentVerificationError("Không tìm thấy thanh toán cho mã đặt chỗ này.")
 
                 booking_id = booking_row[0]
                 booking_status = booking_row[1]
@@ -751,6 +754,7 @@ def db_process_vnpay_callback(
                             "recipientEmail": patient_email,
                             "recipientName": patient_name or "",
                             "reservationCode": str(txn_ref),
+                            "booking_id":str(booking_id),
                             "slotStartAt": slot_start_at.isoformat(),
                             "slotEndAt": slot_end_at.isoformat()
                         }
