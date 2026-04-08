@@ -247,6 +247,7 @@ def handle_vnpay_ipn():
         return jsonify({"RspCode": "99", "Message": "Unknown error"})
 
     email_payload = result.get("confirmationEmail")
+    print(email_payload)
     if result["confirmed"] and email_payload:
         try:
             send_booking_confirmation_email(
