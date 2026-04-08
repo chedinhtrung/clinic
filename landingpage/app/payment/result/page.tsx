@@ -11,6 +11,7 @@ type PaymentResult = {
     transactionStatus: string;
     confirmed: boolean;
     confirmedAt?: string | null;
+    paymentVerified: string;
 }
 
 function PaymentResultPageContent() {
@@ -53,7 +54,7 @@ function PaymentResultPageContent() {
                     <p className="text-sm text-red-500">{errorMessage}</p>
                 ) : result ? (
                     <div className="space-y-3">
-                        <p className={result.confirmed ? "text-green-600 font-semibold" : "text-red-500 font-semibold"}>
+                        <p className={result.paymentVerified ? "text-green-600 font-semibold" : "text-red-500 font-semibold"}>
                             {result.confirmed ? "Thanh toán thành công" : "Thanh toán không thành công"}
                         </p>
                         <p className="text-txt-gray">Mã đặt chỗ: {result.reservationCode}</p>
