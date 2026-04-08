@@ -219,13 +219,17 @@ def verify_vnpay_return():
     The frontend forwards those parameters here so the backend can verify the
     signature and return a trusted payment result for display.
     """
+    print(f"[vnpay-return] received return params: {dict(request.args)!r}")
     try:
         result = db_process_vnpay_callback({key: value for key, value in request.args.items()})
     except BookingPaymentVerificationError as exc:
+        print(f"[vnpay-return] verification error: {exc}")
         return jsonify({"error": str(exc)}), 400
     except BookingPaymentConfigError as exc:
+        print(f"[vnpay-return] config error: {exc}")
         return jsonify({"error": str(exc)}), 500
 
+    print(f"[vnpay-return] verification result: {result!r}")
     return jsonify({"result": result})
 
 
@@ -239,30 +243,47 @@ def handle_vnpay_ipn():
     The implementation is designed to be idempotent so repeated callbacks are
     safe.
     """
+    print(f"[vnpay-ipn] received IPN params: {dict(request.args)!r}")
     try:
         result = db_process_vnpay_callback({key: value for key, value in request.args.items()})
-    except BookingPaymentVerificationError:
+    except BookingPaymentVerificationError as exc:
+        print(f"[vnpay-ipn] verification error: {exc}")
         return jsonify({"RspCode": "97", "Message": "Invalid signature"})
-    except BookingPaymentConfigError:
+    except BookingPaymentConfigError as exc:
+        print(f"[vnpay-ipn] config error: {exc}")
         return jsonify({"RspCode": "99", "Message": "Unknown error"})
 
     email_payload = result.get("confirmationEmail")
+    print(f"[vnpay-ipn] callback result: {result!r}")
     print(email_payload)
     print(result)
     if result["confirmed"] and email_payload:
+        print(
+            "[vnpay-ipn] attempting confirmation email send "
+            f"booking_id={result['bookingId']!r} payload={email_payload!r}"
+        )
         try:
             send_booking_confirmation_email(
                 recipient_email=email_payload["recipientEmail"],
                 recipient_name=email_payload["recipientName"],
                 reservation_code=email_payload["reservationCode"],
                 slot_start_at=datetime.fromisoformat(email_payload["slotStartAt"]),
+                slot_end_at=datetime.fromisoformat(email_payload["slotEndAt"]),
             )
             result["confirmationEmailSent"] = True
+            print(f"[vnpay-ipn] confirmation email sent for booking_id={result['bookingId']!r}")
         except Exception as exc:
             print(f"confirmation email failed for booking {result['bookingId']}: {exc}")
+    else:
+        print(
+            "[vnpay-ipn] confirmation email skipped "
+            f"confirmed={result['confirmed']!r} email_payload_present={bool(email_payload)!r}"
+        )
 
     if result["confirmed"]:
+        print(f"[vnpay-ipn] returning Confirm Success for booking_id={result['bookingId']!r}")
         return jsonify({"RspCode": "00", "Message": "Confirm Success"})
+    print(f"[vnpay-ipn] returning Payment not successful for booking_id={result['bookingId']!r}")
     return jsonify({"RspCode": "00", "Message": "Payment not successful"})
 
 

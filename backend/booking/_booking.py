@@ -69,12 +69,27 @@ def send_booking_confirmation_email(
     slot_end_at: datetime | None = None
 ) -> None:
     """Send a basic confirmation email after VNPay confirms the booking."""
+    print(
+        "[booking-email] preparing confirmation email "
+        f"recipient={recipient_email!r} reservation_code={reservation_code!r} "
+        f"slot_start_at={slot_start_at!r} slot_end_at={slot_end_at!r}"
+    )
     if not recipient_email:
         raise ValueError("recipient_email is required")
     if not SMTP_HOST or not SMTP_USERNAME or not SMTP_PASSWORD or not SMTP_FROM_EMAIL:
+        print(
+            "[booking-email] SMTP configuration incomplete "
+            f"host_present={bool(SMTP_HOST)} username_present={bool(SMTP_USERNAME)} "
+            f"password_present={bool(SMTP_PASSWORD)} from_present={bool(SMTP_FROM_EMAIL)}"
+        )
         raise BookingPaymentConfigError(
             "SMTP configuration is incomplete. Please set SMTP_HOST, SMTP_USERNAME, SMTP_PASSWORD, and SMTP_FROM_EMAIL."
         )
+    print(
+        "[booking-email] SMTP configuration detected "
+        f"host={SMTP_HOST!r} port={SMTP_PORT!r} username={SMTP_USERNAME!r} "
+        f"from_email={SMTP_FROM_EMAIL!r} tls={SMTP_USE_TLS!r}"
+    )
 
     subject = f"Xác nhận lịch hẹn #{reservation_code}"
     greeting_name = recipient_name or "Quy khach"
@@ -107,13 +122,24 @@ def send_booking_confirmation_email(
     message["To"] = recipient_email
     message.set_content(body)
 
+    print(
+        "[booking-email] email message constructed "
+        f"subject={subject!r} to={recipient_email!r} from={message['From']!r}"
+    )
     print(message)
 
+    print(f"[booking-email] opening SMTP connection to {SMTP_HOST}:{SMTP_PORT}")
     with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=30) as smtp:
         if SMTP_USE_TLS:
+            print("[booking-email] starting TLS")
             smtp.starttls()
+        else:
+            print("[booking-email] SMTP_USE_TLS disabled; sending without STARTTLS")
+        print(f"[booking-email] logging in as {SMTP_USERNAME!r}")
         smtp.login(SMTP_USERNAME, SMTP_PASSWORD)
+        print("[booking-email] SMTP login succeeded; sending message")
         smtp.send_message(message)
+        print("[booking-email] SMTP send_message completed")
     
     print(f"Sent email with {SMTP_USERNAME} {SMTP_PASSWORD}")
 
@@ -640,12 +666,19 @@ def db_process_vnpay_callback(callback_params: dict[str, str]) -> dict[str, str 
         raise BookingPaymentVerificationError("invalid VNPay amount") from exc
 
     successful_payment = response_code == "00" and (transaction_status in (None, "", "00"))
+    print(
+        "[vnpay-callback] parsed callback "
+        f"txn_ref={txn_ref!r} response_code={response_code!r} "
+        f"transaction_status={transaction_status!r} amount_vnd={amount_vnd!r} "
+        f"successful_payment={successful_payment!r}"
+    )
 
     confirmation_email_payload = None
 
     with DB_POOL.connection() as conn:
         with conn.transaction():
             with conn.cursor() as cur:
+                print(f"[vnpay-callback] looking up booking for reservation_code={txn_ref!r}")
                 cur.execute(
                     """
                     SELECT b.id, b.status, b.confirmed_at, p.email, p.name, s.start_at, s.end_at
@@ -662,6 +695,7 @@ def db_process_vnpay_callback(callback_params: dict[str, str]) -> dict[str, str 
                 booking_row = cur.fetchone()
 
                 if booking_row is None:
+                    print(f"[vnpay-callback] no booking found for reservation_code={txn_ref!r}")
                     raise BookingPaymentVerificationError("booking not found for VNPay transaction reference")
 
                 booking_id = booking_row[0]
@@ -671,11 +705,22 @@ def db_process_vnpay_callback(callback_params: dict[str, str]) -> dict[str, str 
                 slot_start_at = booking_row[5]
                 slot_end_at = booking_row[6]
                 confirmation_email_sent = False
+                print(
+                    "[vnpay-callback] booking row loaded "
+                    f"booking_id={booking_id!r} status={booking_status!r} "
+                    f"patient_email={patient_email!r} patient_name={patient_name!r} "
+                    f"slot_start_at={slot_start_at!r} slot_end_at={slot_end_at!r}"
+                )
 
                 if amount_vnd != 50000:
+                    print(
+                        "[vnpay-callback] amount mismatch "
+                        f"reservation_code={txn_ref!r} expected=50000 actual={amount_vnd!r}"
+                    )
                     raise BookingPaymentVerificationError("unexpected VNPay amount")
 
                 if successful_payment and booking_status != "confirmed":
+                    print(f"[vnpay-callback] confirming booking_id={booking_id!r}")
                     cur.execute(
                         """
                         UPDATE bookings
@@ -687,6 +732,10 @@ def db_process_vnpay_callback(callback_params: dict[str, str]) -> dict[str, str 
                         (booking_id,),
                     )
                     confirmed_at = cur.fetchone()[0]
+                    print(
+                        "[vnpay-callback] booking confirmed "
+                        f"booking_id={booking_id!r} confirmed_at={confirmed_at!r}"
+                    )
                     if patient_email:
                         confirmation_email_payload = {
                             "recipientEmail": patient_email,
@@ -695,10 +744,25 @@ def db_process_vnpay_callback(callback_params: dict[str, str]) -> dict[str, str 
                             "slotStartAt": slot_start_at.isoformat(),
                             "slotEndAt": slot_end_at.isoformat()
                         }
+                        print(
+                            "[vnpay-callback] prepared confirmation email payload "
+                            f"payload={confirmation_email_payload!r}"
+                        )
+                    else:
+                        print(
+                            "[vnpay-callback] booking confirmed but patient email missing; "
+                            f"booking_id={booking_id!r}"
+                        )
                 else:
                     confirmed_at = booking_row[2]
+                    print(
+                        "[vnpay-callback] booking not updated during callback "
+                        f"booking_id={booking_id!r} successful_payment={successful_payment!r} "
+                        f"existing_status={booking_status!r} confirmed_at={confirmed_at!r}"
+                    )
 
-    return {
+    print(f"Successfully processed booking for {txn_ref}")
+    result = {
         "ok": successful_payment,
         "bookingId": str(booking_id),
         "reservationCode": txn_ref,
@@ -709,6 +773,8 @@ def db_process_vnpay_callback(callback_params: dict[str, str]) -> dict[str, str 
         "confirmationEmailSent": confirmation_email_sent,
         "confirmationEmail": confirmation_email_payload,
     }
+    print(f"result: {str(result)}")
+    return result
 
 
 """Mark expired pending bookings so they stop blocking slot availability."""
