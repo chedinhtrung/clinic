@@ -51,6 +51,10 @@ class BookingPaymentVerificationError(ValueError):
     """Raised when VNPay callback data is invalid or cannot be verified."""
 
 
+class BookingChangeAccessError(ValueError):
+    """Raised when a change-link booking lookup fails access validation."""
+
+
 def _normalize_email(email: str) -> str:
     return email.strip().lower()
 
@@ -67,7 +71,8 @@ def send_booking_confirmation_email(
     reservation_code: str | int,
     booking_id: str,
     slot_start_at: datetime | None = None,
-    slot_end_at: datetime | None = None
+    slot_end_at: datetime | None = None,
+    patient_id: str
 ) -> None:
     """Send a basic confirmation email after VNPay confirms the booking."""
     print(
@@ -114,8 +119,8 @@ def send_booking_confirmation_email(
         f"Để tiết kiệm thời gian và giúp bác sỹ nắm được tổng quan tình trạng của bạn, hãy vui lòng bỏ chút thời gian để hoàn thành bước đăng ký với trợ lý của chúng tôi: \n" \
         f" #TODO: Chèn link tới trợ lý \n \n" \
 
-        f"Nếu cần thay đổi hoặc hủy lịch hẹn, vui lòng click vào link dưới đây: \n" \
-        f" https://chedinhnghia.com/booking/cancel?booking_id={booking_id}\n \n" \
+        f"Nếu cần thay đổi thông tin liên lạc hoặc hủy lịch hẹn, vui lòng click vào link dưới đây: \n" \
+        f" https://chedinhnghia.com/booking/change?booking_id={booking_id}&patient_id={patient_id}\n \n" \
         
         "Nếu bạn cần hỗ trợ, vui lòng phản hồi email này.\n\n"
         "Trân trọng,\n"
@@ -390,6 +395,50 @@ def db_get_booking(*, booking_id: str, session_id: str) -> dict[str, str | int]:
     }
 
 
+"""Return one booking when both booking_id and patient_id from the emailed change link match."""
+def db_get_booking_for_change_link(*, booking_id: str, patient_id: str) -> dict[str, str | int]:
+    if not booking_id:
+        raise ValueError("booking_id is required")
+    if not patient_id:
+        raise ValueError("patient_id is required")
+
+    query = """
+        SELECT b.id, b.reservation_code, b.status, b.slot_id, b.expires_at, b.confirmed_at,
+               s.start_at, s.end_at, p.id, p.name, p.email, p.phone, p.birthdate, p.gender
+        FROM bookings b
+        JOIN slots s ON s.id = b.slot_id
+        JOIN patients p ON p.id = b.patient_id
+        WHERE b.id = %s
+          AND p.id = %s
+        LIMIT 1
+    """
+
+    with DB_POOL.connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(query, (booking_id, patient_id))
+            row = cur.fetchone()
+
+    if row is None:
+        raise BookingChangeAccessError("booking not found")
+
+    return {
+        "id": str(row[0]),
+        "reservationCode": row[1],
+        "status": row[2],
+        "slotId": str(row[3]),
+        "expiresAt": row[4].isoformat(),
+        "confirmedAt": row[5].isoformat() if row[5] else None,
+        "startAt": row[6].isoformat(),
+        "endAt": row[7].isoformat(),
+        "patientId": str(row[8]),
+        "patientName": row[9],
+        "patientEmail": row[10],
+        "patientPhone": row[11],
+        "patientBirthdate": row[12].isoformat() if row[12] else None,
+        "patientGender": row[13],
+    }
+
+
 """Cancel the current session's active pending booking, if one exists."""
 def db_cancel_pending_booking_for_session(*, session_id: str) -> None:
     if not session_id:
@@ -412,6 +461,109 @@ def db_cancel_pending_booking_for_session(*, session_id: str) -> None:
         with conn.transaction():
             with conn.cursor() as cur:
                 cur.execute(query, (session_id,))
+
+
+"""Update patient contact details through the emailed change link."""
+def db_update_booking_contact_for_change_link(
+    *,
+    booking_id: str,
+    patient_id: str,
+    name: str,
+    email: str,
+    phone: str | None,
+    birthdate: str,
+    gender: str,
+) -> dict[str, str | int]:
+    if not booking_id:
+        raise ValueError("booking_id is required")
+    if not patient_id:
+        raise ValueError("patient_id is required")
+    if not name:
+        raise ValueError("name is required")
+    if not email:
+        raise ValueError("email is required")
+    if not birthdate:
+        raise ValueError("birthdate is required")
+    if not gender:
+        raise ValueError("gender is required")
+
+    normalized_email = _normalize_email(email)
+
+    with DB_POOL.connection() as conn:
+        with conn.transaction():
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT b.id, b.status, p.id
+                    FROM bookings b
+                    JOIN patients p ON p.id = b.patient_id
+                    WHERE b.id = %s
+                      AND p.id = %s
+                    FOR UPDATE OF b, p
+                    LIMIT 1
+                    """,
+                    (booking_id, patient_id),
+                )
+                booking_row = cur.fetchone()
+
+                if booking_row is None:
+                    raise BookingChangeAccessError("booking not found")
+
+                cur.execute(
+                    """
+                    SELECT id
+                    FROM patients
+                    WHERE lower(trim(email)) = %s
+                      AND id <> %s
+                    LIMIT 1
+                    """,
+                    (normalized_email, patient_id),
+                )
+                existing_patient = cur.fetchone()
+                if existing_patient is not None:
+                    raise BookingEmailConflictError("Email này đã được đăng ký.")
+
+                cur.execute(
+                    """
+                    UPDATE patients
+                    SET name = %s,
+                        gender = %s,
+                        email = %s,
+                        birthdate = %s,
+                        phone = %s
+                    WHERE id = %s
+                    """,
+                    (name, gender, normalized_email, birthdate, phone, patient_id),
+                )
+
+    return db_get_booking_for_change_link(booking_id=booking_id, patient_id=patient_id)
+
+
+"""Delete one booking through the emailed change link without deleting the patient record."""
+def db_delete_booking_for_change_link(*, booking_id: str, patient_id: str) -> None:
+    if not booking_id:
+        raise ValueError("booking_id is required")
+    if not patient_id:
+        raise ValueError("patient_id is required")
+
+    with DB_POOL.connection() as conn:
+        with conn.transaction():
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    DELETE FROM bookings b
+                    USING patients p
+                    WHERE b.patient_id = p.id
+                      AND b.id = %s
+                      AND p.id = %s
+                    RETURNING b.id
+                    """,
+                    (booking_id, patient_id),
+                )
+                deleted_row = cur.fetchone()
+
+                if deleted_row is None:
+                    raise BookingChangeAccessError("booking not found")
 
 
 """Persist patient details for the current session's active booking and allow payment to continue."""
@@ -691,7 +843,7 @@ def db_process_vnpay_callback(
                 print(f"[vnpay-callback] looking up booking for reservation_code={txn_ref!r}")
                 cur.execute(
                     """
-                    SELECT b.id, b.status, b.confirmed_at, p.email, p.name, s.start_at, s.end_at
+                    SELECT b.id, b.status, b.confirmed_at, p.email, p.name, p.id, s.start_at, s.end_at
                     FROM bookings b
                     LEFT JOIN patients p ON p.id = b.patient_id
                     JOIN slots s ON s.id = b.slot_id
@@ -712,8 +864,9 @@ def db_process_vnpay_callback(
                 booking_status = booking_row[1]
                 patient_email = booking_row[3]
                 patient_name = booking_row[4]
-                slot_start_at = booking_row[5]
-                slot_end_at = booking_row[6]
+                patient_id = booking_row[5]
+                slot_start_at = booking_row[6]
+                slot_end_at = booking_row[7]
                 confirmation_email_sent = False
                 print(
                     "[vnpay-callback] booking row loaded "
@@ -755,6 +908,7 @@ def db_process_vnpay_callback(
                             "recipientName": patient_name or "",
                             "reservationCode": str(txn_ref),
                             "booking_id":str(booking_id),
+                            "patient_id":str(patient_id),
                             "slotStartAt": slot_start_at.isoformat(),
                             "slotEndAt": slot_end_at.isoformat()
                         }

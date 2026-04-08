@@ -119,6 +119,21 @@ def get_booking(booking_id: str):
     return jsonify({"booking": booking})
 
 
+@app.route("/api/booking/change", methods=["GET"])
+def get_booking_for_change_link():
+    booking_id = (request.args.get("booking_id") or "").strip()
+    patient_id = (request.args.get("patient_id") or "").strip()
+
+    try:
+        booking = db_get_booking_for_change_link(booking_id=booking_id, patient_id=patient_id)
+    except BookingChangeAccessError as exc:
+        return jsonify({"error": str(exc)}), 404
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    return jsonify({"booking": booking})
+
+
 @app.route("/api/booking/cancel", methods=["POST"])
 def cancel_booking():
     """Cancel the current session's active pending booking.
@@ -133,6 +148,47 @@ def cancel_booking():
 
     try:
         db_cancel_pending_booking_for_session(session_id=session_id)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    return jsonify({"ok": True})
+
+
+@app.route("/api/booking/change", methods=["PATCH"])
+def update_booking_for_change_link():
+    booking_id = (request.args.get("booking_id") or "").strip()
+    patient_id = (request.args.get("patient_id") or "").strip()
+    data = request.get_json() or {}
+
+    try:
+        booking = db_update_booking_contact_for_change_link(
+            booking_id=booking_id,
+            patient_id=patient_id,
+            name=data.get("name", "").strip(),
+            email=data.get("email", "").strip(),
+            phone=(data.get("phone") or "").strip() or None,
+            birthdate=data.get("birthdate", "").strip(),
+            gender=data.get("gender", "").strip(),
+        )
+    except BookingEmailConflictError as exc:
+        return jsonify({"error": str(exc)}), 409
+    except BookingChangeAccessError as exc:
+        return jsonify({"error": str(exc)}), 404
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    return jsonify({"booking": booking})
+
+
+@app.route("/api/booking/change", methods=["DELETE"])
+def delete_booking_for_change_link():
+    booking_id = (request.args.get("booking_id") or "").strip()
+    patient_id = (request.args.get("patient_id") or "").strip()
+
+    try:
+        db_delete_booking_for_change_link(booking_id=booking_id, patient_id=patient_id)
+    except BookingChangeAccessError as exc:
+        return jsonify({"error": str(exc)}), 404
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
@@ -274,6 +330,7 @@ def handle_vnpay_ipn():
                 recipient_name=email_payload["recipientName"],
                 reservation_code=email_payload["reservationCode"],
                 booking_id=email_payload["booking_id"],
+                patient_id=email_payload["patient_id"],
                 slot_start_at=datetime.fromisoformat(email_payload["slotStartAt"]),
                 slot_end_at=datetime.fromisoformat(email_payload["slotEndAt"]),
             )

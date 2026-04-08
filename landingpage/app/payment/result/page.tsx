@@ -22,7 +22,7 @@ function PaymentResultPageContent() {
     useEffect(() => {
         const query = searchParams.toString();
         if (!query) {
-            setErrorMessage("Khong co du lieu tra ve tu VNPay.");
+            setErrorMessage("Không có dữ liệu giao dịch.");
             return;
         }
 
