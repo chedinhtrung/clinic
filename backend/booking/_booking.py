@@ -603,6 +603,7 @@ def db_create_vnpay_payment_url(*, booking_id: str, session_id: str, client_ip: 
 
 """Verify VNPay callback parameters and confirm the corresponding booking when payment succeeds."""
 def db_process_vnpay_callback(callback_params: dict[str, str]) -> dict[str, str | bool | int | dict[str, str]]:
+    print(f"VNP Callback: {str(callback_params)}")
     if not VNPAY_HASH_SECRET:
         raise BookingPaymentConfigError("VNPay configuration is incomplete. Please set VNPAY_HASH_SECRET.")
 
