@@ -648,8 +648,9 @@ def db_process_vnpay_callback(callback_params: dict[str, str]) -> dict[str, str 
                     LEFT JOIN patients p ON p.id = b.patient_id
                     JOIN slots s ON s.id = b.slot_id
                     WHERE b.reservation_code = %s
-                    FOR UPDATE
                     LIMIT 1
+                    FOR UPDATE OF b
+
                     """,
                     (txn_ref,),
                 )
