@@ -49,16 +49,17 @@ function PaymentResultPageContent() {
     return (
         <div className="flex justify-center p-6 sm:p-10 bg-tinted-gray">
             <div className="w-full max-w-2xl rounded-lg bg-white p-6 shadow-lg">
-                <h1 className="mb-4 text-3xl font-bold text-primary">KẾT QUẢ ĐẶT CHỖ</h1>
+                <h1 className="mb-4 text-3xl font-bold text-primary">
+                    {result ? (result.paymentVerified ? "Thanh toán thành công" : "Thanh toán không thành công") : "Lỗi thanh toán"}
+                </h1>
                 {errorMessage ? (
-                    <p className="text-sm text-red-500">{errorMessage}</p>
+                    <p className="text-sm text-red-500">Lỗi thanh toán: {errorMessage}</p>
                 ) : result ? (
                     <div className="space-y-3">
                         <p className={result.paymentVerified ? "text-green-600 font-semibold" : "text-red-500 font-semibold"}>
-                            {result.confirmed ? "Thanh toán thành công" : "Thanh toán không thành công"}
+                            {result.paymentVerified ? "Thanh toán thành công" : "Thanh toán không thành công"}
                         </p>
                         <p className="text-txt-gray">Mã đặt chỗ: {result.reservationCode}</p>
-                        <p className="text-txt-gray">Mã phản hồi VNPay: {result.responseCode}</p>
                         <p className="text-txt-gray">Trạng thái giao dịch: {result.transactionStatus || "-"}</p>
                     </div>
                 ) : (

@@ -97,20 +97,23 @@ def send_booking_confirmation_email(
     if slot_start_at is not None:
         slot_line = (
             "\n"
-            f"""Lịch hẹn: {slot_start_at.astimezone(timezone(timedelta(hours=7))).strftime('%H:%M')} - 
-                        {slot_end_at.astimezone(timezone(timedelta(hours=7))).strftime('%H:%M')}
-                        {slot_start_at.astimezone(timezone(timedelta(hours=7))).strftime('%d/%m%Y')}
-            """
+            f"Lịch hẹn: {slot_start_at.astimezone(timezone(timedelta(hours=7))).strftime('%H:%M')} - " \
+            f"{slot_end_at.astimezone(timezone(timedelta(hours=7))).strftime('%H:%M')}" \
+            f" ngày {slot_start_at.astimezone(timezone(timedelta(hours=7))).strftime('%d/%m/%Y')}"
         )
 
     body = (
-        f"""Xin chào {greeting_name},
-        Cảm ơn bạn đã sử dụng dịch vụ của Phòng khám Cơ Xương Khớp Bs. Chế Đình Nghĩa.
-        Chúng tôi xác nhận lịch hẹn của bạn như sau:
-        """
-        f"Mã đặt chỗ: {reservation_code}\n"
-        f"{slot_line}"
-        "\n"
+        f"Xin chào {greeting_name}, \n" \
+        "Cảm ơn bạn đã sử dụng dịch vụ của Phòng khám Cơ Xương Khớp Bs. Chế Đình Nghĩa. \n" \
+        "Chúng tôi xác nhận lịch hẹn của bạn như sau:\n" \
+        f"Mã đặt chỗ: {reservation_code}\n" \
+        f"Thời gian: {slot_line} \n \n" \
+        
+        f"Để tiết kiệm thời gian và giúp bác sỹ Nghĩa nắm được tổng quan tình trạng của bạn, hãy vui lòng bỏ chút thời gian để hoàn thành bước đăng ký với trợ lý của chúng tôi qua link sau:" \
+        f" #TODO: Chèn link tới Bot trợ lý " \
+        
+        f"Link cuộc họp: #TODO\n"
+
         "Nếu bạn cần hỗ trợ, vui lòng phản hồi email này.\n\n"
         "Trân trọng,\n"
         f"{SMTP_FROM_NAME}"
