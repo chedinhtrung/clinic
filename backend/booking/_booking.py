@@ -222,9 +222,9 @@ def db_get_available_slots(selected_date_raw: str, session_id: str | None = None
 """Create or move the current session's pending booking onto the requested slot."""
 def db_claim_slot(*, slot_id: str, session_id: str) -> dict[str, str | int]:
     if not slot_id:
-        raise ValueError("slot_id is required")
+        raise ValueError("Slot id is required")
     if not session_id:
-        raise ValueError("session_id is required")
+        raise ValueError("Bạn cần bật cookies trình duyệt để lưu session")
 
     expires_at = datetime.now(timezone.utc) + timedelta(minutes=16)
 
@@ -507,7 +507,7 @@ def db_update_booking_contact_for_change_link(
                 booking_row = cur.fetchone()
 
                 if booking_row is None:
-                    raise BookingChangeAccessError("booking not found")
+                    raise BookingChangeAccessError("Không thể tìm thấy lịch hẹn này.")
 
                 cur.execute(
                     """
@@ -563,7 +563,7 @@ def db_delete_booking_for_change_link(*, booking_id: str, patient_id: str) -> No
                 deleted_row = cur.fetchone()
 
                 if deleted_row is None:
-                    raise BookingChangeAccessError("booking not found")
+                    raise BookingChangeAccessError("Không thể tìm thấy lịch hẹn này")
 
 
 """Persist patient details for the current session's active booking and allow payment to continue."""
@@ -629,7 +629,7 @@ def db_proceed_to_payment_for_session(
                         """,
                         (booking_id,),
                     )
-                    raise BookingExpiredError("booking has expired")
+                    raise BookingExpiredError("Bạn cĐã có người khác nhanh tay hơn đặt lịch hẹn này, bạn thử lại nhé!")
 
                 cur.execute(
                     """
@@ -820,7 +820,7 @@ def db_process_vnpay_callback(
     ).hexdigest()
 
     if expected_hash.lower() != secure_hash.lower():
-        raise BookingPaymentVerificationError("invalid VNPay signature")
+        raise BookingPaymentVerificationError("Lỗi xác nhận: không đúng chữ ký.")
 
     try:
         amount_vnd = int(amount_raw) // 100
