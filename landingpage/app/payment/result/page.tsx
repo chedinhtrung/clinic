@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { withApiBase } from "@/app/apiBase";
 
 type PaymentResult = {
     ok: boolean;
@@ -28,7 +29,7 @@ function PaymentResultPageContent() {
 
         const verifyResult = async () => {
             try {
-                const res = await fetch(`/api/payment/vnpay/return?${query}`, {
+                const res = await fetch(withApiBase(`/api/payment/vnpay/return?${query}`), {
                     credentials: "include",
                 });
                 const data = await res.json();

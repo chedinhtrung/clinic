@@ -3,6 +3,7 @@ import ContactForm from "@/components/ContactForm";
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation"
 import CalendarSVG from "@/components/CalendarSVG";
+import { withApiBase } from "@/app/apiBase";
 
 type BookingDetails = {
     id: string;
@@ -41,7 +42,7 @@ function BookingContent() {
 
         const loadBooking = async () => {
             try {
-                const res = await fetch(`/api/booking/${bookingId}`, {
+                const res = await fetch(withApiBase(`/api/booking/${bookingId}`), {
                     credentials: "include",
                 });
                 const data = await res.json();

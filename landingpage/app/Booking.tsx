@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { DayPicker } from "react-day-picker"
 import { vi } from "date-fns/locale"
+import { withApiBase } from "@/app/apiBase"
 
 type Slot = {
     id: string;
@@ -48,7 +49,7 @@ export default function Booking() {
 
     // Reload the available date list from the backend after availability changes.
     async function reloadAvailableDates() {
-        const res = await fetch("/api/get_available_dates", {
+        const res = await fetch(withApiBase("/api/get_available_dates"), {
             credentials: "include",
         });
         const data: string[] = await res.json();
@@ -62,7 +63,7 @@ export default function Booking() {
 
     // Fetch the slots for a single calendar day from the backend.
     async function fetchSlotsForDate(dateKey: string) {
-        const res = await fetch("/api/get_available_slots", {
+        const res = await fetch(withApiBase("/api/get_available_slots"), {
             method: "POST",
             credentials: "include",
             headers: {
@@ -147,7 +148,7 @@ export default function Booking() {
 
         setIsClaimingSlot(true);
         try {
-            const res = await fetch("/api/claim_booking", {
+            const res = await fetch(withApiBase("/api/claim_booking"), {
                 method: "POST",
                 credentials: "include",
                 headers: {
@@ -185,7 +186,7 @@ export default function Booking() {
     useEffect(() => {
         // Load the set of calendar dates that have at least one available slot.
         const fetchDates = async () => {
-            await fetch("/api/session", {
+            await fetch(withApiBase("/api/session"), {
                 credentials: "include",
             });
 

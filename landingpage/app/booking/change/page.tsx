@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import CalendarSVG from "@/components/CalendarSVG";
 import BookingChangeForm from "@/components/BookingChangeForm";
+import { withApiBase } from "@/app/apiBase";
 
 type BookingDetails = {
   id: string;
@@ -55,7 +56,7 @@ function BookingChangeContent() {
           booking_id: bookingId,
           patient_id: patientId,
         });
-        const res = await fetch(`/api/booking/change?${query.toString()}`);
+        const res = await fetch(withApiBase(`/api/booking/change?${query.toString()}`));
         const data = await res.json();
 
         if (!res.ok) {
@@ -81,7 +82,7 @@ function BookingChangeContent() {
       booking_id: bookingId,
       patient_id: patientId,
     });
-    const res = await fetch(`/api/booking/change?${query.toString()}`, {
+    const res = await fetch(withApiBase(`/api/booking/change?${query.toString()}`), {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -108,7 +109,7 @@ function BookingChangeContent() {
       booking_id: bookingId,
       patient_id: patientId,
     });
-    const res = await fetch(`/api/booking/change?${query.toString()}`, {
+    const res = await fetch(withApiBase(`/api/booking/change?${query.toString()}`), {
       method: "DELETE",
     });
     const data = await res.json();
