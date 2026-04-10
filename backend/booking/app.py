@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from _booking import *
 from datetime import datetime
+import os
 import threading
 import time
 
@@ -11,6 +12,8 @@ CORS(app, supports_credentials=True)
 BOOKING_SESSION_COOKIE = "booking_session_id"
 BOOKING_SESSION_MAX_AGE = 60 * 60 * 24 * 30
 EXPIRY_SWEEP_INTERVAL_SECONDS = 60
+_expiry_thread_lock = threading.Lock()
+_expiry_thread_started = False
 
 
 @app.route("/api/session", methods=["GET"])
@@ -355,12 +358,32 @@ def handle_vnpay_ipn():
 def run_expiry_sweeper():
     while True:
         try:
-            db_expire_pending_bookings()
+            expired_count = db_expire_pending_bookings()
+            if expired_count:
+                print(f"[expiry-sweeper] expired {expired_count} pending booking(s)")
+        except Exception as exc:
+            print(f"[expiry-sweeper] sweep failed: {exc}")
         finally:
             time.sleep(EXPIRY_SWEEP_INTERVAL_SECONDS)
 
 
+def start_expiry_sweeper_once():
+    global _expiry_thread_started
+    with _expiry_thread_lock:
+        if _expiry_thread_started:
+            return
+        expiry_thread = threading.Thread(
+            target=run_expiry_sweeper,
+            daemon=True,
+            name=f"booking-expiry-sweeper-{os.getpid()}",
+        )
+        expiry_thread.start()
+        _expiry_thread_started = True
+        print(f"[expiry-sweeper] started in pid={os.getpid()}")
+
+
+start_expiry_sweeper_once()
+
+
 if __name__=="__main__":
-    expiry_thread = threading.Thread(target=run_expiry_sweeper, daemon=True)
-    expiry_thread.start()
     app.run(port=5001)

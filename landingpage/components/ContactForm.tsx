@@ -141,10 +141,13 @@ export default function ContactForm({
         <label className="block text-sm font-medium mb-1">Ngày sinh <span className="text-red-500">*</span></label>
         <input
           name="birthdate"
-          type="date"
+          type="text"
           value={form.birthdate}
           onChange={handleChange}
           className="w-full border rounded p-2"
+          inputMode="numeric"
+          placeholder="YYYY-MM-DD"
+          pattern="\d{4}-\d{2}-\d{2}"
           required
         />
       </div>
