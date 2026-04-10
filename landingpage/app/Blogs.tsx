@@ -1,93 +1,139 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { withBlogApiBase } from "@/app/apiBase";
 
-type Category = "all" | "medical" | "clinical" | "news";
-
-type BlogPost = {
-  id: number;
-  title: string;
-  href: string;
-  category: Exclude<Category, "all">;
+type BlogCategory = {
+  id: string;
+  name: string;
+  slug: string;
 };
 
-const categories: { id: Category; label: string }[] = [
-  { id: "all", label: "Tất cả" },
-  { id: "medical", label: "Y khoa" },
-  { id: "clinical", label: "Ca lâm sàng" },
-  { id: "news", label: "Tin tức" },
-];
+type BlogSubcategory = {
+  id: string;
+  name: string;
+  slug: string;
+};
 
-const mockPosts: BlogPost[] = [
-  {
-    id: 1,
-    title: "Nội soi khớp gối: khi nào nên thực hiện?",
-    href: "/blog/noi-soi-khop-goi",
-    category: "medical",
-  },
-  {
-    id: 2,
-    title: "Ca lâm sàng phục hồi sau chấn thương dây chằng",
-    href: "/blog/ca-lam-sang-day-chang",
-    category: "clinical",
-  },
-  {
-    id: 3,
-    title: "Cập nhật lịch khám và hoạt động chuyên môn tháng này",
-    href: "/blog/tin-tuc-thang-nay",
-    category: "news",
-  },
-  {
-    id: 3,
-    title: "Cập nhật lịch khám và hoạt động chuyên môn tháng này",
-    href: "/blog/tin-tuc-thang-nay",
-    category: "news",
-  },
-  {
-    id: 3,
-    title: "Cập nhật lịch khám và hoạt động chuyên môn tháng này",
-    href: "/blog/tin-tuc-thang-nay",
-    category: "news",
-  },
-  {
-    id: 3,
-    title: "Cập nhật lịch khám và hoạt động chuyên môn tháng này",
-    href: "/blog/tin-tuc-thang-nay",
-    category: "news",
-  },
-  {
-    id: 3,
-    title: "Cập nhật lịch khám và hoạt động chuyên môn tháng này",
-    href: "/blog/tin-tuc-thang-nay",
-    category: "news",
-  },
-];
+type BlogTag = {
+  id: string;
+  name: string;
+  slug: string;
+};
 
-async function fetchPosts(): Promise<BlogPost[]> {
-  // TODO: Replace this mock return with a real backend fetch when the API is ready.
-  return mockPosts;
+type BlogPost = {
+  id: string;
+  title: string;
+  slug: string;
+  url: string;
+  shortDescription: string | null;
+  coverImageUrl: string | null;
+  publishedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  category: BlogCategory;
+  subcategory: BlogSubcategory | null;
+  tags: BlogTag[];
+};
+
+type PostsResponse = {
+  posts: BlogPost[];
+};
+
+type CategoriesResponse = {
+  categories: BlogCategory[];
+};
+
+type FilterCategory = {
+  id: string;
+  label: string;
+  slug: string | null;
+};
+
+const allCategory: FilterCategory = {
+  id: "all",
+  label: "Tat ca",
+  slug: null,
+};
+
+async function fetchPosts(categorySlug?: string): Promise<BlogPost[]> {
+  const params = new URLSearchParams();
+
+  if (categorySlug) {
+    params.set("category", categorySlug);
+  }
+
+  const query = params.toString();
+  const response = await fetch(
+    withBlogApiBase(`/api/posts${query ? `?${query}` : ""}`),
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to load blog posts");
+  }
+
+  const data: PostsResponse = await response.json();
+  return data.posts;
+}
+
+async function fetchCategories(): Promise<BlogCategory[]> {
+  const response = await fetch(withBlogApiBase("/api/categories"));
+
+  if (!response.ok) {
+    throw new Error("Failed to load blog categories");
+  }
+
+  const data: CategoriesResponse = await response.json();
+  return data.categories;
 }
 
 export default function Blogs() {
-  const [selectedCategory, setSelectedCategory] = useState<Category>("all");
-  const [posts, setPosts] = useState<BlogPost[]>(mockPosts);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [categories, setCategories] = useState<FilterCategory[]>([allCategory]);
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        const categoryData = await fetchCategories();
+        setCategories([
+          allCategory,
+          ...categoryData.map((category) => ({
+            id: category.id,
+            label: category.name,
+            slug: category.slug,
+          })),
+        ]);
+      } catch (error) {
+        console.error(error);
+        setErrorMessage("Không tải được danh mục bài viết");
+      }
+    }
+
+    loadCategories();
+  }, []);
 
   useEffect(() => {
     async function loadPosts() {
-      const data = await fetchPosts();
-      setPosts(data);
+      try {
+        setIsLoading(true);
+        setErrorMessage(null);
+
+        const activeCategory = categories.find((category) => category.id === selectedCategory);
+        const postData = await fetchPosts(activeCategory?.slug ?? undefined);
+        setPosts(postData);
+      } catch (error) {
+        console.error(error);
+        setErrorMessage("Khong tai duoc danh sach bai viet luc nay.");
+      } finally {
+        setIsLoading(false);
+      }
     }
 
     loadPosts();
-  }, []);
-
-  const filteredPosts = useMemo(() => {
-    if (selectedCategory === "all") {
-      return posts;
-    }
-
-    return posts.filter((post) => post.category === selectedCategory);
-  }, [posts, selectedCategory]);
+  }, [categories, selectedCategory]);
 
   return (
     <section className="bg-white">
@@ -129,20 +175,47 @@ export default function Blogs() {
         </div>
 
         <div className="mt-8 max-h-[28rem] space-y-4 overflow-y-auto pr-2">
-          {filteredPosts.map((post) => (
-            <a
-              key={post.id}
-              href={post.href}
-              className="block rounded-lg border border-[#d7dfed] bg-white px-6 py-5 text-left shadow-sm transition hover:border-navy/40 hover:shadow-md"
-            >
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">
-                {categories.find((category) => category.id === post.category)?.label}
-              </p>
-              <h3 className="font-serif mt-2 text-lg font-bold text-navy sm:text-xl">
-                {post.title}
-              </h3>
-            </a>
-          ))}
+          {isLoading && (
+            <div className="rounded-lg border border-[#d7dfed] bg-[#f8fafc] px-6 py-5 text-sm text-[#516384]">
+              Đang tải bài viết...
+            </div>
+          )}
+
+          {!isLoading && errorMessage && (
+            <div className="rounded-lg border border-[#f1c7c7] bg-[#fff6f6] px-6 py-5 text-sm text-[#9f3a38]">
+              {errorMessage}
+            </div>
+          )}
+
+          {!isLoading && !errorMessage && posts.length === 0 && (
+            <div className="rounded-lg border border-[#d7dfed] bg-[#f8fafc] px-6 py-5 text-sm text-[#516384]">
+              Chưa có bài viết nào trong chuyên mục này.
+            </div>
+          )}
+
+          {!isLoading &&
+            !errorMessage &&
+            posts.map((post) => (
+              <a
+                key={post.id}
+                href={post.url}
+                target="_blank"
+                rel="noreferrer"
+                className="block rounded-lg border border-[#d7dfed] bg-white px-6 py-5 text-left shadow-sm transition hover:border-navy/40 hover:shadow-md"
+              >
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">
+                  {post.subcategory?.name ?? post.category.name}
+                </p>
+                <h3 className="font-serif mt-2 text-lg font-bold text-navy sm:text-xl">
+                  {post.title}
+                </h3>
+                {post.shortDescription && (
+                  <p className="mt-3 text-sm leading-7 text-[#516384] sm:text-base">
+                    {post.shortDescription}
+                  </p>
+                )}
+              </a>
+            ))}
         </div>
       </div>
     </section>
