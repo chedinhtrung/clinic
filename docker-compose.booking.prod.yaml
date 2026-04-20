@@ -1,0 +1,21 @@
+# Booking backend deployment stack.
+# This file runs only the booking API service and connects it to the shared
+# database/network created by docker-compose.shared.prod.yaml.
+services:
+  booking-backend:
+    build:
+      context: ./backend/booking
+    container_name: clinic-booking-backend
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5001:5001"
+    env_file:
+      - ./.env.shared
+      - ./.env.booking
+    networks:
+      - clinic-backend
+
+networks:
+  clinic-backend:
+    external: true
+    name: clinic-backend

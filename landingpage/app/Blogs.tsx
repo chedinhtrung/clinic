@@ -52,7 +52,7 @@ type FilterCategory = {
 
 const allCategory: FilterCategory = {
   id: "all",
-  label: "Tat ca",
+  label: "Tất cả",
   slug: null,
 };
 
@@ -126,7 +126,7 @@ export default function Blogs() {
         setPosts(postData);
       } catch (error) {
         console.error(error);
-        setErrorMessage("Khong tai duoc danh sach bai viet luc nay.");
+        setErrorMessage("Không tải được danh sách bài viết.");
       } finally {
         setIsLoading(false);
       }

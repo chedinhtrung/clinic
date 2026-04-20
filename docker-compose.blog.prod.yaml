@@ -1,0 +1,21 @@
+# Blog backend deployment stack.
+# This file runs only the public blog metadata API service and connects it to
+# the shared database/network created by docker-compose.shared.prod.yaml.
+services:
+  blog-backend:
+    build:
+      context: ./backend/blog
+    container_name: clinic-blog-backend
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5002:5002"
+    env_file:
+      - ./.env.shared
+      - ./.env.blog
+    networks:
+      - clinic-backend
+
+networks:
+  clinic-backend:
+    external: true
+    name: clinic-backend
