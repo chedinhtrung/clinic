@@ -10,8 +10,7 @@ services:
     ports:
       - "127.0.0.1:5002:5002"
     env_file:
-      - ./.env.shared
-      - ./.env.blog
+      - ./.env
     networks:
       - clinic-backend
 

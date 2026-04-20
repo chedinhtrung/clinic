@@ -10,8 +10,7 @@ services:
     ports:
       - "127.0.0.1:5001:5001"
     env_file:
-      - ./.env.shared
-      - ./.env.booking
+      - ./.env
     networks:
       - clinic-backend
 

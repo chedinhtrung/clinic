@@ -1,0 +1,17 @@
+# Frontend deployment stack.
+# This file runs only the public Next.js landing page and expects the booking
+# and blog backends to already be running on the host ports referenced by the
+# frontend env file.
+services:
+  frontend:
+    build:
+      context: ./landingpage
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL}
+        NEXT_PUBLIC_BLOG_API_BASE_URL: ${NEXT_PUBLIC_BLOG_API_BASE_URL}
+    container_name: clinic-frontend
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    env_file:
+      - ./.env
