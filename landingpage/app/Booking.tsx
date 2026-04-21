@@ -20,6 +20,10 @@ function toDateKey(date: Date) {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
+function getBrowserLocalDay(date: Date) {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
 function formatSlotTime(isoTimestamp: string) {
     return new Date(isoTimestamp).toLocaleTimeString(undefined, {
         hour: "2-digit",
@@ -46,6 +50,9 @@ export default function Booking() {
     const [displayedMonth, setDisplayedMonth] = useState<Date>(new Date());
     // Visible loading state while the selected slot is being claimed.
     const [isClaimingSlot, setIsClaimingSlot] = useState(false);
+    // Force DayPicker to use the browser's local calendar day instead of any
+    // server/container/build-time default.
+    const [browserToday, setBrowserToday] = useState<Date | undefined>();
 
     // Reload the available date list from the backend after availability changes.
     async function reloadAvailableDates() {
@@ -184,6 +191,8 @@ export default function Booking() {
     }
 
     useEffect(() => {
+        setBrowserToday(getBrowserLocalDay(new Date()));
+
         // Load the set of calendar dates that have at least one available slot.
         const fetchDates = async () => {
             await fetch(withApiBase("/api/session"), {
@@ -264,13 +273,14 @@ export default function Booking() {
                     <div className="flex justify-center">
                         <DayPicker
                             mode="single"
+                            today={browserToday}
                             selected={selectedDate}
                             onSelect={onDateSelect}
                             month={displayedMonth}
                             onMonthChange={setDisplayedMonth}
                             locale={vi}
                             disabled={[
-                                { before: new Date() },
+                                ...(browserToday ? [{ before: browserToday }] : []),
                                 (date) => !availableDates.some(
                                     (availableDate) =>
                                         availableDate.getFullYear() === date.getFullYear() &&
