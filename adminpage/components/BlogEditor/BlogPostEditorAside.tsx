@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import BlogContentRenderer from "./BlogContentRenderer";
-import type { BlogCategory, BlogPost, BlogSubcategory, BlogTag } from "./types";
+import type { BlogAutosaveStatus, BlogCategory, BlogPost, BlogSubcategory, BlogTag } from "./types";
 import { slugify } from "./utils";
 
 function TextField({
@@ -42,6 +42,8 @@ function TextField({
 
 type BlogPostEditorAsideProps = {
   post: BlogPost | null;
+  autosaveStatus: BlogAutosaveStatus;
+  autosavedAt: string | null;
   categoryOptions: BlogCategory[];
   subcategoryOptions: BlogSubcategory[];
   tagOptions: BlogTag[];
@@ -56,6 +58,8 @@ type BlogPostEditorAsideProps = {
 
 export default function BlogPostEditorAside({
   post,
+  autosaveStatus,
+  autosavedAt,
   categoryOptions,
   subcategoryOptions,
   tagOptions,
@@ -72,6 +76,14 @@ export default function BlogPostEditorAside({
   const visibleSlug = post?.slug ?? previewSlug;
   const postUrl = visibleSlug ? `https://blogs.chedinhnghia.com/${visibleSlug}` : null;
   const hasPermanentSlug = Boolean(post?.slug);
+  const autosaveLabel =
+    autosaveStatus === "saving"
+      ? "Saving..."
+      : autosaveStatus === "saved"
+        ? `Saved ${autosavedAt ? new Date(autosavedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}`
+        : autosaveStatus === "error"
+          ? "Save failed"
+          : "Not saved yet";
 
   const suggestedTagOptions = useMemo(() => {
     const normalizedInput = tagInputText.trim().toLowerCase();
@@ -153,6 +165,13 @@ export default function BlogPostEditorAside({
               <div className="min-w-0">
                 <p className="text-xs font-medium uppercase text-[#787774]">Last edited</p>
                 <p className="mt-1 text-sm text-[#37352f]">{post.updatedAt}</p>
+                <p
+                  className={`mt-1 text-xs ${
+                    autosaveStatus === "error" ? "text-[#b94034]" : "text-[#787774]"
+                  }`}
+                >
+                  {autosaveLabel}
+                </p>
               </div>
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">

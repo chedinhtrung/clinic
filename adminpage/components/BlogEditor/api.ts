@@ -101,6 +101,18 @@ export async function fetchBlogLookupData(): Promise<BlogLookupData> {
   return { categories, subcategories, tags };
 }
 
+export async function autosaveBlogPost(post: BlogPost): Promise<{ savedAt: string }> {
+  await new Promise((resolve) => window.setTimeout(resolve, 650));
+
+  console.info("[mock autosave] Blog post saved", {
+    id: post.id,
+    title: post.title || "Untitled",
+    blockCount: post.contentBlocks.length,
+  });
+
+  return { savedAt: new Date().toISOString() };
+}
+
 export async function fetchBlogPostsPage({
   page,
   pageSize,

@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { fetchBlogLookupData, fetchBlogPostsPage } from "./api";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { autosaveBlogPost, fetchBlogLookupData, fetchBlogPostsPage } from "./api";
 import BlogPostEditorAside from "./BlogPostEditorAside";
 import BlogPostTable from "./BlogPostTable";
-import type { BlogCategory, BlogPost, BlogSubcategory, BlogTag, PostLoadStatus } from "./types";
+import type { BlogAutosaveStatus, BlogCategory, BlogPost, BlogSubcategory, BlogTag, PostLoadStatus } from "./types";
 import { BLOG_POST_PAGE_SIZE, createUniqueSlug, FALLBACK_CATEGORY, getTagNames } from "./utils";
 
 function makePendingId(prefix: string, name: string) {
@@ -25,6 +25,12 @@ export default function BlogEditor() {
   const [categoryOptions, setCategoryOptions] = useState<BlogCategory[]>([]);
   const [subcategoryOptions, setSubcategoryOptions] = useState<BlogSubcategory[]>([]);
   const [backendTagOptions, setBackendTagOptions] = useState<BlogTag[]>([]);
+  const [autosaveStatus, setAutosaveStatus] = useState<BlogAutosaveStatus>("idle");
+  const [autosavedAt, setAutosavedAt] = useState<string | null>(null);
+  const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autosaveSequenceRef = useRef(0);
+  const loadedPostIdsRef = useRef<Set<string>>(new Set());
+  const dirtyPostIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     let isCurrentLoad = true;
@@ -72,6 +78,7 @@ export default function BlogEditor() {
         setSelectedPostId((currentSelectedPostId) =>
           response.posts.some((post) => post.id === currentSelectedPostId) ? currentSelectedPostId : null
         );
+        response.posts.forEach((post) => loadedPostIdsRef.current.add(post.id));
         setPostLoadStatus("idle");
       } catch {
         if (isCurrentLoad) {
@@ -99,7 +106,60 @@ export default function BlogEditor() {
     );
   }, [backendTagOptions, posts]);
 
+  useEffect(() => {
+    if (autosaveTimerRef.current) {
+      clearTimeout(autosaveTimerRef.current);
+      autosaveTimerRef.current = null;
+    }
+
+    if (!selectedPost) {
+      return;
+    }
+
+    if (!loadedPostIdsRef.current.has(selectedPost.id)) {
+      loadedPostIdsRef.current.add(selectedPost.id);
+      return;
+    }
+
+    if (!dirtyPostIdsRef.current.has(selectedPost.id)) {
+      return;
+    }
+
+    const saveSequence = autosaveSequenceRef.current + 1;
+    autosaveSequenceRef.current = saveSequence;
+
+    // Mock backend autosave is debounced so normal typing produces one save for the latest post state.
+    autosaveTimerRef.current = setTimeout(() => {
+      void autosaveBlogPost(selectedPost)
+        .then(({ savedAt }) => {
+          if (autosaveSequenceRef.current !== saveSequence) {
+            return;
+          }
+
+          setAutosaveStatus("saved");
+          setAutosavedAt(savedAt);
+          dirtyPostIdsRef.current.delete(selectedPost.id);
+        })
+        .catch(() => {
+          if (autosaveSequenceRef.current === saveSequence) {
+            setAutosaveStatus("error");
+          }
+        });
+    }, 900);
+
+    return () => {
+      if (autosaveTimerRef.current) {
+        clearTimeout(autosaveTimerRef.current);
+      }
+    };
+  }, [selectedPost]);
+
   function updatePost(postId: string, changes: Partial<BlogPost>) {
+    if (postId === selectedPostId) {
+      dirtyPostIdsRef.current.add(postId);
+      setAutosaveStatus("saving");
+    }
+
     setPosts((currentPosts) =>
       currentPosts.map((post) =>
         post.id === postId
@@ -117,6 +177,12 @@ export default function BlogEditor() {
     if (selectedPost) {
       updatePost(selectedPost.id, changes);
     }
+  }
+
+  function selectPostForEditing(postId: string | null) {
+    setSelectedPostId(postId);
+    setAutosaveStatus("idle");
+    setAutosavedAt(null);
   }
 
   function toggleSelectedPostPublish() {
@@ -160,7 +226,7 @@ export default function BlogEditor() {
     setPosts((currentPosts) => [draft, ...currentPosts].slice(0, BLOG_POST_PAGE_SIZE));
     setTotalPosts(nextTotalPosts);
     setTotalPages(Math.max(1, Math.ceil(nextTotalPosts / BLOG_POST_PAGE_SIZE)));
-    setSelectedPostId(draft.id);
+    selectPostForEditing(draft.id);
   }
 
   function deleteSelectedPost() {
@@ -174,7 +240,7 @@ export default function BlogEditor() {
     }
 
     setPosts((currentPosts) => currentPosts.filter((post) => post.id !== selectedPost.id));
-    setSelectedPostId(null);
+    selectPostForEditing(null);
     setTotalPosts((currentTotalPosts) => Math.max(0, currentTotalPosts - 1));
   }
 
@@ -257,7 +323,7 @@ export default function BlogEditor() {
           totalPages={totalPages}
           totalPosts={totalPosts}
           postLoadStatus={postLoadStatus}
-          onSelectPost={setSelectedPostId}
+          onSelectPost={selectPostForEditing}
           onTitleChange={(postId, title) => updatePost(postId, { title })}
           onPageChange={setCurrentPage}
         />
@@ -265,10 +331,12 @@ export default function BlogEditor() {
 
       <BlogPostEditorAside
         post={selectedPost}
+        autosaveStatus={autosaveStatus}
+        autosavedAt={autosavedAt}
         categoryOptions={categoryOptions}
         subcategoryOptions={subcategoryOptions}
         tagOptions={tagOptions}
-        onClose={() => setSelectedPostId(null)}
+        onClose={() => selectPostForEditing(null)}
         onUpdatePost={updateSelectedPost}
         onTogglePublish={toggleSelectedPostPublish}
         onDeletePost={deleteSelectedPost}

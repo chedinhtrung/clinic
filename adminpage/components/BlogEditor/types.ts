@@ -40,6 +40,12 @@ export type BlogContentBlock =
       type: "youtube";
       url: string;
       caption: string;
+    }
+  | {
+      id: string;
+      type: "link";
+      url: string;
+      text: string;
     };
 
 export type BlogPost = {
@@ -56,6 +62,8 @@ export type BlogPost = {
 };
 
 export type PostLoadStatus = "idle" | "loading" | "error";
+
+export type BlogAutosaveStatus = "idle" | "saving" | "saved" | "error";
 
 export type BlogLookupData = {
   categories: BlogCategory[];
