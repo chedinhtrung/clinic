@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "react-day-picker/dist/style.css";
 import "./globals_v1.css";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 import { Source_Sans_3, Merriweather } from "next/font/google";
