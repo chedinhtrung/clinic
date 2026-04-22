@@ -12,26 +12,36 @@ function makePendingId(prefix: string, name: string) {
 }
 
 export default function BlogEditor() {
+  // Post list and pagination state drive the table on the left side of the admin view.
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalPosts, setTotalPosts] = useState(0);
   const [postLoadStatus, setPostLoadStatus] = useState<PostLoadStatus>("idle");
+
+  // Draft query state lets users type freely before the table request is committed.
   const [filterText, setFilterText] = useState("");
   const [activeFilterText, setActiveFilterText] = useState("");
   const [searchText, setSearchText] = useState("");
   const [activeSearchText, setActiveSearchText] = useState("");
+
+  // Lookup option state backs editable category, subcategory, and tag controls.
   const [categoryOptions, setCategoryOptions] = useState<BlogCategory[]>([]);
   const [subcategoryOptions, setSubcategoryOptions] = useState<BlogSubcategory[]>([]);
   const [backendTagOptions, setBackendTagOptions] = useState<BlogTag[]>([]);
+
+  // Autosave UI state is intentionally small: status text plus the last successful save timestamp.
   const [autosaveStatus, setAutosaveStatus] = useState<BlogAutosaveStatus>("idle");
   const [autosavedAt, setAutosavedAt] = useState<string | null>(null);
+
+  // Autosave refs coordinate debouncing, stale response protection, and "only save after real edits" tracking.
   const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autosaveSequenceRef = useRef(0);
   const loadedPostIdsRef = useRef<Set<string>>(new Set());
   const dirtyPostIdsRef = useRef<Set<string>>(new Set());
 
+  // Load static lookup values once. The current mock API mirrors the future backend contract.
   useEffect(() => {
     let isCurrentLoad = true;
 
@@ -53,6 +63,7 @@ export default function BlogEditor() {
     };
   }, []);
 
+  // Load the current table page whenever committed search/filter/page inputs change.
   useEffect(() => {
     let isCurrentLoad = true;
 
@@ -94,10 +105,13 @@ export default function BlogEditor() {
     };
   }, [activeFilterText, activeSearchText, currentPage]);
 
+  // Resolve the selected post from the current page data instead of duplicating editable post state.
   const selectedPost = useMemo(
     () => posts.find((post) => post.id === selectedPostId) ?? null,
     [posts, selectedPostId]
   );
+
+  // Merge backend tags with tags already visible on the current page so newly created tags stay selectable.
   const tagOptions = useMemo(() => {
     const optionsById = new Map<string, BlogTag>();
     [...backendTagOptions, ...getTagNames(posts)].forEach((tag) => optionsById.set(tag.id, tag));
@@ -106,6 +120,7 @@ export default function BlogEditor() {
     );
   }, [backendTagOptions, posts]);
 
+  // Save dirty selected posts after a short pause. Sequence numbers prevent old responses from winning races.
   useEffect(() => {
     if (autosaveTimerRef.current) {
       clearTimeout(autosaveTimerRef.current);
@@ -154,6 +169,7 @@ export default function BlogEditor() {
     };
   }, [selectedPost]);
 
+  // Apply a partial post update locally and mark the selected post dirty for autosave.
   function updatePost(postId: string, changes: Partial<BlogPost>) {
     if (postId === selectedPostId) {
       dirtyPostIdsRef.current.add(postId);
@@ -173,18 +189,21 @@ export default function BlogEditor() {
     );
   }
 
+  // Convenience wrapper used by the aside, where every edit targets the currently open post.
   function updateSelectedPost(changes: Partial<BlogPost>) {
     if (selectedPost) {
       updatePost(selectedPost.id, changes);
     }
   }
 
+  // Selecting a post resets visible autosave state; actual saves still wait for a later edit.
   function selectPostForEditing(postId: string | null) {
     setSelectedPostId(postId);
     setAutosaveStatus("idle");
     setAutosavedAt(null);
   }
 
+  // Publishing creates the permanent slug once, while unpublishing keeps the existing slug intact.
   function toggleSelectedPostPublish() {
     if (!selectedPost) {
       return;
@@ -201,12 +220,14 @@ export default function BlogEditor() {
     });
   }
 
+  // Commit typed table filters and reset pagination so new searches start from the first page.
   function submitPostQuery() {
     setCurrentPage(1);
     setActiveSearchText(searchText.trim());
     setActiveFilterText(filterText.trim());
   }
 
+  // Create a local draft row and open it immediately. The mock backend save will run after edits.
   function addDraftPost() {
     const createdAt = Date.now();
     const draft: BlogPost = {
@@ -229,6 +250,7 @@ export default function BlogEditor() {
     selectPostForEditing(draft.id);
   }
 
+  // Remove the selected post from local state after confirmation.
   function deleteSelectedPost() {
     if (!selectedPost) {
       return;
@@ -244,18 +266,21 @@ export default function BlogEditor() {
     setTotalPosts((currentTotalPosts) => Math.max(0, currentTotalPosts - 1));
   }
 
+  // Create local lookup options while the backend endpoints are still mocked.
   function createCategory(name: string) {
     const category = { id: makePendingId("pending-cat", name), name };
     setCategoryOptions((currentOptions) => [...currentOptions, category]);
     return category;
   }
 
+  // Create a subcategory option and return it so the aside can immediately select it.
   function createSubcategory(name: string) {
     const subcategory = { id: makePendingId("pending-sub", name), name };
     setSubcategoryOptions((currentOptions) => [...currentOptions, subcategory]);
     return subcategory;
   }
 
+  // Create a tag option and return it so the tag picker can immediately attach it.
   function createTag(name: string) {
     const tag = { id: makePendingId("pending-tag", name), name };
     setBackendTagOptions((currentOptions) => [...currentOptions, tag]);
