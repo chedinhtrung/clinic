@@ -1,42 +1,86 @@
-from flask import Flask, request, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
-from datetime import datetime, timedelta, timezone
+
+from _booking import (
+    AdminSlotConflictError,
+    AdminSlotNotFoundError,
+    db_delete_slot,
+    db_get_slot,
+    db_get_slots,
+    db_insert_slot,
+    db_update_slot,
+)
+
 
 app = Flask(__name__)
 CORS(app)
 
+
 @app.route("/api/get_slots", methods=["POST"])
-def get_available_slots():
-    data = request.get_json()
-    print(data)
-    timestamp = data.get("timestamp")
+def get_slots():
+    data = request.get_json() or {}
 
-    #TODO: fetch slots from data.start to data.end and return them
+    try:
+        slots = db_get_slots(start=data.get("start"), end=data.get("end"))
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
 
-    return jsonify([
-        {
-            "id": "123",
-            "start": datetime(2026,3,31,10,30).isoformat(),
-            "end": (datetime(2026,3,31,10,30) + timedelta(hours=1)).isoformat(),
-            "status": "free",
-            "title": "Lịch hẹn trống"
-        },
-        {
-            "id": "456",
-            "start": datetime(2026,3,31,11,30).isoformat(),
-            "end": (datetime(2026,3,31,11,30) + timedelta(hours=1)).isoformat(),
-            "status": "pending",
-            "title": "Chờ thanh toán"
-        }, 
-        {
-            "id": "789",
-            "start": datetime(2026,3,31,12,30).isoformat(),
-            "end": (datetime(2026,3,31,12,30) + timedelta(hours=1)).isoformat(),
-            "status": "confirmed",
-            "title": "Nguyễn Văn B"
-        }
-    ])
+    return jsonify(slots)
 
 
-if __name__=="__main__":
+@app.route("/api/slots/<slot_id>", methods=["GET"])
+def get_slot(slot_id: str):
+    try:
+        slot = db_get_slot(slot_id=slot_id)
+    except AdminSlotNotFoundError as exc:
+        return jsonify({"error": str(exc)}), 404
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    return jsonify({"slot": slot})
+
+
+@app.route("/api/slots", methods=["POST"])
+def create_slot():
+    data = request.get_json() or {}
+
+    try:
+        slot = db_insert_slot(start=data.get("start"), end=data.get("end"))
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    return jsonify({"slot": slot}), 201
+
+
+@app.route("/api/slots/<slot_id>", methods=["PATCH"])
+def update_slot(slot_id: str):
+    data = request.get_json() or {}
+
+    try:
+        slot = db_update_slot(slot_id=slot_id, start=data.get("start"), end=data.get("end"))
+    except AdminSlotConflictError as exc:
+        return jsonify({"error": str(exc)}), 409
+    except AdminSlotNotFoundError as exc:
+        return jsonify({"error": str(exc)}), 404
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    return jsonify({"slot": slot})
+
+
+@app.route("/api/slots/<slot_id>", methods=["DELETE"])
+def delete_slot(slot_id: str):
+    try:
+        db_delete_slot(slot_id=slot_id)
+    except AdminSlotConflictError as exc:
+        return jsonify({"error": str(exc)}), 409
+    except AdminSlotNotFoundError as exc:
+        return jsonify({"error": str(exc)}), 404
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    return jsonify({"ok": True})
+
+
+if __name__ == "__main__":
     app.run(port=5002)

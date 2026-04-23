@@ -26,7 +26,7 @@ CREATE TABLE bookings (
   expires_at timestamptz NOT NULL,
   confirmed_at timestamptz,
   confirmation_hash text,
-  status text NOT NULL DEFAULT 'hold',
+  status text NOT NULL DEFAULT 'pending',
   reservation_code bigint NOT NULL UNIQUE,
   CHECK (status IN ('pending', 'confirmed', 'expired', 'cancelled', 'finished'))
 );
@@ -40,6 +40,6 @@ CREATE UNIQUE INDEX unique_patient_email
 ON patients((lower(trim(email))))
 WHERE email IS NOT NULL;
 
-CREATE UNIQUE INDEX unique_confirmed_slot
+CREATE UNIQUE INDEX unique_active_slot_booking
 ON bookings(slot_id)
-WHERE status = 'confirmed';
+WHERE status IN ('pending', 'confirmed');
