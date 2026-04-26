@@ -1,7 +1,28 @@
 # Booking backend deployment stack.
-# This file runs only the booking API service and connects it to the shared
-# database/network created by docker-compose.shared.prod.yaml.
+# This file runs the booking API together with its dedicated Postgres instance.
 services:
+  booking-db:
+    image: postgres:17
+    container_name: clinic-booking-db
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5430:5432"
+    env_file:
+      - ./.env
+    networks:
+      clinic-booking-backend:
+        aliases:
+          - booking-db
+    volumes:
+      - booking_postgres_data:/var/lib/postgresql/data
+      - ./backend/database/001_bookings.sql:/docker-entrypoint-initdb.d/001_bookings.sql:ro
+      - ./backend/database/mock_data.sql:/docker-entrypoint-initdb.d/mock_data.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   booking-backend:
     build:
       context: ./backend/booking
@@ -11,10 +32,14 @@ services:
       - "127.0.0.1:5001:5001"
     env_file:
       - ./.env
+    depends_on:
+      booking-db:
+        condition: service_healthy
     networks:
-      - clinic-backend
+      - clinic-booking-backend
+
+volumes:
+  booking_postgres_data:
 
 networks:
-  clinic-backend:
-    external: true
-    name: clinic-backend
+  clinic-booking-backend:

@@ -1,7 +1,30 @@
 # Blog backend deployment stack.
-# This file runs only the public blog metadata API service and connects it to
-# the shared database/network created by docker-compose.shared.prod.yaml.
+# This file runs the blog API together with its dedicated Postgres instance.
 services:
+  blog-db:
+    image: postgres:17
+    container_name: clinic-blog-db
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5431:5432"
+    env_file:
+      - ./.env
+    environment:
+      POSTGRES_DB: ${BLOG_POSTGRES_DB}
+    networks:
+      clinic-blog-backend:
+        aliases:
+          - blog-db
+    volumes:
+      - blog_postgres_data:/var/lib/postgresql/data
+      - ./backend/database/002_blogs_frontend.sql:/docker-entrypoint-initdb.d/002_blogs_frontend.sql:ro
+      - ./backend/database/mock_blogs.sql:/docker-entrypoint-initdb.d/mock_blogs.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   blog-backend:
     build:
       context: ./backend/blog
@@ -11,10 +34,14 @@ services:
       - "127.0.0.1:5002:5002"
     env_file:
       - ./.env
+    depends_on:
+      blog-db:
+        condition: service_healthy
     networks:
-      - clinic-backend
+      - clinic-blog-backend
+
+volumes:
+  blog_postgres_data:
 
 networks:
-  clinic-backend:
-    external: true
-    name: clinic-backend
+  clinic-blog-backend:
