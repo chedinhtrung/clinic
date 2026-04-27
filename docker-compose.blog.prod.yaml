@@ -10,7 +10,7 @@ services:
     env_file:
       - ./.env
     environment:
-      POSTGRES_DB: ${BLOG_POSTGRES_DB}
+      POSTGRES_DB: blogs
     networks:
       clinic-blog-backend:
         aliases:
@@ -20,7 +20,7 @@ services:
       - ./backend/database/002_blogs_frontend.sql:/docker-entrypoint-initdb.d/002_blogs_frontend.sql:ro
       - ./backend/database/mock_blogs.sql:/docker-entrypoint-initdb.d/mock_blogs.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U ${POSTGRES_USER:-postgres} -d ${BLOG_POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d blogs"]
       start_period: 10s
       interval: 10s
       timeout: 5s

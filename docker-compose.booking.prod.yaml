@@ -9,6 +9,8 @@ services:
       - "127.0.0.1:5430:5432"
     env_file:
       - ./.env
+    environment:
+      POSTGRES_DB: bookings
     networks:
       clinic-booking-backend:
         aliases:
@@ -18,7 +20,7 @@ services:
       - ./backend/database/001_bookings.sql:/docker-entrypoint-initdb.d/001_bookings.sql:ro
       - ./backend/database/mock_data.sql:/docker-entrypoint-initdb.d/mock_data.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d bookings"]
       interval: 10s
       timeout: 5s
       retries: 10
