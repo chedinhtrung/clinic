@@ -24,8 +24,8 @@ The booking system has two identities:
 2. Patient email identity, known only after the contact form is submitted.
 
 Before contact details are submitted, the backend can only know that "this same
-browser" owns a pending booking. After contact details are submitted, the email
-becomes the stronger business identity for conflict detection.
+browser" owns a pending booking. After contact details are submitted, the
+backend switches to a patient identity based on normalized email plus birthdate.
 
 This means a booking is not just identified by `bookingId` in the URL. For the
 normal booking and payment pages, the backend also requires the same browser
@@ -55,6 +55,7 @@ The relevant tables are `slots`, `bookings`, and `patients`.
 `patients` stores contact details:
 
 - `id`
+- `patient_code`
 - `name`
 - `gender`
 - `email`
@@ -64,7 +65,9 @@ The relevant tables are `slots`, `bookings`, and `patients`.
 Important database constraints:
 
 - `reservation_code` is unique.
-- A patient email is unique after normalization with `lower(trim(email))`.
+- `patient_code` is unique.
+- A patient identity is unique after normalization with
+  `lower(trim(email)) + birthdate`.
 - A slot can have only one active booking where status is `pending` or
   `confirmed`.
 
@@ -633,4 +636,3 @@ These are the assumptions that keep the flow consistent:
   `proceed_to_payment()`.
 - Frontend countdowns are only UX; backend expiry is authoritative.
 - VNPay IPN is the authoritative confirmation path.
-

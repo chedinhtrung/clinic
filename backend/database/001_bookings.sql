@@ -2,6 +2,7 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 CREATE TABLE patients (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  patient_code bigint NOT NULL UNIQUE,
   name text NOT NULL,
   gender text,
   email text,
@@ -36,9 +37,10 @@ CREATE INDEX idx_bookings_rev_code ON bookings(reservation_code);
 CREATE INDEX idx_bookings_patient_id ON bookings(patient_id);
 CREATE INDEX idx_bookings_confirmation_hash ON bookings(confirmation_hash);
 CREATE INDEX idx_slots_start_at ON slots(start_at);
-CREATE UNIQUE INDEX unique_patient_email
-ON patients((lower(trim(email))))
-WHERE email IS NOT NULL;
+CREATE UNIQUE INDEX unique_patient_identity
+ON patients((lower(trim(email))), birthdate)
+WHERE email IS NOT NULL
+  AND birthdate IS NOT NULL;
 
 CREATE UNIQUE INDEX unique_active_slot_booking
 ON bookings(slot_id)

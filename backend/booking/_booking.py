@@ -59,6 +59,60 @@ def _normalize_email(email: str) -> str:
     return email.strip().lower()
 
 
+def _generate_patient_code() -> int:
+    return randint(100000000, 999999999)
+
+
+def _find_patient_by_identity(cur, *, normalized_email: str, birthdate: str):
+    cur.execute(
+        """
+        SELECT id, patient_code
+        FROM patients
+        WHERE lower(trim(email)) = %s
+          AND birthdate = %s
+        ORDER BY id
+        FOR UPDATE
+        LIMIT 1
+        """,
+        (normalized_email, birthdate),
+    )
+    return cur.fetchone()
+
+
+def _create_patient(
+    cur,
+    *,
+    name: str,
+    gender: str,
+    normalized_email: str,
+    birthdate: str,
+    phone: str | None,
+):
+    for _ in range(10):
+        patient_code = _generate_patient_code()
+        try:
+            cur.execute(
+                """
+                INSERT INTO patients (patient_code, name, gender, email, birthdate, phone)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                RETURNING id, patient_code
+                """,
+                (patient_code, name, gender, normalized_email, birthdate, phone),
+            )
+            return cur.fetchone()
+        except UniqueViolation:
+            existing_patient = _find_patient_by_identity(
+                cur,
+                normalized_email=normalized_email,
+                birthdate=birthdate,
+            )
+            if existing_patient is not None:
+                return existing_patient
+            continue
+
+    raise RuntimeError("could not generate a unique patient code")
+
+
 def _build_vnpay_hash_data(params: dict[str, str]) -> str:
     sorted_items = sorted(params.items())
     return "&".join(f"{key}={quote_plus(str(value))}" for key, value in sorted_items)
@@ -361,7 +415,7 @@ def db_get_booking(*, booking_id: str, session_id: str) -> dict[str, str | int]:
 
     query = """
         SELECT b.id, b.reservation_code, b.status, b.slot_id, b.expires_at, s.start_at, s.end_at,
-               p.name, p.email, p.phone, p.birthdate, p.gender
+               p.patient_code, p.name, p.email, p.phone, p.birthdate, p.gender
         FROM bookings b
         JOIN slots s ON s.id = b.slot_id
         LEFT JOIN patients p ON p.id = b.patient_id
@@ -387,11 +441,12 @@ def db_get_booking(*, booking_id: str, session_id: str) -> dict[str, str | int]:
         "displayExpiresAt": (row[4] - timedelta(minutes=1)).isoformat(),
         "startAt": row[5].isoformat(),
         "endAt": row[6].isoformat(),
-        "patientName": row[7],
-        "patientEmail": row[8],
-        "patientPhone": row[9],
-        "patientBirthdate": row[10].isoformat() if row[10] else None,
-        "patientGender": row[11],
+        "patientCode": row[7],
+        "patientName": row[8],
+        "patientEmail": row[9],
+        "patientPhone": row[10],
+        "patientBirthdate": row[11].isoformat() if row[11] else None,
+        "patientGender": row[12],
     }
 
 
@@ -404,7 +459,7 @@ def db_get_booking_for_change_link(*, booking_id: str, patient_id: str) -> dict[
 
     query = """
         SELECT b.id, b.reservation_code, b.status, b.slot_id, b.expires_at, b.confirmed_at,
-               s.start_at, s.end_at, p.id, p.name, p.email, p.phone, p.birthdate, p.gender
+               s.start_at, s.end_at, p.id, p.patient_code, p.name, p.email, p.phone, p.birthdate, p.gender
         FROM bookings b
         JOIN slots s ON s.id = b.slot_id
         JOIN patients p ON p.id = b.patient_id
@@ -431,11 +486,12 @@ def db_get_booking_for_change_link(*, booking_id: str, patient_id: str) -> dict[
         "startAt": row[6].isoformat(),
         "endAt": row[7].isoformat(),
         "patientId": str(row[8]),
-        "patientName": row[9],
-        "patientEmail": row[10],
-        "patientPhone": row[11],
-        "patientBirthdate": row[12].isoformat() if row[12] else None,
-        "patientGender": row[13],
+        "patientCode": row[9],
+        "patientName": row[10],
+        "patientEmail": row[11],
+        "patientPhone": row[12],
+        "patientBirthdate": row[13].isoformat() if row[13] else None,
+        "patientGender": row[14],
     }
 
 
@@ -509,19 +565,23 @@ def db_update_booking_contact_for_change_link(
                 if booking_row is None:
                     raise BookingChangeAccessError("Không thể tìm thấy lịch hẹn này.")
 
-                cur.execute(
-                    """
-                    SELECT id
-                    FROM patients
-                    WHERE lower(trim(email)) = %s
-                      AND id <> %s
-                    LIMIT 1
-                    """,
-                    (normalized_email, patient_id),
+                matched_patient = _find_patient_by_identity(
+                    cur,
+                    normalized_email=normalized_email,
+                    birthdate=birthdate,
                 )
-                existing_patient = cur.fetchone()
-                if existing_patient is not None:
-                    raise BookingEmailConflictError("Email này đã được đăng ký.")
+                target_patient_id = patient_id
+
+                if matched_patient is not None and str(matched_patient[0]) != str(patient_id):
+                    target_patient_id = matched_patient[0]
+                    cur.execute(
+                        """
+                        UPDATE bookings
+                        SET patient_id = %s
+                        WHERE id = %s
+                        """,
+                        (target_patient_id, booking_id),
+                    )
 
                 cur.execute(
                     """
@@ -533,10 +593,10 @@ def db_update_booking_contact_for_change_link(
                         phone = %s
                     WHERE id = %s
                     """,
-                    (name, gender, normalized_email, birthdate, phone, patient_id),
+                    (name, gender, normalized_email, birthdate, phone, target_patient_id),
                 )
 
-    return db_get_booking_for_change_link(booking_id=booking_id, patient_id=patient_id)
+    return db_get_booking_for_change_link(booking_id=booking_id, patient_id=str(target_patient_id))
 
 
 """Delete one booking through the emailed change link without deleting the patient record."""
@@ -631,43 +691,52 @@ def db_proceed_to_payment_for_session(
                     )
                     raise BookingExpiredError("Bạn cĐã có người khác nhanh tay hơn đặt lịch hẹn này, bạn thử lại nhé!")
 
-                cur.execute(
-                    """
-                    SELECT b.id, b.slot_id, b.patient_id, b.status
-                    FROM bookings b
-                    JOIN patients p ON p.id = b.patient_id
-                    WHERE lower(trim(p.email)) = %s
-                      AND b.status IN ('pending', 'confirmed')
-                    ORDER BY CASE WHEN b.status = 'confirmed' THEN 0 ELSE 1 END, b.created_at DESC
-                    FOR UPDATE
-                    """,
-                    (normalized_email,),
+                matched_patient = _find_patient_by_identity(
+                    cur,
+                    normalized_email=normalized_email,
+                    birthdate=birthdate,
                 )
-                email_bookings = cur.fetchall()
 
-                confirmed_booking = next((row for row in email_bookings if row[3] == "confirmed"), None)
-                pending_booking = next((row for row in email_bookings if row[3] == "pending"), None)
+                identity_bookings = []
+                if matched_patient is not None:
+                    canonical_patient_id = matched_patient[0]
+                    cur.execute(
+                        """
+                        SELECT id, slot_id, patient_id, status
+                        FROM bookings
+                        WHERE patient_id = %s
+                          AND status IN ('pending', 'confirmed')
+                        ORDER BY CASE WHEN status = 'confirmed' THEN 0 ELSE 1 END, created_at DESC
+                        FOR UPDATE
+                        """,
+                        (canonical_patient_id,),
+                    )
+                    identity_bookings = cur.fetchall()
+                else:
+                    canonical_patient_id = patient_id
+
+                confirmed_booking = next((row for row in identity_bookings if row[3] == "confirmed"), None)
+                pending_booking = next((row for row in identity_bookings if row[3] == "pending"), None)
 
                 if confirmed_booking is not None and str(confirmed_booking[0]) != str(booking_id):
                     raise BookingEmailConflictError("Bạn đã có một lịch hẹn được xác nhận. Vui lòng kiểm tra email và hủy nếu muốn thay đổi lịch hẹn.")
 
                 canonical_booking_id = booking_id
-                canonical_patient_id = patient_id
 
                 if pending_booking is not None and str(pending_booking[0]) != str(booking_id):
                     canonical_booking_id = pending_booking[0]
                     canonical_patient_id = pending_booking[2]
 
                 if canonical_patient_id is None:
-                    cur.execute(
-                        """
-                        INSERT INTO patients (name, gender, email, birthdate, phone)
-                        VALUES (%s, %s, %s, %s, %s)
-                        RETURNING id
-                        """,
-                        (name, gender, normalized_email, birthdate, phone),
+                    created_patient = _create_patient(
+                        cur,
+                        name=name,
+                        gender=gender,
+                        normalized_email=normalized_email,
+                        birthdate=birthdate,
+                        phone=phone,
                     )
-                    canonical_patient_id = cur.fetchone()[0]
+                    canonical_patient_id = created_patient[0]
                 else:
                     cur.execute(
                         """
