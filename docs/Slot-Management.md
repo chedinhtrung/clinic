@@ -163,8 +163,9 @@ db_insert_slot(start=data.get("start"), end=data.get("end"))
 
 The helper inserts into `slots`, then returns the full admin slot object.
 
-Frontend status: not wired yet. `SlotEditor.tsx` still has a placeholder save
-handler.
+Frontend status: wired. Selecting a range creates a draft slot in the calendar,
+and saving from `SlotEditor.tsx` calls the create endpoint before refreshing
+the visible calendar range.
 
 ## Updating A Slot
 
@@ -188,10 +189,13 @@ The route calls:
 db_update_slot(slot_id=slot_id, start=data.get("start"), end=data.get("end"))
 ```
 
-The backend refuses to update slots with active `pending` or `confirmed`
-bookings and returns `409 Conflict`.
+The backend refuses to update slots with any booking history and returns
+`409 Conflict`. This includes expired, cancelled, and finished bookings, not
+only active `pending` or `confirmed` bookings.
 
-Frontend status: not wired yet.
+Frontend status: wired for editable slots. `SlotEditor.tsx` sends the updated
+start and end values to the patch endpoint, then refreshes the visible calendar
+range. Booked slots are shown read-only in the editor.
 
 ## Deleting A Slot
 
@@ -207,11 +211,30 @@ The route calls:
 db_delete_slot(slot_id=slot_id)
 ```
 
-The backend refuses to delete slots with active `pending` or `confirmed`
-bookings and returns `409 Conflict`.
+The backend refuses to delete slots with any booking history and returns
+`409 Conflict`. This includes expired, cancelled, and finished bookings, not
+only active `pending` or `confirmed` bookings.
 
-Frontend status: only unsaved frontend-only `creating` slots can currently be
-discarded. Real slot deletion is not wired yet.
+## Slot History Policy
+
+The current design intentionally uses a conservative historical slot model.
+Once a row in `bookings` references a slot, that slot should no longer be
+updated or deleted by the admin, even if the booking is no longer active.
+
+This preserves the original appointment time for historical booking records,
+payment/confirmation references, patient history, and future audit needs. The
+admin calendar still displays slot availability based only on active
+`pending` or `confirmed` bookings, but mutation rules are stricter because
+older bookings still depend on `slots.start_at` and `slots.end_at`.
+
+If the product later needs cancelled or expired slots to become fully reusable,
+the safer path is to first store immutable appointment-time snapshots directly
+on `bookings`, then relax the admin update/delete rules.
+
+Frontend status: wired. Unsaved frontend-only `creating` slots can be discarded
+without an API call. Existing editable slots call the delete endpoint, then the
+visible calendar range is refreshed. Booked slots are shown read-only in the
+editor.
 
 ## Current Implementation Status
 
@@ -222,15 +245,14 @@ Connected:
   deleting slots.
 - Slot fetch joins active booking and patient data.
 - Backend returns an admin-facing shape compatible with the calendar.
+- `SlotEditor.tsx` can create, update, and delete slots through the admin API.
+- `SlotEditor.tsx` displays booking and patient details returned by the admin
+  API.
 
 Not yet connected:
 
-- `SlotEditor.tsx` does not call create, update, or delete endpoints.
-- The editor does not yet show all returned patient data.
-- The frontend still uses a hardcoded admin API URL.
-- The frontend has no loading or error states for slot operations.
-- New frontend-only draft slots still need to be normalized against the full
-  `Slot` type.
+- `SlotEdit.tsx` appears to be an older popup editor and is not used by the
+  current slot-management flow.
 
 ## Related Files
 

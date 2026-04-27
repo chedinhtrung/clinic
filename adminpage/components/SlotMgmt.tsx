@@ -1,73 +1,92 @@
 "use client"
-import { useState } from "react"
-import { useEffect } from "react"
+import { useCallback, useRef, useState } from "react"
 
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
+import { DatesSetArg, DateSelectArg, EventClickArg } from "@fullcalendar/core";
 
-import { useRef } from "react";
 import interactionPlugin from "@fullcalendar/interaction";
 import { Slot } from "./Slot"
 
 import viLocale from '@fullcalendar/core/locales/vi'
 
 import SlotEditor from "./SlotEditor";
+import { fetchSlot, fetchSlotsByRange } from "./slotApi";
 
 export default function SlotManagement() {
 
     const [slotlist, setSlotlist] = useState<Slot[]>([]); // for slots coming from database 
     const [selectedSlot, setSelectedSlot] = useState<Slot | undefined>(); // For editing existing slots
-    const [popupPos, setPopupPos] = useState<{ x: number, y: number } | undefined>(); // For editing existing slots
     const [tempSlot, setTempSlot] = useState<Slot | undefined>(undefined); // For adding a new slot 
+    const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+    const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
     const calendarRef = useRef<FullCalendar | null>(null);
+    const visibleRangeRef = useRef<{ start: string, end: string } | undefined>(undefined);
 
-    const getSlotsFromRange = async (info: any) => {
-        console.log("Refreshed");
-
+    const getSlotsFromRange = useCallback(async (info: DatesSetArg) => {
+        visibleRangeRef.current = { start: info.startStr, end: info.endStr };
         if (info.view.type === "dayGridMonth") {
             setTempSlot(undefined); // Clears temp slot if we go back to month view
         }
 
-        const res = await fetch("http://localhost:5002/api/get_slots", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ start: info.startStr, end: info.endStr }),
-        });
+        setIsLoadingSlots(true);
+        setErrorMessage(undefined);
+        try {
+            const slots = await fetchSlotsByRange(info.startStr, info.endStr);
+            setSlotlist(slots);
+        } catch (error) {
+            setErrorMessage(error instanceof Error ? error.message : "Không thể tải lịch hẹn.");
+        } finally {
+            setIsLoadingSlots(false);
+        }
+    }, []);
 
-        const data = await res.json();
-        const parsed = data.map((slot: any) => ({
-            ...slot,
-            start: new Date(slot.start),
-            end: new Date(slot.end)
-        }));
-        setSlotlist(parsed);
-    }
+    const refreshVisibleSlots = useCallback(async () => {
+        const visibleRange = visibleRangeRef.current;
+        if (!visibleRange) {
+            return;
+        }
 
-    const onSlotClick = (info: any) => {
+        setIsLoadingSlots(true);
+        setErrorMessage(undefined);
+        try {
+            const slots = await fetchSlotsByRange(visibleRange.start, visibleRange.end);
+            setSlotlist(slots);
+        } catch (error) {
+            setErrorMessage(error instanceof Error ? error.message : "Không thể tải lại lịch hẹn.");
+        } finally {
+            setIsLoadingSlots(false);
+        }
+    }, []);
+
+    const onSlotClick = async (info: EventClickArg) => {
 
         const slotId = info.event.extendedProps.id;
 
-        const slot =
-            slotlist.find(s => s.id === slotId) ||
-            (tempSlot && tempSlot.id === slotId ? tempSlot : undefined);
-
-        setSelectedSlot(slot);
-
-        if (slot !== tempSlot) {
-            setTempSlot(undefined);
+        if (!slotId && tempSlot) {
+            setSelectedSlot(tempSlot);
+            return;
         }
 
-    }
+        setErrorMessage(undefined);
+        try {
+            const slot = await fetchSlot(slotId);
+            setSelectedSlot(slot);
+            setTempSlot(undefined);
+        } catch (error) {
+            const fallbackSlot = slotlist.find(s => s.id === slotId);
+            setSelectedSlot(fallbackSlot);
+            setErrorMessage(error instanceof Error ? error.message : "Không thể tải thông tin lịch hẹn.");
+        }
 
-    const onNewSlot = (info: any) => {
+    };
+
+    const onNewSlot = (info: DateSelectArg) => {
         if (info.allDay) {
             return; // fix the whole day event bug
         }
-        console.log("New Slot Clicked", info);
         const newSlot: Slot = {
             id: "",
             start: info.start,
@@ -78,11 +97,30 @@ export default function SlotManagement() {
 
         setSelectedSlot(newSlot);
         setTempSlot(newSlot);
-    }
+        setErrorMessage(undefined);
+    };
+
+    const handleSlotSaved = async (slot: Slot) => {
+        setSelectedSlot(slot);
+        setTempSlot(undefined);
+        await refreshVisibleSlots();
+    };
+
+    const handleSlotDeleted = async () => {
+        setSelectedSlot(undefined);
+        setTempSlot(undefined);
+        await refreshVisibleSlots();
+    };
 
     return (
-        <div className="h-[100%] flex-1">
+        <div className="h-[100%] flex-1 relative">
             <div className="bg-bg-tinted p-4 h-[100vh]">
+                {(isLoadingSlots || errorMessage) && (
+                    <div className="absolute left-8 top-6 z-10 max-w-md rounded border border-gray-200 bg-white px-4 py-3 text-sm shadow">
+                        {isLoadingSlots && <p className="text-txt-gray">Đang tải lịch hẹn...</p>}
+                        {errorMessage && <p className="text-[#c20404]">{errorMessage}</p>}
+                    </div>
+                )}
                 <FullCalendar
                     ref={calendarRef}
                     plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
@@ -114,7 +152,7 @@ export default function SlotManagement() {
                     datesSet={(info) => {
                         getSlotsFromRange(info);
                     }}
-                    events={[...slotlist, ...(tempSlot ? [tempSlot] : [])].map((slot, i) => ({
+                    events={[...slotlist, ...(tempSlot ? [tempSlot] : [])].map((slot) => ({
                         start: slot.start,
                         end: slot.end,
                         title: slot.title,
@@ -138,6 +176,8 @@ export default function SlotManagement() {
                 slot={selectedSlot}
                 setSelectedSlot={setSelectedSlot}
                 setTempSlot={setTempSlot}
+                onSlotSaved={handleSlotSaved}
+                onSlotDeleted={handleSlotDeleted}
                 ></SlotEditor>
             )}
         </div>
