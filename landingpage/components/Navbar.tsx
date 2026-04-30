@@ -3,7 +3,7 @@ import Link from "next/link";
 
 const menuItems = [
     { id: "home", label: "TRANG CHỦ", href: "/" },
-    { id: "intro", label: "GIỚI THIỆU" },
+    { id: "profile", label: "GIỚI THIỆU" },
     { id: "injuries", label: "CHẤN THƯƠNG" },
     { id: "methods", label: "PHẪU THUẬT" },
     { id: "blog", label: "BÀI VIẾT" },

@@ -37,7 +37,7 @@ export default function Booking() {
 }
 
 export function BookingFlow({
-    confirmationMode = "payment",
+    confirmationMode = "email",
 }: {
     confirmationMode?: "payment" | "email";
 }) {
@@ -264,89 +264,91 @@ export function BookingFlow({
     }, [availableDates, cachedSlotsByDate, displayedMonth])
 
     return (
-        <div className="bg-bg-tinted px-6 sm:px-20 py-10 flex flex-col justify-center">
-            <h3 className="text-primary font-bold mb-4">LỊCH KHÁM & BẢNG GIÁ</h3>
-            <div className="flex flex-col sm:flex-row mb-10 gap-5 sm:gap-20">
+        <div className="bg-bg-tinted px-6 sm:px-20 py-10 flex justify-center">
+            <div className="max-w-7xl w-full">
+                <h3 className="text-primary font-bold mb-4">LỊCH KHÁM & BẢNG GIÁ</h3>
+                <div className="flex flex-col sm:flex-row mb-10 gap-5 sm:gap-20">
 
-                <div className="shadow-lg rounded-[20px] border-2 border-primary p-8 bg-white">
-                    <h4 className="text-txt-gray font-bold">Tư vấn chuyên sâu</h4>
-                    <h4 className="text-txt-gray font-bold"><span className="text-[3.0rem] text-black font-normal">50k </span> /lượt</h4>
-                    <p className="text-txt-gray">Đọc phim, phân tích lâm sàng, tư vấn phẫu thuật <br></br><br></br></p>
-                    <p className="text-txt-dark leading-loose ">
-                        <span className="text-primary">✓</span> Video call 30 phút <br></br>
-                        <span className="text-primary">✓</span> Phân tích X-quang / MRI / CT <br></br>
-                        <span className="text-primary">✓</span> Kê đơn thuốc (nếu phù hợp)
-                    </p>
-                </div>
-                <div className="flex gap-6 sm:ml-auto flex-col sm:flex-row">
-                    <div className="flex justify-center">
-                        <DayPicker
-                            mode="single"
-                            today={browserToday}
-                            selected={selectedDate}
-                            onSelect={onDateSelect}
-                            month={displayedMonth}
-                            onMonthChange={setDisplayedMonth}
-                            locale={vi}
-                            disabled={[
-                                ...(browserToday ? [{ before: browserToday }] : []),
-                                (date) => !availableDates.some(
-                                    (availableDate) =>
-                                        availableDate.getFullYear() === date.getFullYear() &&
-                                        availableDate.getMonth() === date.getMonth() &&
-                                        availableDate.getDate() === date.getDate()
-                                ),
-                            ]}
-                            modifiers={{
-                                available: availableDates
-                            }}
-                            modifiersClassNames={{
-                                available: "bg-green-100 text-green-800 rounded-full"
-                            }}
-                            required={false}
-                        />
+                    <div className="shadow-lg rounded-[20px] border-2 border-primary p-8 bg-white">
+                        <h4 className="text-txt-gray font-bold">Tư vấn chuyên sâu</h4>
+                        <h4 className="text-txt-gray font-bold"><span className="text-[3.0rem] text-black font-normal">50k </span> /lượt</h4>
+                        <p className="text-txt-gray">Đọc phim, phân tích lâm sàng, tư vấn phẫu thuật <br></br><br></br></p>
+                        <p className="text-txt-dark leading-loose ">
+                            <span className="text-primary">✓</span> Video call 30 phút <br></br>
+                            <span className="text-primary">✓</span> Phân tích X-quang / MRI / CT <br></br>
+                            <span className="text-primary">✓</span> Kê đơn thuốc (nếu phù hợp)
+                        </p>
                     </div>
-
-                    <div className="sm:ml-auto">
-                        <div className="h-[2.75rem] flex items-center">
-                            <h3 className="text-primary font-bold ">Khung giờ</h3>
+                    <div className="flex gap-6 sm:ml-auto flex-col sm:flex-row">
+                        <div className="flex justify-center">
+                            <DayPicker
+                                mode="single"
+                                today={browserToday}
+                                selected={selectedDate}
+                                onSelect={onDateSelect}
+                                month={displayedMonth}
+                                onMonthChange={setDisplayedMonth}
+                                locale={vi}
+                                disabled={[
+                                    ...(browserToday ? [{ before: browserToday }] : []),
+                                    (date) => !availableDates.some(
+                                        (availableDate) =>
+                                            availableDate.getFullYear() === date.getFullYear() &&
+                                            availableDate.getMonth() === date.getMonth() &&
+                                            availableDate.getDate() === date.getDate()
+                                    ),
+                                ]}
+                                modifiers={{
+                                    available: availableDates
+                                }}
+                                modifiersClassNames={{
+                                    available: "bg-green-100 text-green-800 rounded-full"
+                                }}
+                                required={false}
+                            />
                         </div>
-                        <div className="flex flex-col gap-2 overflow-y-auto max-h-[250px] sm:w-[130px]">
-                            {!selectedDate && (
-                                <p className="text-sm text-gray-500">
-                                    Vui lòng chọn ngày để xem khung giờ.
-                                </p>
-                            )}
-                            {isLoadingSlots && (
-                                <p className="text-sm text-gray-500 text-center">
-                                    Đang tải khung giờ...
-                                </p>
-                            )}
-                            {slotlist.map((s) => (
-                                <div
-                                    key={s.id}
-                                    className={`px-4 py-2 rounded-lg ${selectedSlot && s.id === selectedSlot.id ? `bg-primary text-white` : `bg-primary-light`} hover:bg-primary hover:text-white text-center`}
-                                    onClick={() => { onSlotSelect(s) }}
-                                >
-                                    {formatSlotTime(s.startAt)} - {formatSlotTime(s.endAt)}
-                                </div>
-                            ))}
-                        </div>
-                        {
-                            selectedSlot ? (
-                                <button
-                                    type="button"
-                                    className="p-2 block mt-4 w-full bg-primary text-white rounded-lg font-bold text-center disabled:opacity-60"
-                                    onClick={onClaimSlot}
-                                    disabled={isClaimingSlot}
-                                >
-                                    {isClaimingSlot ? "Đang tải..." : "ĐẶT LỊCH"}
-                                </button>
-                            ) : (
-                                <div className="p-4"></div>
-                            )
-                        }
 
+                        <div className="sm:ml-auto">
+                            <div className="h-[2.75rem] flex items-center">
+                                <h3 className="text-primary font-bold ">Khung giờ</h3>
+                            </div>
+                            <div className="flex flex-col gap-2 overflow-y-auto max-h-[250px] sm:w-[130px]">
+                                {!selectedDate && (
+                                    <p className="text-sm text-gray-500">
+                                        Vui lòng chọn ngày để xem khung giờ.
+                                    </p>
+                                )}
+                                {isLoadingSlots && (
+                                    <p className="text-sm text-gray-500 text-center">
+                                        Đang tải khung giờ...
+                                    </p>
+                                )}
+                                {slotlist.map((s) => (
+                                    <div
+                                        key={s.id}
+                                        className={`px-4 py-2 rounded-lg ${selectedSlot && s.id === selectedSlot.id ? `bg-primary text-white` : `bg-primary-light`} hover:bg-primary hover:text-white text-center`}
+                                        onClick={() => { onSlotSelect(s) }}
+                                    >
+                                        {formatSlotTime(s.startAt)} - {formatSlotTime(s.endAt)}
+                                    </div>
+                                ))}
+                            </div>
+                            {
+                                selectedSlot ? (
+                                    <button
+                                        type="button"
+                                        className="p-2 block mt-4 w-full bg-primary text-white rounded-lg font-bold text-center disabled:opacity-60"
+                                        onClick={onClaimSlot}
+                                        disabled={isClaimingSlot}
+                                    >
+                                        {isClaimingSlot ? "Đang tải..." : "ĐẶT LỊCH"}
+                                    </button>
+                                ) : (
+                                    <div className="p-4"></div>
+                                )
+                            }
+
+                        </div>
                     </div>
                 </div>
             </div>

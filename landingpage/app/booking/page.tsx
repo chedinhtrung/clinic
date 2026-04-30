@@ -86,7 +86,7 @@ function BookingContent() {
         }
 
         setHasHandledExpiry(true);
-        alert("Booking has expired");
+        alert("Giữ chỗ của bạn đã hết hạn.");
         router.push("/");
     }, [hasHandledExpiry, router, secondsLeft])
 
