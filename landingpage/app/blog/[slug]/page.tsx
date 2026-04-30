@@ -63,12 +63,6 @@ type BlogPostRecord = {
   contentBlocks: BlogContentBlock[];
 };
 
-const relatedPosts = [
-  "Phan biet dau goi sau chan thuong va dau do qua tai",
-  "Khi nao can tai kham sau mo khop goi",
-  "Lich tap phuc hoi giai doan som cho nguoi choi the thao",
-];
-
 const BLOG_API_BASE_URL =
   process.env.BLOG_API_BASE_URL ??
   process.env.NEXT_PUBLIC_BLOG_API_BASE_URL ??
@@ -80,6 +74,14 @@ const DEFAULT_BLOG_COVER_IMAGE =
 
 type BlogPostResponse = {
   post: BlogPostRecord;
+};
+
+type BlogPostsResponse = {
+  posts: BlogPostRecord[];
+  page: number;
+  pageSize: number;
+  totalPosts: number;
+  totalPages: number;
 };
 
 async function getBlogPostBySlug(slug: string): Promise<BlogPostRecord | null> {
@@ -100,6 +102,33 @@ async function getBlogPostBySlug(slug: string): Promise<BlogPostRecord | null> {
 
   const data: BlogPostResponse = await response.json();
   return data.post;
+}
+
+async function getRelatedPosts({
+  categorySlug,
+  excludeSlug,
+  page,
+}: {
+  categorySlug: string;
+  excludeSlug: string;
+  page: number;
+}): Promise<BlogPostsResponse> {
+  const params = new URLSearchParams({
+    category: categorySlug,
+    excludeSlug,
+    page: String(page),
+    pageSize: "4",
+  });
+
+  const response = await fetch(`${BLOG_API_BASE_URL}/api/posts?${params.toString()}`, {
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to load related blog posts");
+  }
+
+  return response.json() as Promise<BlogPostsResponse>;
 }
 
 function formatPublishedDate(value: string | null) {
@@ -251,15 +280,29 @@ export async function generateMetadata(
 }
 
 export default async function BlogArticlePage(
-  { params }: { params: Promise<{ slug: string }> },
+  {
+    params,
+    searchParams,
+  }: {
+    params: Promise<{ slug: string }>;
+    searchParams: Promise<{ relatedPage?: string }>;
+  },
 ) {
   const { slug } = await params;
+  const resolvedSearchParams = await searchParams;
   const post = await getBlogPostBySlug(slug);
 
   if (!post || post.status !== "published") {
     notFound();
   }
 
+  const relatedPageValue = Number(resolvedSearchParams.relatedPage ?? "1");
+  const relatedPage = Number.isFinite(relatedPageValue) ? Math.max(1, Math.floor(relatedPageValue)) : 1;
+  const relatedPosts = await getRelatedPosts({
+    categorySlug: post.category.slug,
+    excludeSlug: post.slug,
+    page: relatedPage,
+  });
   const readTime = estimateReadTime(post.contentBlocks);
   const coverImageUrl = post.coverImageUrl || DEFAULT_BLOG_COVER_IMAGE;
 
@@ -374,18 +417,74 @@ export default async function BlogArticlePage(
 
             <div className="rounded-[12px] border border-gray-200 bg-[linear-gradient(180deg,#ffffff_0%,#f7f9fd_100%)] p-6 shadow-[0_10px_26px_rgba(10,35,66,0.06)]">
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gold">
-                Bai viet lien quan
+                Bài viết liên quan
               </p>
               <div className="mt-4 space-y-4">
-                {relatedPosts.map((item) => (
-                  <div key={item} className="rounded-[8px] border border-gray-200 bg-white p-4">
-                    <p className="font-serif text-base font-bold leading-6 text-navy">{item}</p>
-                    <p className="mt-2 text-sm leading-6 text-gray-600">
-                      Placeholder cho danh sach bai viet lien quan sau nay.
-                    </p>
+                {relatedPosts.posts.length === 0 ? (
+                  <div className="rounded-[8px] border border-gray-200 bg-white p-4 text-sm leading-6 text-gray-600">
+                    Chưa có bài viết nào khác trong cùng chuyên mục.
                   </div>
-                ))}
+                ) : (
+                  relatedPosts.posts.map((relatedPost) => (
+                    <Link
+                      key={relatedPost.id}
+                      href={relatedPost.url}
+                      className="block rounded-[8px] border border-gray-200 bg-white p-4 transition hover:border-navy/25 hover:shadow-sm"
+                    >
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">
+                        {relatedPost.subcategory?.name ?? relatedPost.category.name}
+                      </p>
+                      <p className="font-serif mt-2 text-base font-bold leading-6 text-navy">
+                        {relatedPost.title}
+                      </p>
+                      {relatedPost.publishedAt ? (
+                        <p className="mt-2 text-xs font-medium text-gray-500">
+                          {formatPublishedDate(relatedPost.publishedAt)}
+                        </p>
+                      ) : null}
+                      {relatedPost.shortDescription ? (
+                        <p className="mt-2 text-sm leading-6 text-gray-600">
+                          {relatedPost.shortDescription}
+                        </p>
+                      ) : null}
+                    </Link>
+                  ))
+                )}
               </div>
+
+              {relatedPosts.totalPages > 1 ? (
+                <div className="mt-5 flex items-center justify-between gap-3 border-t border-gray-200 pt-4 text-sm">
+                  {relatedPosts.page > 1 ? (
+                    <Link
+                      href={`/blog/${post.slug}?relatedPage=${relatedPosts.page - 1}`}
+                      className="rounded-[6px] border border-gray-200 bg-white px-3 py-2 font-semibold text-gray-700 transition hover:bg-[#edf3fb]"
+                    >
+                      Trang trước
+                    </Link>
+                  ) : (
+                    <span className="rounded-[6px] border border-gray-200 bg-[#f7f9fd] px-3 py-2 font-semibold text-gray-400">
+                      Trang trước
+                    </span>
+                  )}
+
+                  <span className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
+                    {relatedPosts.page}/{relatedPosts.totalPages}
+                  </span>
+
+                  {relatedPosts.page < relatedPosts.totalPages ? (
+                    <Link
+                      href={`/blog/${post.slug}?relatedPage=${relatedPosts.page + 1}`}
+                      className="rounded-[6px] border border-gray-200 bg-white px-3 py-2 font-semibold text-gray-700 transition hover:bg-[#edf3fb]"
+                    >
+                      Trang sau
+                    </Link>
+                  ) : (
+                    <span className="rounded-[6px] border border-gray-200 bg-[#f7f9fd] px-3 py-2 font-semibold text-gray-400">
+                      Trang sau
+                    </span>
+                  )}
+                </div>
+              ) : null}
             </div>
           </aside>
         </div>

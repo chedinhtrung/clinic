@@ -25,13 +25,17 @@ def healthcheck():
 def get_posts():
     category_slug = (request.args.get("category") or "").strip().lower()
     tag_slug = (request.args.get("tag") or "").strip().lower()
-    limit = min(max(int(request.args.get("limit", 50)), 1), 100)
-    posts = db_get_published_posts(
+    exclude_slug = (request.args.get("excludeSlug") or "").strip().lower()
+    page = min(max(int(request.args.get("page", 1)), 1), 100000)
+    page_size = min(max(int(request.args.get("pageSize", request.args.get("limit", 50))), 1), 100)
+    result = db_get_published_posts(
         category_slug=category_slug or None,
         tag_slug=tag_slug or None,
-        limit=limit,
+        exclude_slug=exclude_slug or None,
+        page=page,
+        page_size=page_size,
     )
-    return jsonify({"posts": posts})
+    return jsonify(result)
 
 
 @app.route("/api/posts/<slug>", methods=["GET"])

@@ -106,9 +106,12 @@ def db_get_published_posts(
     *,
     category_slug: str | None = None,
     tag_slug: str | None = None,
-    limit: int = 50,
-) -> list[dict]:
-    normalized_limit = min(max(limit, 1), 100)
+    exclude_slug: str | None = None,
+    page: int = 1,
+    page_size: int = 50,
+) -> dict:
+    normalized_page_size = min(max(page_size, 1), 100)
+    normalized_page = max(page, 1)
     where_clauses = ["bp.status = 'published'"]
     params: list[object] = []
 
@@ -130,20 +133,47 @@ def db_get_published_posts(
         )
         params.append(tag_slug)
 
-    params.append(normalized_limit)
+    if exclude_slug:
+        where_clauses.append("bp.slug <> %s")
+        params.append(exclude_slug)
 
-    query = (
-        _published_post_query(f"WHERE {' AND '.join(where_clauses)}")
-        + """
-        ORDER BY bp.published_at DESC NULLS LAST, bp.created_at DESC
-        LIMIT %s
-    """
-    )
+    where_sql = f"WHERE {' AND '.join(where_clauses)}"
 
     with pool.connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(query, params)
-            return [_serialize_post(row) for row in cur.fetchall()]
+            cur.execute(
+                f"""
+                SELECT COUNT(*) AS count
+                FROM blog_posts bp
+                JOIN blog_categories bc ON bc.id = bp.category_id
+                LEFT JOIN blog_subcategories bsc ON bsc.id = bp.subcategory_id
+                {where_sql}
+                """,
+                params,
+            )
+            total_posts = int(cur.fetchone()["count"])
+            total_pages = max(1, (total_posts + normalized_page_size - 1) // normalized_page_size)
+            bounded_page = min(normalized_page, total_pages)
+            offset = (bounded_page - 1) * normalized_page_size
+
+            query = (
+                _published_post_query(where_sql)
+        + """
+        ORDER BY bp.published_at DESC NULLS LAST, bp.created_at DESC
+        LIMIT %s
+        OFFSET %s
+    """
+            )
+            cur.execute(query, [*params, normalized_page_size, offset])
+            posts = [_serialize_post(row) for row in cur.fetchall()]
+
+    return {
+        "posts": posts,
+        "page": bounded_page,
+        "pageSize": normalized_page_size,
+        "totalPosts": total_posts,
+        "totalPages": total_pages,
+    }
 
 
 def db_get_published_post_by_slug(*, slug: str) -> dict | None:

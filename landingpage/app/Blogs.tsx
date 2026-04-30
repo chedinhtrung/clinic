@@ -39,6 +39,10 @@ type BlogPost = {
 
 type PostsResponse = {
   posts: BlogPost[];
+  page: number;
+  pageSize: number;
+  totalPosts: number;
+  totalPages: number;
 };
 
 type CategoriesResponse = {
@@ -57,6 +61,8 @@ const allCategory: FilterCategory = {
   slug: null,
 };
 
+const BLOG_PAGE_SIZE = 10;
+
 function formatPublishedDate(publishedAt: string | null) {
   if (!publishedAt) {
     return null;
@@ -74,12 +80,21 @@ function formatPublishedDate(publishedAt: string | null) {
   return `${day}/${month}/${year}`;
 }
 
-async function fetchPosts(categorySlug?: string): Promise<BlogPost[]> {
+async function fetchPosts({
+  categorySlug,
+  page,
+}: {
+  categorySlug?: string;
+  page: number;
+}): Promise<PostsResponse> {
   const params = new URLSearchParams();
 
   if (categorySlug) {
     params.set("category", categorySlug);
   }
+
+  params.set("page", String(page));
+  params.set("pageSize", String(BLOG_PAGE_SIZE));
 
   const query = params.toString();
   const response = await fetch(
@@ -90,8 +105,7 @@ async function fetchPosts(categorySlug?: string): Promise<BlogPost[]> {
     throw new Error("Failed to load blog posts");
   }
 
-  const data: PostsResponse = await response.json();
-  return data.posts;
+  return response.json() as Promise<PostsResponse>;
 }
 
 async function fetchCategories(): Promise<BlogCategory[]> {
@@ -109,6 +123,8 @@ export default function Blogs() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [categories, setCategories] = useState<FilterCategory[]>([allCategory]);
   const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -140,8 +156,13 @@ export default function Blogs() {
         setErrorMessage(null);
 
         const activeCategory = categories.find((category) => category.id === selectedCategory);
-        const postData = await fetchPosts(activeCategory?.slug ?? undefined);
-        setPosts(postData);
+        const postData = await fetchPosts({
+          categorySlug: activeCategory?.slug ?? undefined,
+          page: currentPage,
+        });
+        setPosts(postData.posts);
+        setCurrentPage(postData.page);
+        setTotalPages(postData.totalPages);
       } catch (error) {
         console.error(error);
         setErrorMessage("Không tải được danh sách bài viết.");
@@ -151,7 +172,7 @@ export default function Blogs() {
     }
 
     loadPosts();
-  }, [categories, selectedCategory]);
+  }, [categories, currentPage, selectedCategory]);
 
   return (
     <section className="bg-white">
@@ -179,7 +200,10 @@ export default function Blogs() {
               <button
                 key={category.id}
                 type="button"
-                onClick={() => setSelectedCategory(category.id)}
+                onClick={() => {
+                  setSelectedCategory(category.id);
+                  setCurrentPage(1);
+                }}
                 className={`rounded-[4px] border px-6 py-3 text-base font-semibold transition ${
                   isActive
                     ? "border-navy bg-navy text-white"
@@ -192,7 +216,7 @@ export default function Blogs() {
           })}
         </div>
 
-        <div className="mt-8 max-h-[28rem] space-y-4 overflow-y-auto pr-2">
+        <div className="mt-8 space-y-4">
           {isLoading && (
             <div className="rounded-lg border border-[#d7dfed] bg-[#f8fafc] px-6 py-5 text-sm text-[#516384]">
               Đang tải bài viết...
@@ -248,6 +272,32 @@ export default function Blogs() {
               </Link>
             ))}
         </div>
+
+        {!isLoading && !errorMessage && totalPages > 1 && (
+          <div className="mt-8 flex items-center justify-between gap-4 border-t border-[#e3e9f4] pt-6">
+            <button
+              type="button"
+              onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+              disabled={currentPage === 1}
+              className="rounded-[4px] border border-[#d7dfed] bg-white px-5 py-3 text-sm font-semibold text-[#516384] transition hover:border-navy/40 hover:text-navy disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              Trang trước
+            </button>
+
+            <p className="text-sm font-semibold text-[#516384]">
+              Trang {currentPage} / {totalPages}
+            </p>
+
+            <button
+              type="button"
+              onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+              disabled={currentPage === totalPages}
+              className="rounded-[4px] border border-[#d7dfed] bg-white px-5 py-3 text-sm font-semibold text-[#516384] transition hover:border-navy/40 hover:text-navy disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              Trang sau
+            </button>
+          </div>
+        )}
       </div>
     </section>
   );
