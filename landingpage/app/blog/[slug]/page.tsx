@@ -63,107 +63,40 @@ type BlogPostRecord = {
   contentBlocks: BlogContentBlock[];
 };
 
-const mockBlogPosts: BlogPostRecord[] = [
-  {
-    id: "post-acl-rehab-001",
-    title: "Phuc hoi sau noi soi khop goi: nhung dieu can luu y trong 6 tuan dau",
-    slug: "phuc-hoi-sau-noi-soi-khop-goi",
-    url: "https://blogs.chedinhnghia.com/phuc-hoi-sau-noi-soi-khop-goi",
-    shortDescription:
-      "Mau bai viet SSR duoc render tu mot post object giong du lieu DB, gom metadata, tags va danh sach content blocks theo dung huong editor dang luu.",
-    coverImageUrl: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=1600&q=80",
-    status: "published",
-    publishedAt: "2026-04-30T09:00:00.000Z",
-    createdAt: "2026-04-27T08:00:00.000Z",
-    updatedAt: "2026-04-30T09:00:00.000Z",
-    category: {
-      id: "11111111-1111-1111-1111-111111111111",
-      name: "Y khoa",
-      slug: "y-khoa",
-    },
-    subcategory: {
-      id: "11111111-1111-1111-1111-111111111112",
-      name: "Khop goi",
-      slug: "khop-goi",
-    },
-    tags: [
-      { id: "tag-001", name: "Noi soi", slug: "noi-soi" },
-      { id: "tag-002", name: "Khop goi", slug: "khop-goi" },
-      { id: "tag-003", name: "Phuc hoi chuc nang", slug: "phuc-hoi-chuc-nang" },
-    ],
-    contentBlocks: [
-      {
-        id: "block-001",
-        type: "paragraph",
-        text:
-          "Sau noi soi khop goi, giai doan 6 tuan dau thuong quyet dinh toc do giam dau, khoi phuc tam van dong va kha nang quay lai sinh hoat hang ngay. Noi dung mau nay duoc dung de mo phong bai viet cong khai khi render tren server.",
-      },
-      {
-        id: "block-002",
-        type: "heading",
-        text: "Muc tieu trong 2 tuan dau",
-      },
-      {
-        id: "block-003",
-        type: "paragraph",
-        text:
-          "O giai doan som, uu tien hang dau la kiem soat dau va phu ne, dong thoi tap phuc hoi tam duoi duoi goi, gap goi trong nguong an toan va kich hoat lai nhom co dui truoc. Nguoi benh thuong duoc huong dan di lai voi muc do tai trong phu hop theo chi dinh cu the.",
-      },
-      {
-        id: "block-004",
-        type: "image",
-        src: "",
-        alt: "Mo phong vi tri anh minh hoa phuc hoi sau noi soi khop goi",
-        caption: "Cho danh anh dai dien cho block image khi noi du lieu that.",
-      },
-      {
-        id: "block-005",
-        type: "heading",
-        text: "Dau hieu can lien he bac si som",
-      },
-      {
-        id: "block-006",
-        type: "paragraph",
-        text:
-          "Sot, vet mo do tang, dau tang len dot ngot, chan sung nhieu hoac kho gap duoi goi ro ret la nhung dau hieu can duoc danh gia lai. Bai viet cong khai can giu duoc van phong ro rang, de doc va phan cap thong tin tot cho nhung noi dung nhu the nay.",
-      },
-      {
-        id: "block-007",
-        type: "youtube",
-        url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-        caption: "Video minh hoa bai tap giai doan som sau noi soi khop goi.",
-      },
-      {
-        id: "block-008",
-        type: "heading",
-        text: "Tai lieu tham khao cho nguoi benh",
-      },
-      {
-        id: "block-009",
-        type: "link",
-        url: "https://blogs.chedinhnghia.com/huong-dan-tap-som-sau-mo-khop-goi",
-        text: "Huong dan tap som sau mo khop goi",
-      },
-      {
-        id: "block-010",
-        type: "paragraph",
-        text:
-          "Khi noi API that, toan bo vung than bai duoi day se duoc sinh tu danh sach blocks nay ma khong can viet tay noi dung trong component. Do la muc tieu chinh cua template SSR nay.",
-      },
-    ],
-  },
-];
-
 const relatedPosts = [
   "Phan biet dau goi sau chan thuong va dau do qua tai",
   "Khi nao can tai kham sau mo khop goi",
   "Lich tap phuc hoi giai doan som cho nguoi choi the thao",
 ];
 
+const BLOG_API_BASE_URL =
+  process.env.BLOG_API_BASE_URL ??
+  process.env.NEXT_PUBLIC_BLOG_API_BASE_URL ??
+  process.env.NEXT_PUBLIC_API_BASE_URL ??
+  "http://localhost:5002";
+
+type BlogPostResponse = {
+  post: BlogPostRecord;
+};
+
 async function getBlogPostBySlug(slug: string): Promise<BlogPostRecord | null> {
-  // Placeholder server-side data fetch. Replace this with the real published
-  // post query once the slug detail endpoint is available.
-  return mockBlogPosts.find((post) => post.slug === slug) ?? null;
+  const response = await fetch(
+    `${BLOG_API_BASE_URL}/api/posts/${encodeURIComponent(slug)}`,
+    {
+      cache: "no-store",
+    },
+  );
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (!response.ok) {
+    throw new Error("Failed to load published blog post");
+  }
+
+  const data: BlogPostResponse = await response.json();
+  return data.post;
 }
 
 function formatPublishedDate(value: string | null) {
@@ -433,11 +366,6 @@ export default async function BlogArticlePage(
 
             <div className="px-6 py-10 sm:px-10 sm:py-12">
               <div className="mx-auto max-w-3xl">
-                <div className="rounded-r-[10px] border-l-4 border-gold bg-[#fffaf0] px-5 py-4 text-sm leading-7 text-gray-800">
-                  Noi dung duoi day duoc render hoan toan tu truong `contentBlocks` cua post mock.
-                  Khi noi API that, component nay co the giu nguyen va chi thay data source.
-                </div>
-
                 <div className="mt-10 space-y-8">
                   {post.contentBlocks.map((block) => (
                     <section key={block.id}>

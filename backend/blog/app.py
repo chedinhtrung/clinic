@@ -1,6 +1,12 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from _blog import db_get_categories, db_get_published_posts, db_get_tags, db_healthcheck
+from _blog import (
+    db_get_categories,
+    db_get_published_post_by_slug,
+    db_get_published_posts,
+    db_get_tags,
+    db_healthcheck,
+)
 
 app = Flask(__name__)
 CORS(app)
@@ -26,6 +32,20 @@ def get_posts():
         limit=limit,
     )
     return jsonify({"posts": posts})
+
+
+@app.route("/api/posts/<slug>", methods=["GET"])
+@app.route("/blog-api/api/posts/<slug>", methods=["GET"])
+def get_post_by_slug(slug: str):
+    try:
+        post = db_get_published_post_by_slug(slug=slug)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    if post is None:
+        return jsonify({"error": "blog post not found"}), 404
+
+    return jsonify({"post": post})
 
 
 @app.route("/api/categories", methods=["GET"])

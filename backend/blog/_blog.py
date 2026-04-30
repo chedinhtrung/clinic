@@ -20,8 +20,8 @@ def db_healthcheck() -> bool:
     return bool(row and row["ok"] == 1)
 
 
-def _serialize_post(row: dict) -> dict:
-    return {
+def _serialize_post(row: dict, *, include_content_blocks: bool = False) -> dict:
+    post = {
         "id": str(row["id"]),
         "title": row["title"],
         "slug": row["slug"],
@@ -48,6 +48,51 @@ def _serialize_post(row: dict) -> dict:
         ),
         "tags": row["tags"] or [],
     }
+
+    if include_content_blocks:
+        post["contentBlocks"] = row["content_blocks"] or []
+
+    return post
+
+
+def _published_post_query(where_sql: str) -> str:
+    return f"""
+        SELECT
+          bp.id,
+          bp.title,
+          bp.slug,
+          bp.url,
+          bp.short_description,
+          bp.cover_image_url,
+          bp.content_blocks,
+          bp.status,
+          bp.published_at,
+          bp.created_at,
+          bp.updated_at,
+          bc.id AS category_id,
+          bc.name AS category_name,
+          bc.slug AS category_slug,
+          bsc.id AS subcategory_id,
+          bsc.name AS subcategory_name,
+          bsc.slug AS subcategory_slug,
+          COALESCE(
+            json_agg(
+              DISTINCT jsonb_build_object(
+                'id', bt.id,
+                'name', bt.name,
+                'slug', bt.slug
+              )
+            ) FILTER (WHERE bt.id IS NOT NULL),
+            '[]'::json
+          ) AS tags
+        FROM blog_posts bp
+        JOIN blog_categories bc ON bc.id = bp.category_id
+        LEFT JOIN blog_subcategories bsc ON bsc.id = bp.subcategory_id
+        LEFT JOIN blog_post_tags bpt ON bpt.post_id = bp.id
+        LEFT JOIN blog_tags bt ON bt.id = bpt.tag_id
+        {where_sql}
+        GROUP BY bp.id, bc.id, bsc.id
+    """
 
 
 def db_get_published_posts(
@@ -80,49 +125,41 @@ def db_get_published_posts(
 
     params.append(normalized_limit)
 
-    query = f"""
-        SELECT
-          bp.id,
-          bp.title,
-          bp.slug,
-          bp.url,
-          bp.short_description,
-          bp.cover_image_url,
-          bp.status,
-          bp.published_at,
-          bp.created_at,
-          bp.updated_at,
-          bc.id AS category_id,
-          bc.name AS category_name,
-          bc.slug AS category_slug,
-          bsc.id AS subcategory_id,
-          bsc.name AS subcategory_name,
-          bsc.slug AS subcategory_slug,
-          COALESCE(
-            json_agg(
-              DISTINCT jsonb_build_object(
-                'id', bt.id,
-                'name', bt.name,
-                'slug', bt.slug
-              )
-            ) FILTER (WHERE bt.id IS NOT NULL),
-            '[]'::json
-          ) AS tags
-        FROM blog_posts bp
-        JOIN blog_categories bc ON bc.id = bp.category_id
-        LEFT JOIN blog_subcategories bsc ON bsc.id = bp.subcategory_id
-        LEFT JOIN blog_post_tags bpt ON bpt.post_id = bp.id
-        LEFT JOIN blog_tags bt ON bt.id = bpt.tag_id
-        WHERE {" AND ".join(where_clauses)}
-        GROUP BY bp.id, bc.id, bsc.id
+    query = (
+        _published_post_query(f"WHERE {' AND '.join(where_clauses)}")
+        + """
         ORDER BY bp.published_at DESC NULLS LAST, bp.created_at DESC
         LIMIT %s
     """
+    )
 
     with pool.connection() as conn:
         with conn.cursor() as cur:
             cur.execute(query, params)
             return [_serialize_post(row) for row in cur.fetchall()]
+
+
+def db_get_published_post_by_slug(*, slug: str) -> dict | None:
+    normalized_slug = (slug or "").strip().lower()
+    if not normalized_slug:
+        raise ValueError("slug is required")
+
+    query = _published_post_query(
+        """
+        WHERE bp.status = 'published'
+          AND bp.slug = %s
+        """
+    )
+
+    with pool.connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(query, (normalized_slug,))
+            row = cur.fetchone()
+
+    if row is None:
+        return None
+
+    return _serialize_post(row, include_content_blocks=True)
 
 
 def db_get_categories() -> list[dict]:
