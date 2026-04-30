@@ -122,6 +122,7 @@ def _serialize_post(row: dict[str, Any]) -> dict[str, Any]:
         "status": row["status"],
         "updatedAt": row["updated_at"].isoformat() if isinstance(row["updated_at"], datetime) else str(row["updated_at"]),
         "shortDescription": row["short_description"] or "",
+        "coverImageUrl": row["cover_image_url"],
         "contentBlocks": row["content_blocks"] or [],
     }
 
@@ -137,6 +138,7 @@ def _get_post_query(where_clause: str) -> str:
           bp.title,
           bp.slug,
           bp.short_description,
+          bp.cover_image_url,
           bp.status,
           bp.updated_at,
           bp.content_blocks,
@@ -511,6 +513,7 @@ def db_update_blog_post(*, post_id: str, payload: dict[str, Any]) -> dict[str, A
 
     title = str(payload.get("title") or "")
     short_description = str(payload.get("shortDescription") or "")
+    cover_image_url = str(payload.get("coverImageUrl") or "").strip() or None
     status = _normalize_status(payload.get("status"))
     content_blocks = _normalize_content_blocks(payload.get("contentBlocks"))
 
@@ -551,6 +554,7 @@ def db_update_blog_post(*, post_id: str, payload: dict[str, Any]) -> dict[str, A
                         slug = %s,
                         url = %s,
                         short_description = %s,
+                        cover_image_url = %s,
                         status = %s,
                         published_at = {published_at_sql},
                         content_blocks = %s::jsonb,
@@ -564,6 +568,7 @@ def db_update_blog_post(*, post_id: str, payload: dict[str, Any]) -> dict[str, A
                         generated_slug,
                         _build_public_url(generated_slug),
                         short_description,
+                        cover_image_url,
                         status,
                         Jsonb(content_blocks),
                         post_id,

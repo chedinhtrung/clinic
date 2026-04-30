@@ -58,6 +58,7 @@ export type BlogPost = {
   status: BlogStatus;
   updatedAt: string;
   shortDescription: string;
+  coverImageUrl: string | null;
   contentBlocks: BlogContentBlock[];
 };
 

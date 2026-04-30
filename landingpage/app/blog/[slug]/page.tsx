@@ -71,7 +71,7 @@ const mockBlogPosts: BlogPostRecord[] = [
     url: "https://blogs.chedinhnghia.com/phuc-hoi-sau-noi-soi-khop-goi",
     shortDescription:
       "Mau bai viet SSR duoc render tu mot post object giong du lieu DB, gom metadata, tags va danh sach content blocks theo dung huong editor dang luu.",
-    coverImageUrl: null,
+    coverImageUrl: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=1600&q=80",
     status: "published",
     publishedAt: "2026-04-30T09:00:00.000Z",
     createdAt: "2026-04-27T08:00:00.000Z",
@@ -309,7 +309,7 @@ export async function generateMetadata(
   }
 
   return {
-    title: `${post.title} | TS.BS. Che Dinh Nghia`,
+    title: `${post.title} | TS.BS. Chế Đình Nghĩa`,
     description: post.shortDescription,
   };
 }
@@ -325,11 +325,10 @@ export default async function BlogArticlePage(
   }
 
   const readTime = estimateReadTime(post.contentBlocks);
-  const sectionLabel = post.subcategory?.name ?? post.category.name;
 
   return (
     <main className="min-h-screen bg-off-white text-text">
-      <section className="relative overflow-hidden bg-gradient-to-br from-navy-dark via-navy to-navy-light text-white">
+      <section className="overflow-hidden bg-gradient-to-br from-navy-dark via-navy to-navy-light text-white">
         <div className="absolute inset-0 opacity-[0.14] [background-image:radial-gradient(circle_at_center,rgba(255,255,255,0.34)_1.2px,transparent_1.2px)] [background-size:26px_26px]" />
         <div className="relative mx-auto max-w-6xl px-6 py-6 sm:px-10 lg:px-16">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/15 pb-5">
@@ -337,22 +336,22 @@ export default async function BlogArticlePage(
               href="/"
               className="font-serif text-base font-bold tracking-tight text-white transition hover:text-gold"
             >
-              TS.BS. Che Dinh Nghia
+              TS.BS. Chế Đình Nghĩa
             </Link>
             <div className="flex flex-wrap items-center gap-3 text-sm text-white/75">
               <Link href="/" className="transition hover:text-gold">
-                Trang chu
+                Trang chủ
               </Link>
               <span>/</span>
               <Link href="/#blog" className="transition hover:text-gold">
-                Bai viet
+                Bài viết
               </Link>
               <span>/</span>
-              <span className="text-white">{sectionLabel}</span>
+              
             </div>
           </div>
 
-          <div className="grid gap-10 py-10 lg:grid-cols-[minmax(0,1fr)_320px] lg:py-16">
+          <div className="grid gap-4 py-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:py-8">
             <div className="max-w-3xl">
               <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-gold">
                 <span>{post.category.name}</span>
@@ -364,7 +363,7 @@ export default async function BlogArticlePage(
                 ) : null}
               </div>
 
-              <h1 className="font-serif mt-5 text-4xl font-black leading-tight tracking-tight sm:text-5xl">
+              <h1 className="font-serif mt-5 text-2xl font-black leading-tight tracking-tight sm:text-4xl">
                 {post.title}
               </h1>
 
@@ -374,19 +373,19 @@ export default async function BlogArticlePage(
 
               <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-white/15 pt-6 text-sm text-white/78">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.22em] text-white/55">Ngay dang</p>
+                  <p className="text-xs uppercase tracking-[0.22em] text-white/55">Ngày đăng</p>
                   <p className="mt-1 font-semibold text-white">
                     {formatPublishedDate(post.publishedAt)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-[0.22em] text-white/55">Cap nhat</p>
+                  <p className="text-xs uppercase tracking-[0.22em] text-white/55">Cập nhật</p>
                   <p className="mt-1 font-semibold text-white">
                     {formatPublishedDate(post.updatedAt)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-[0.22em] text-white/55">Thoi gian doc</p>
+                  <p className="text-xs uppercase tracking-[0.22em] text-white/55">Thời gian đọc</p>
                   <p className="mt-1 font-semibold text-white">{readTime}</p>
                 </div>
               </div>
@@ -404,25 +403,11 @@ export default async function BlogArticlePage(
                 </div>
               ) : null}
             </div>
-
-            <aside className="self-end">
-              <div className="rounded-[10px] border border-white/12 bg-white/8 p-6 shadow-[0_16px_44px_rgba(0,0,0,0.18)] backdrop-blur">
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gold">
-                  Du lieu SSR hien tai
-                </p>
-                <div className="mt-4 space-y-3 text-sm leading-7 text-white/80">
-                  <p>Slug: {post.slug}</p>
-                  <p>Status: {post.status}</p>
-                  <p>Blocks: {post.contentBlocks.length}</p>
-                  <p>Post id: {post.id}</p>
-                </div>
-              </div>
-            </aside>
           </div>
         </div>
       </section>
 
-      <section className="-mt-8 px-6 pb-16 sm:px-10 lg:px-16 lg:pb-24">
+      <section className="mt-8 px-6 pb-16 sm:px-10 lg:px-16 lg:pb-24">
         <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
           <article className="overflow-hidden rounded-[12px] border border-gray-200 bg-white shadow-[0_10px_30px_rgba(10,35,66,0.08)]">
             <div className="border-b border-gray-200 bg-[linear-gradient(135deg,#f3f6fb_0%,#ffffff_58%,#eef5fc_100%)] px-6 py-8 sm:px-10">
@@ -430,11 +415,19 @@ export default async function BlogArticlePage(
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gold">
                   Vi tri anh dai dien
                 </p>
-                <div className="mt-4 flex min-h-56 items-center justify-center rounded-[8px] bg-[linear-gradient(135deg,#153560_0%,#1e4a80_60%,#c4922a_140%)] px-6 text-center text-sm font-semibold tracking-[0.16em] text-white/82">
-                  {post.coverImageUrl
-                    ? "Cover image se duoc render tai day"
-                    : "Template hero image placeholder"}
-                </div>
+                {post.coverImageUrl ? (
+                  <div className="mt-4 overflow-hidden rounded-[8px]">
+                    <img
+                      src={post.coverImageUrl}
+                      alt={post.title}
+                      className="h-72 w-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="mt-4 flex min-h-56 items-center justify-center rounded-[8px] bg-[linear-gradient(135deg,#153560_0%,#1e4a80_60%,#c4922a_140%)] px-6 text-center text-sm font-semibold tracking-[0.16em] text-white/82">
+                    Template hero image placeholder
+                  </div>
+                )}
               </div>
             </div>
 
@@ -457,41 +450,6 @@ export default async function BlogArticlePage(
           </article>
 
           <aside className="space-y-6">
-            <div className="rounded-[12px] border border-gray-200 bg-white p-6 shadow-[0_10px_26px_rgba(10,35,66,0.06)]">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gold">
-                Tags
-              </p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {post.tags.map((tag) => (
-                  <span
-                    key={tag.id}
-                    className="rounded-full border border-gray-200 bg-off-white px-3 py-1 text-sm font-semibold text-gray-800"
-                  >
-                    #{tag.name}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="rounded-[12px] border border-gray-200 bg-white p-6 shadow-[0_10px_26px_rgba(10,35,66,0.06)]">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gold">
-                Dieu huong
-              </p>
-              <div className="mt-4 space-y-3 text-sm">
-                <Link
-                  href="/"
-                  className="block rounded-[8px] bg-off-white px-4 py-3 transition hover:bg-[#edf3fb]"
-                >
-                  Ve trang chu
-                </Link>
-                <Link
-                  href="/#blog"
-                  className="block rounded-[8px] bg-off-white px-4 py-3 transition hover:bg-[#edf3fb]"
-                >
-                  Xem danh sach bai viet
-                </Link>
-              </div>
-            </div>
 
             <div className="rounded-[12px] border border-gray-200 bg-[linear-gradient(180deg,#ffffff_0%,#f7f9fd_100%)] p-6 shadow-[0_10px_26px_rgba(10,35,66,0.06)]">
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gold">

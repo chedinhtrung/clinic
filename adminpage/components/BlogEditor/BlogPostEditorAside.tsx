@@ -340,6 +340,25 @@ export default function BlogPostEditorAside({
                 multiline
               />
 
+              <TextField
+                label="Cover image"
+                value={post.coverImageUrl ?? ""}
+                onChange={(coverImageUrl) =>
+                  onUpdatePost({ coverImageUrl: coverImageUrl.trim() ? coverImageUrl : null })
+                }
+                placeholder="https://.../cover-image.jpg"
+              />
+
+              {post.coverImageUrl ? (
+                <div className="overflow-hidden rounded-md border border-[#e3e2df] bg-[#f7f6f3]">
+                  <img
+                    src={post.coverImageUrl}
+                    alt={post.title || "Blog cover preview"}
+                    className="h-48 w-full object-cover"
+                  />
+                </div>
+              ) : null}
+
               <section className="space-y-3">
                 <div>
                   <p className="text-xs font-medium text-[#787774]">Content</p>
