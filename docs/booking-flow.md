@@ -52,7 +52,7 @@ Relevant functions:
 - `db_get_available_slots()`
 - `db_claim_slot()`
 - `db_get_booking()`
-- `db_proceed_to_payment_for_session()`
+- `db_prepare_booking_confirmation_for_session()`
 
 ### Scenario 2: Same session changes to another slot before payment
 
@@ -90,7 +90,7 @@ Relevant functions:
 5. Frontend alerts and redirects home.
 
 Relevant functions:
-- `db_proceed_to_payment_for_session()`
+- `db_prepare_booking_confirmation_for_session()`
 
 ### Scenario 6: Email already has a pending booking
 
@@ -101,7 +101,7 @@ Relevant functions:
 5. Frontend continues using the same booking id.
 
 Relevant functions:
-- `db_proceed_to_payment_for_session()`
+- `db_prepare_booking_confirmation_for_session()`
 
 ### Scenario 7: Email already has a confirmed booking
 
@@ -110,8 +110,8 @@ Relevant functions:
 3. Frontend alerts and does not continue to payment.
 
 Relevant functions:
-- `db_proceed_to_payment_for_session()`
-- `proceed_to_payment()`
+- `db_prepare_booking_confirmation_for_session()`
+- `prepare_booking_confirmation()`
 
 ### Scenario 8: User abandons VNPay
 
@@ -143,7 +143,7 @@ Relevant functions:
 - `POST /api/claim_booking`
 - `GET /api/booking/<booking_id>`
 - `POST /api/booking/cancel`
-- `POST /api/booking/proceed_to_payment`
+- `POST /api/booking/prepare_booking_confirmation`
 - `POST /api/booking/send_confirmation_email`
 - `GET /api/booking/confirm`
 - `POST /api/payment/vnpay`
@@ -168,7 +168,7 @@ Relevant functions:
 - `db_claim_slot()`
 - `db_get_booking()`
 - `db_cancel_pending_booking_for_session()`
-- `db_proceed_to_payment_for_session()`
+- `db_prepare_booking_confirmation_for_session()`
 - `db_send_booking_confirmation_for_session()`
 - `db_confirm_booking_from_email_link()`
 - `db_create_vnpay_payment_url()`

@@ -198,8 +198,8 @@ def delete_booking_for_change_link():
     return jsonify({"ok": True})
 
 
-@app.route("/api/booking/proceed_to_payment", methods=["POST"])
-def proceed_to_payment():
+@app.route("/api/booking/prepare_booking_confirmation", methods=["POST"])
+def prepare_booking_confirmation():
     """Validate the in-progress booking, persist patient details, and continue.
 
     This endpoint is triggered by the contact form submit action. It verifies
@@ -215,7 +215,7 @@ def proceed_to_payment():
     data = request.get_json() or {}
 
     try:
-        booking = db_proceed_to_payment_for_session(
+        booking = db_prepare_booking_confirmation_for_session(
             session_id=session_id,
             name=data.get("name", "").strip(),
             email=data.get("email", "").strip(),

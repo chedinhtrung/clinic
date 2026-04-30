@@ -656,7 +656,7 @@ def db_delete_booking_for_change_link(*, booking_id: str, patient_id: str) -> No
 
 
 """Persist patient details on the current session-owned booking row."""
-def db_proceed_to_payment_for_session(
+def db_prepare_booking_confirmation_for_session(
     *,
     session_id: str,
     name: str,

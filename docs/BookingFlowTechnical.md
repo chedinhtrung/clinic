@@ -134,7 +134,7 @@ or open payment/booking links in a context where the original cookie is absent.
 10. Frontend redirects to `/booking?bookingId=...`.
 11. Booking page reloads the booking from the backend.
 12. User submits contact details.
-13. Frontend calls `POST /api/booking/proceed_to_payment`.
+13. Frontend calls `POST /api/booking/prepare_booking_confirmation`.
 14. Backend validates expiry, resolves or creates the patient, attaches
     `patient_id` to the same booking row, cancels older pending bookings for
     that patient, and extends the hold for the next step.
@@ -311,7 +311,7 @@ landingpage/components/ContactForm.tsx
 On submit, it calls:
 
 ```text
-POST /api/booking/proceed_to_payment
+POST /api/booking/prepare_booking_confirmation
 ```
 
 Request body:
@@ -340,8 +340,8 @@ The backend currently ignores `message`.
 Backend functions:
 
 ```text
-proceed_to_payment()
-db_proceed_to_payment_for_session()
+prepare_booking_confirmation()
+db_prepare_booking_confirmation_for_session()
 ```
 
 This is the most important transition in the flow. The backend does not receive
@@ -600,7 +600,7 @@ If `booking_session_id` is missing, these endpoints fail:
 - `POST /api/claim_booking`
 - `GET /api/booking/<booking_id>`
 - `POST /api/booking/cancel`
-- `POST /api/booking/proceed_to_payment`
+- `POST /api/booking/prepare_booking_confirmation`
 - `POST /api/payment/vnpay`
 
 This can happen if the browser blocks cookies, the request does not include

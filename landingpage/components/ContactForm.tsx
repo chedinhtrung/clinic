@@ -61,7 +61,7 @@ export default function ContactForm({
     e.preventDefault()
     setIsSubmitting(true);
     try {
-      const res = await fetch("/api/booking/proceed_to_payment", {
+      const res = await fetch("/api/booking/prepare_booking_confirmation", {
         method: "POST",
         credentials: "include",
         headers: {

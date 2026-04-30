@@ -38,7 +38,7 @@ same email and birthdate are submitted again.
 ## Booking Matching Rule
 
 When the booking flow receives patient details during
-`POST /api/booking/proceed_to_payment`, it uses this rule:
+`POST /api/booking/prepare_booking_confirmation`, it uses this rule:
 
 1. Normalize the submitted email with `lower(trim(email))`.
 2. Look for an existing patient with the same normalized email and birthdate.
