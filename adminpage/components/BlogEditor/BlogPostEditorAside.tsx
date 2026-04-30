@@ -305,12 +305,12 @@ export default function BlogPostEditorAside({
                         value={tagInputText}
                         onChange={(event) => setTagInputText(event.target.value)}
                         onKeyDown={(event) => {
-                          if (event.key === ",") {
+                          if (event.key === "Enter") {
                             event.preventDefault();
                             addTag(event.currentTarget.value);
                           }
                         }}
-                        placeholder={post.tags.length === 0 ? "Type a tag, then comma" : "Add tag"}
+                        placeholder={post.tags.length === 0 ? "Type a tag, then press Enter" : "Add tag and press Enter"}
                         className="min-w-32 flex-1 bg-transparent px-1 py-1 text-sm text-[#37352f] outline-none placeholder:text-[#b9b8b4]"
                       />
                     </div>
