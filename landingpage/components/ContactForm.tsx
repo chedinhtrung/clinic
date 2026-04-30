@@ -13,9 +13,11 @@ type ContactFormValues = {
 
 export default function ContactForm({
   confirmed = false,
+  nextStep = "payment",
   initialValues,
 }: {
   confirmed?: boolean;
+  nextStep?: "payment" | "email";
   initialValues?: Partial<ContactFormValues>;
 }) {
   const [form, setForm] = useState({
@@ -77,7 +79,8 @@ export default function ContactForm({
         throw error;
       }
 
-      router.push(`/payment?bookingId=${encodeURIComponent(data.booking.id)}`);
+      const destination = nextStep === "email" ? "/confirmation" : "/payment";
+      router.push(`${destination}?bookingId=${encodeURIComponent(data.booking.id)}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Khong the tiep tuc thanh toan";
       alert(message);

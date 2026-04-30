@@ -33,6 +33,14 @@ function formatSlotTime(isoTimestamp: string) {
 }
 
 export default function Booking() {
+    return <BookingFlow confirmationMode="email" />;
+}
+
+export function BookingFlow({
+    confirmationMode = "payment",
+}: {
+    confirmationMode?: "payment" | "email";
+}) {
     const router = useRouter();
     // All bookable days returned by the backend.
     const [availableDates, setAvailableDates] = useState<Date[]>([]);
@@ -174,6 +182,7 @@ export default function Booking() {
             const booking = data.booking;
             const params = new URLSearchParams({
                 bookingId: booking.id,
+                flow: confirmationMode,
             });
             router.push(`/booking?${params.toString()}`);
         } catch (error) {

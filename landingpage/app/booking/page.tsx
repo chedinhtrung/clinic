@@ -29,6 +29,7 @@ function BookingContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const bookingId = searchParams.get("bookingId");
+    const flow = searchParams.get("flow") === "email" ? "email" : "payment";
     const [booking, setBooking] = useState<BookingDetails | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
@@ -128,6 +129,7 @@ function BookingContent() {
                     <h3 className="font-bold">THÔNG TIN LIÊN HỆ</h3>
                 </div>
                 <ContactForm
+                    nextStep={flow}
                     initialValues={{
                         name: booking?.patientName ?? "",
                         email: booking?.patientEmail ?? "",
