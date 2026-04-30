@@ -7,9 +7,9 @@ This document describes the current booking workflow, the main business rules, a
 - One browser session owns at most one in-progress pending booking in the normal flow.
 - A slot can only be actively held by one owner at a time.
 - A confirmed booking blocks the slot for everyone.
-- Once a patient email is known, email becomes the stronger business identity.
+- Once patient contact details are submitted, patient identity is resolved from normalized email plus birthdate.
 - One email may have at most one confirmed booking.
-- If an email already has a pending booking, that pending booking is reused and updated instead of creating another active booking.
+- If a matched patient already has another pending booking, the current session-owned booking wins and the older pending booking is cancelled.
 - Pending bookings expire automatically.
 - Frontend timers are advisory UX; backend expiry checks are authoritative.
 
@@ -24,9 +24,9 @@ This document describes the current booking workflow, the main business rules, a
 7. Frontend redirects to the booking details page.
 8. Booking page reloads the booking authoritatively from backend.
 9. User fills contact details and submits.
-10. Backend checks expiry, applies email-based booking rules, updates patient data, and extends the timer for payment.
-11. Frontend redirects to the payment page.
-12. Payment page reloads booking and patient details from backend, shows countdown again, and offers VNPay.
+10. Backend checks expiry, resolves or creates the patient, attaches `patient_id` to the same booking row, cancels older pending bookings for the matched patient, and extends the timer for the next step.
+11. Frontend can continue either to the payment page or to the no-payment confirmation-email step.
+12. The chosen confirmation path eventually flips the booking to `confirmed`.
 
 ## Expiry Model
 
@@ -95,10 +95,10 @@ Relevant functions:
 ### Scenario 6: Email already has a pending booking
 
 1. User reaches the contact form from a different session or with a newer pending hold.
-2. Backend finds an existing `pending` booking for the submitted email.
-3. Backend updates that email-owned pending booking with the current slot, current session, refreshed expiry, and latest patient details.
-4. The current session booking is cancelled if it is no longer the canonical booking.
-5. Frontend is redirected using the booking returned from backend.
+2. Backend matches the submitted identity to an existing patient.
+3. Backend keeps the current session-owned booking row, attaches that patient, and refreshes the booking expiry for the next step.
+4. Backend cancels any other pending bookings already attached to that patient.
+5. Frontend continues using the same booking id.
 
 Relevant functions:
 - `db_proceed_to_payment_for_session()`
@@ -123,6 +123,18 @@ Relevant functions:
 Relevant functions:
 - `db_create_vnpay_payment_url()`
 
+### Scenario 9: User confirms by email instead of VNPay
+
+1. User reaches the post-handoff confirmation step.
+2. Backend stores a confirmation hash and sends a confirmation link email.
+3. The booking remains `pending` while the email-confirmation window is active.
+4. User clicks the emailed link.
+5. Backend validates the token, confirms the same booking row, and sends the final confirmation email.
+
+Relevant functions:
+- `db_send_booking_confirmation_for_session()`
+- `db_confirm_booking_from_email_link()`
+
 ## Current API Endpoints
 
 - `GET /api/session`
@@ -132,6 +144,8 @@ Relevant functions:
 - `GET /api/booking/<booking_id>`
 - `POST /api/booking/cancel`
 - `POST /api/booking/proceed_to_payment`
+- `POST /api/booking/send_confirmation_email`
+- `GET /api/booking/confirm`
 - `POST /api/payment/vnpay`
 
 ## Frontend Entry Points
@@ -155,6 +169,8 @@ Relevant functions:
 - `db_get_booking()`
 - `db_cancel_pending_booking_for_session()`
 - `db_proceed_to_payment_for_session()`
+- `db_send_booking_confirmation_for_session()`
+- `db_confirm_booking_from_email_link()`
 - `db_create_vnpay_payment_url()`
 - `db_expire_pending_bookings()`
 
