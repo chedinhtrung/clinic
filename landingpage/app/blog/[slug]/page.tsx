@@ -200,8 +200,8 @@ function renderContentBlock(block: BlogContentBlock) {
 
   if (block.type === "image") {
     return (
-      <figure className="overflow-hidden rounded-[12px] border border-gray-200 bg-[#f5f8fc] p-4">
-        <div className="flex min-h-72 items-center justify-center rounded-[8px] bg-[linear-gradient(135deg,#153560_0%,#1e4a80_60%,#c4922a_140%)] px-6 text-center text-sm font-semibold tracking-[0.16em] text-white/84">
+      <figure className="overflow-hidden rounded-[8px] border border-gray-200 bg-[#f5f8fc] p-3 sm:rounded-[12px] sm:p-4">
+        <div className="flex min-h-56 items-center justify-center rounded-[6px] bg-[linear-gradient(135deg,#153560_0%,#1e4a80_60%,#c4922a_140%)] px-4 text-center text-sm font-semibold tracking-[0.16em] text-white/84 sm:min-h-72 sm:rounded-[8px] sm:px-6">
           {block.src ? block.alt || "Hinh anh bai viet" : "Image block placeholder"}
         </div>
         {block.caption ? (
@@ -217,9 +217,9 @@ function renderContentBlock(block: BlogContentBlock) {
     const embedUrl = extractYouTubeEmbedUrl(block.url);
 
     return (
-      <figure className="overflow-hidden rounded-[12px] border border-gray-200 bg-[#f7f9fd] p-4">
+      <figure className="overflow-hidden rounded-[8px] border border-gray-200 bg-[#f7f9fd] p-3 sm:rounded-[12px] sm:p-4">
         {embedUrl ? (
-          <div className="aspect-video overflow-hidden rounded-[8px] bg-navy">
+          <div className="aspect-video overflow-hidden rounded-[6px] bg-navy sm:rounded-[8px]">
             <iframe
               src={embedUrl}
               title={block.caption || "YouTube video"}
@@ -229,7 +229,7 @@ function renderContentBlock(block: BlogContentBlock) {
             />
           </div>
         ) : (
-          <div className="flex min-h-56 items-center justify-center rounded-[8px] bg-navy px-6 text-center text-sm font-semibold tracking-[0.16em] text-white/82">
+          <div className="flex min-h-48 items-center justify-center rounded-[6px] bg-navy px-4 text-center text-sm font-semibold tracking-[0.16em] text-white/82 sm:min-h-56 sm:rounded-[8px] sm:px-6">
             YouTube block placeholder
           </div>
         )}
@@ -244,7 +244,7 @@ function renderContentBlock(block: BlogContentBlock) {
 
   if (block.type === "link") {
     return (
-      <p className="rounded-[10px] border border-gold/25 bg-[#fffaf0] px-5 py-4 text-sm font-semibold text-navy">
+      <p className="rounded-[8px] border border-gold/25 bg-[#fffaf0] px-4 py-3 text-sm font-semibold text-navy sm:rounded-[10px] sm:px-5 sm:py-4">
         Tai lieu tham khao:{" "}
         <a
           href={block.url}
@@ -387,22 +387,22 @@ export default async function BlogArticlePage(
         </div>
       </section>
 
-      <section className="mt-8 px-6 pb-16 sm:px-10 lg:px-16 lg:pb-24">
-        <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
-          <article className="overflow-hidden rounded-[12px] border border-gray-200 bg-white shadow-[0_10px_30px_rgba(10,35,66,0.08)]">
-            <div className="border-b border-gray-200 bg-[linear-gradient(135deg,#f3f6fb_0%,#ffffff_58%,#eef5fc_100%)] px-6 py-8 sm:px-10">
-              <div className="overflow-hidden rounded-[10px]">
+      <section className="mt-6 px-4 pb-14 sm:mt-8 sm:px-10 sm:pb-16 lg:px-16 lg:pb-24">
+        <div className="mx-auto grid max-w-6xl gap-5 sm:gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <article className="overflow-hidden rounded-[10px] border border-gray-200 bg-white shadow-[0_10px_30px_rgba(10,35,66,0.08)] sm:rounded-[12px]">
+            <div className="border-b border-gray-200 bg-[linear-gradient(135deg,#f3f6fb_0%,#ffffff_58%,#eef5fc_100%)]">
+              <div className="overflow-hidden rounded-[8px] sm:rounded-[10px]">
                 <img
                   src={coverImageUrl}
                   alt={post.title}
-                  className="h-72 w-full object-cover"
+                  className="h-56 w-full object-cover sm:h-72"
                 />
               </div>
             </div>
 
-            <div className="px-6 py-10 sm:px-10 sm:py-12">
+            <div className="px-4 py-7 sm:px-10 sm:py-12">
               <div className="mx-auto max-w-3xl">
-                <div className="mt-10 space-y-8">
+                <div className="mt-6 space-y-6 sm:mt-10 sm:space-y-8">
                   {post.contentBlocks.map((block) => (
                     <section key={block.id}>
                       {renderContentBlock(block)}
@@ -413,15 +413,15 @@ export default async function BlogArticlePage(
             </div>
           </article>
 
-          <aside className="space-y-6">
+          <aside className="space-y-4 sm:space-y-6">
 
-            <div className="rounded-[12px] border border-gray-200 bg-[linear-gradient(180deg,#ffffff_0%,#f7f9fd_100%)] p-6 shadow-[0_10px_26px_rgba(10,35,66,0.06)]">
+            <div className="rounded-[10px] border border-gray-200 bg-[linear-gradient(180deg,#ffffff_0%,#f7f9fd_100%)] p-4 shadow-[0_10px_26px_rgba(10,35,66,0.06)] sm:rounded-[12px] sm:p-6">
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gold">
                 Bài viết liên quan
               </p>
-              <div className="mt-4 space-y-4">
+              <div className="mt-3 space-y-3 sm:mt-4 sm:space-y-4">
                 {relatedPosts.posts.length === 0 ? (
-                  <div className="rounded-[8px] border border-gray-200 bg-white p-4 text-sm leading-6 text-gray-600">
+                  <div className="rounded-[6px] border border-gray-200 bg-white p-3 text-sm leading-6 text-gray-600 sm:rounded-[8px] sm:p-4">
                     Chưa có bài viết nào khác trong cùng chuyên mục.
                   </div>
                 ) : (
@@ -429,7 +429,7 @@ export default async function BlogArticlePage(
                     <Link
                       key={relatedPost.id}
                       href={relatedPost.url}
-                      className="block rounded-[8px] border border-gray-200 bg-white p-4 transition hover:border-navy/25 hover:shadow-sm"
+                      className="block rounded-[6px] border border-gray-200 bg-white p-3 transition hover:border-navy/25 hover:shadow-sm sm:rounded-[8px] sm:p-4"
                     >
                       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">
                         {relatedPost.subcategory?.name ?? relatedPost.category.name}
@@ -453,16 +453,16 @@ export default async function BlogArticlePage(
               </div>
 
               {relatedPosts.totalPages > 1 ? (
-                <div className="mt-5 flex items-center justify-between gap-3 border-t border-gray-200 pt-4 text-sm">
+                <div className="mt-4 flex items-center justify-between gap-2 border-t border-gray-200 pt-3 text-sm sm:mt-5 sm:gap-3 sm:pt-4">
                   {relatedPosts.page > 1 ? (
                     <Link
                       href={`/blog/${post.slug}?relatedPage=${relatedPosts.page - 1}`}
-                      className="rounded-[6px] border border-gray-200 bg-white px-3 py-2 font-semibold text-gray-700 transition hover:bg-[#edf3fb]"
+                      className="rounded-[5px] border border-gray-200 bg-white px-2.5 py-2 font-semibold text-gray-700 transition hover:bg-[#edf3fb] sm:rounded-[6px] sm:px-3"
                     >
                       Trang trước
                     </Link>
                   ) : (
-                    <span className="rounded-[6px] border border-gray-200 bg-[#f7f9fd] px-3 py-2 font-semibold text-gray-400">
+                    <span className="rounded-[5px] border border-gray-200 bg-[#f7f9fd] px-2.5 py-2 font-semibold text-gray-400 sm:rounded-[6px] sm:px-3">
                       Trang trước
                     </span>
                   )}
@@ -474,12 +474,12 @@ export default async function BlogArticlePage(
                   {relatedPosts.page < relatedPosts.totalPages ? (
                     <Link
                       href={`/blog/${post.slug}?relatedPage=${relatedPosts.page + 1}`}
-                      className="rounded-[6px] border border-gray-200 bg-white px-3 py-2 font-semibold text-gray-700 transition hover:bg-[#edf3fb]"
+                      className="rounded-[5px] border border-gray-200 bg-white px-2.5 py-2 font-semibold text-gray-700 transition hover:bg-[#edf3fb] sm:rounded-[6px] sm:px-3"
                     >
                       Trang sau
                     </Link>
                   ) : (
-                    <span className="rounded-[6px] border border-gray-200 bg-[#f7f9fd] px-3 py-2 font-semibold text-gray-400">
+                    <span className="rounded-[5px] border border-gray-200 bg-[#f7f9fd] px-2.5 py-2 font-semibold text-gray-400 sm:rounded-[6px] sm:px-3">
                       Trang sau
                     </span>
                   )}
