@@ -2,9 +2,9 @@
 
 This document explains the current booking flow across the booking backend and
 the landing page frontend. The flow is intentionally stateful. A pending booking
-is tied to a browser-held anonymous session cookie until a patient email is
-submitted, and later payment confirmation depends on the booking still being
-valid.
+is tied to a browser-held anonymous session cookie until patient contact details
+are submitted, and later confirmation can happen either through VNPay or through
+an emailed confirmation link while the booking is still valid.
 
 Relevant files:
 
@@ -25,7 +25,8 @@ The booking system has two identities:
 
 Before contact details are submitted, the backend can only know that "this same
 browser" owns a pending booking. After contact details are submitted, the
-backend switches to a patient identity based on normalized email plus birthdate.
+backend resolves a patient identity based on normalized email plus birthdate and
+attaches that patient to the same booking row.
 
 This means a booking is not just identified by `bookingId` in the URL. For the
 normal booking and payment pages, the backend also requires the same browser
@@ -134,17 +135,25 @@ or open payment/booking links in a context where the original cookie is absent.
 11. Booking page reloads the booking from the backend.
 12. User submits contact details.
 13. Frontend calls `POST /api/booking/proceed_to_payment`.
-14. Backend validates expiry, applies email-based rules, saves patient details,
-    and extends the hold for payment.
-15. Frontend redirects to `/payment?bookingId=...`.
-16. Payment page reloads the booking from the backend.
-17. User clicks the VNPay payment button.
-18. Frontend calls `POST /api/payment/vnpay`.
-19. Backend creates a signed VNPay payment URL.
-20. Browser redirects to VNPay.
-21. VNPay returns the browser to the frontend return page.
-22. VNPay also calls the backend IPN endpoint.
-23. The IPN endpoint confirms the booking if payment succeeded.
+14. Backend validates expiry, resolves or creates the patient, attaches
+    `patient_id` to the same booking row, cancels older pending bookings for
+    that patient, and extends the hold for the next step.
+15. Frontend continues down one of two confirmation branches.
+16. Payment branch: frontend redirects to `/payment?bookingId=...`.
+17. Payment branch: payment page reloads the booking from the backend.
+18. Payment branch: user clicks the VNPay payment button.
+19. Payment branch: frontend calls `POST /api/payment/vnpay`.
+20. Payment branch: backend creates a signed VNPay payment URL.
+21. Payment branch: browser redirects to VNPay.
+22. Payment branch: VNPay returns the browser to the frontend return page.
+23. Payment branch: VNPay also calls the backend IPN endpoint.
+24. Payment branch: the IPN endpoint confirms the booking if payment succeeded.
+25. Email branch: frontend calls `POST /api/booking/send_confirmation_email`.
+26. Email branch: backend stores a confirmation hash, refreshes `expires_at`
+    for the email-confirmation window, and sends the confirmation email.
+27. Email branch: patient clicks the emailed confirmation link.
+28. Email branch: `GET /api/booking/confirm` validates the token and confirms
+    the booking.
 
 ## Availability Loading
 
@@ -346,21 +355,18 @@ Then it:
 3. Locks the current pending booking.
 4. Checks whether the pending booking has expired.
 5. Marks it `expired` and rejects if the true backend expiry has passed.
-6. Searches for other `pending` or `confirmed` bookings using the same email.
-7. Rejects if the email already owns a different confirmed booking.
-8. Reuses an existing pending booking for that email if one exists.
-9. Creates or updates the patient record.
-10. Updates the canonical booking with the selected slot, current session,
-    patient id, and a refreshed payment expiry.
-11. Cancels the non-canonical current booking if the email-owned pending booking
-    was reused.
+6. Resolves the patient identity from normalized email plus birthdate.
+7. Rejects if that patient already owns a different confirmed booking.
+8. Creates or updates the patient record.
+9. Updates the current session-owned booking row with the resolved `patient_id`,
+   current session, and a refreshed expiry.
+10. Cancels any other pending bookings already attached to the same patient.
 
-The response contains the canonical booking. This is important because the
-booking returned by the backend may not be the same row that the user originally
-claimed. If email-based pending-booking reuse occurs, the backend returns the
-email-owned pending booking instead.
+The response contains the same booking row that the user already claimed. The
+backend no longer swaps to an older patient-owned pending booking during this
+handoff step.
 
-The frontend correctly follows the returned booking id:
+The frontend may continue using the returned booking id:
 
 ```text
 /payment?bookingId=<data.booking.id>
@@ -397,6 +403,49 @@ The page displays:
 
 The countdown again uses `displayExpiresAt`. If it reaches zero, the frontend
 alerts and redirects home.
+
+## Email Confirmation Path
+
+The no-payment confirmation path is initiated after the same patient handoff
+step as the payment flow.
+
+Frontend and backend call:
+
+```text
+POST /api/booking/send_confirmation_email
+```
+
+The backend checks:
+
+- The session cookie exists.
+- `bookingId` is present.
+- The booking belongs to the current session.
+- The booking status is still `pending`.
+- The booking has not expired.
+- Patient contact details have already been attached.
+
+If these checks pass, the backend:
+
+- Generates a random confirmation token.
+- Stores only the token hash in `confirmation_hash`.
+- Refreshes `expires_at` for the email-confirmation window.
+- Sends the confirmation email.
+
+When the patient clicks the emailed link, the backend handles:
+
+```text
+GET /api/booking/confirm
+```
+
+The confirmation endpoint:
+
+- Loads the booking by `booking_id`.
+- Verifies the stored hash against the emailed token.
+- Verifies the booking is still `pending` and not expired.
+- Sets `status = confirmed`.
+- Sets `confirmed_at = now()`.
+- Clears `confirmation_hash`.
+- Sends the final confirmation email.
 
 ## Creating a VNPay Payment
 
@@ -589,9 +638,12 @@ already owns a different confirmed booking.
 
 ### Email already has a pending booking
 
-When contact details are submitted, the backend may reuse the existing pending
-booking for that email. The booking id returned to the frontend can therefore be
-different from the one in the original `/booking` URL.
+When contact details are submitted, the backend may find another active pending
+booking for the same patient identity. In the current implementation:
+
+1. The current booking keeps its booking id.
+2. The backend attaches or reuses the matched patient.
+3. Any other pending bookings already attached to that patient are cancelled.
 
 ## Why the Flow Is Intricate
 
@@ -631,8 +683,10 @@ These are the assumptions that keep the flow consistent:
 - The current session may still see and continue its own pending booking.
 - Once an email is submitted, a confirmed booking for that email blocks new
   bookings.
-- An existing pending booking for an email may become the canonical booking.
-- The frontend must follow the booking id returned by
-  `proceed_to_payment()`.
+- The current session-owned booking remains authoritative during the patient
+  handoff step.
+- Older pending bookings for the matched patient are cancelled.
 - Frontend countdowns are only UX; backend expiry is authoritative.
 - VNPay IPN is the authoritative confirmation path.
+- The no-payment branch uses the emailed token as the authoritative
+  confirmation path for that booking.
