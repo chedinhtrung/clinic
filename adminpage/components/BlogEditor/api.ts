@@ -26,7 +26,7 @@ async function readJson<T>(response: Response): Promise<T> {
 }
 
 export async function fetchBlogLookupData(): Promise<BlogLookupData> {
-  const response = await fetch(`${ADMIN_API_BASE_URL}/api/blog/lookup`);
+  const response = await fetch(`${ADMIN_API_BASE_URL}/blog/lookup`);
   return readJson<BlogLookupData>(response);
 }
 
@@ -47,12 +47,12 @@ export async function fetchBlogPostsPage({
     searchText,
     filterText,
   });
-  const response = await fetch(`${ADMIN_API_BASE_URL}/api/blog/posts?${params.toString()}`);
+  const response = await fetch(`${ADMIN_API_BASE_URL}/blog/posts?${params.toString()}`);
   return readJson<BlogPostPageResponse>(response);
 }
 
 export async function createDraftBlogPost(): Promise<BlogPost> {
-  const response = await fetch(`${ADMIN_API_BASE_URL}/api/blog/posts`, {
+  const response = await fetch(`${ADMIN_API_BASE_URL}/blog/posts`, {
     method: "POST",
   });
   const data = await readJson<BlogPostResponse>(response);
@@ -60,7 +60,7 @@ export async function createDraftBlogPost(): Promise<BlogPost> {
 }
 
 export async function autosaveBlogPost(post: BlogPost): Promise<{ savedAt: string; post: BlogPost }> {
-  const response = await fetch(`${ADMIN_API_BASE_URL}/api/blog/posts/${post.id}`, {
+  const response = await fetch(`${ADMIN_API_BASE_URL}/blog/posts/${post.id}`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -72,7 +72,7 @@ export async function autosaveBlogPost(post: BlogPost): Promise<{ savedAt: strin
 }
 
 export async function deleteBlogPost(postId: string): Promise<void> {
-  const response = await fetch(`${ADMIN_API_BASE_URL}/api/blog/posts/${postId}`, {
+  const response = await fetch(`${ADMIN_API_BASE_URL}/blog/posts/${postId}`, {
     method: "DELETE",
   });
   await readJson<{ ok: boolean }>(response);

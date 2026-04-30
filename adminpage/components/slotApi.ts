@@ -29,7 +29,7 @@ async function readJson<T>(response: Response): Promise<T> {
 }
 
 export async function fetchSlotsByRange(start: string, end: string): Promise<Slot[]> {
-    const response = await fetch(`${ADMIN_API_BASE_URL}/api/get_slots`, {
+    const response = await fetch(`${ADMIN_API_BASE_URL}/get_slots`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -42,14 +42,14 @@ export async function fetchSlotsByRange(start: string, end: string): Promise<Slo
 }
 
 export async function fetchSlot(slotId: string): Promise<Slot> {
-    const response = await fetch(`${ADMIN_API_BASE_URL}/api/slots/${slotId}`);
+    const response = await fetch(`${ADMIN_API_BASE_URL}/slots/${slotId}`);
     const data = await readJson<SlotResponse>(response);
 
     return toSlot(data.slot);
 }
 
 export async function createSlot(start: Date, end: Date): Promise<Slot> {
-    const response = await fetch(`${ADMIN_API_BASE_URL}/api/slots`, {
+    const response = await fetch(`${ADMIN_API_BASE_URL}/slots`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -65,7 +65,7 @@ export async function createSlot(start: Date, end: Date): Promise<Slot> {
 }
 
 export async function updateSlot(slotId: string, start: Date, end: Date): Promise<Slot> {
-    const response = await fetch(`${ADMIN_API_BASE_URL}/api/slots/${slotId}`, {
+    const response = await fetch(`${ADMIN_API_BASE_URL}/slots/${slotId}`, {
         method: "PATCH",
         headers: {
             "Content-Type": "application/json",
@@ -81,7 +81,7 @@ export async function updateSlot(slotId: string, start: Date, end: Date): Promis
 }
 
 export async function deleteSlot(slotId: string): Promise<void> {
-    const response = await fetch(`${ADMIN_API_BASE_URL}/api/slots/${slotId}`, {
+    const response = await fetch(`${ADMIN_API_BASE_URL}/slots/${slotId}`, {
         method: "DELETE",
     });
 
