@@ -1,15 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { autosaveBlogPost, fetchBlogLookupData, fetchBlogPostsPage } from "./api";
+import { autosaveBlogPost, createDraftBlogPost, deleteBlogPost, fetchBlogLookupData, fetchBlogPostsPage } from "./api";
 import BlogPostEditorAside from "./BlogPostEditorAside";
 import BlogPostTable from "./BlogPostTable";
 import type { BlogAutosaveStatus, BlogCategory, BlogPost, BlogSubcategory, BlogTag, PostLoadStatus } from "./types";
-import { BLOG_POST_PAGE_SIZE, createUniqueSlug, FALLBACK_CATEGORY, getTagNames } from "./utils";
-
-function makePendingId(prefix: string, name: string) {
-  return `${prefix}-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now()}`;
-}
+import { BLOG_POST_PAGE_SIZE, createUniqueSlug, getTagNames } from "./utils";
 
 export default function BlogEditor() {
   // Post list and pagination state drive the table on the left side of the admin view.
@@ -89,7 +85,6 @@ export default function BlogEditor() {
         setSelectedPostId((currentSelectedPostId) =>
           response.posts.some((post) => post.id === currentSelectedPostId) ? currentSelectedPostId : null
         );
-        response.posts.forEach((post) => loadedPostIdsRef.current.add(post.id));
         setPostLoadStatus("idle");
       } catch {
         if (isCurrentLoad) {
@@ -146,14 +141,16 @@ export default function BlogEditor() {
     // Mock backend autosave is debounced so normal typing produces one save for the latest post state.
     autosaveTimerRef.current = setTimeout(() => {
       void autosaveBlogPost(selectedPost)
-        .then(({ savedAt }) => {
+        .then(({ savedAt, post }) => {
           if (autosaveSequenceRef.current !== saveSequence) {
             return;
           }
 
+          setPosts((currentPosts) => currentPosts.map((currentPost) => (currentPost.id === post.id ? post : currentPost)));
           setAutosaveStatus("saved");
           setAutosavedAt(savedAt);
-          dirtyPostIdsRef.current.delete(selectedPost.id);
+          dirtyPostIdsRef.current.delete(post.id);
+          loadedPostIdsRef.current.add(post.id);
         })
         .catch(() => {
           if (autosaveSequenceRef.current === saveSequence) {
@@ -171,10 +168,8 @@ export default function BlogEditor() {
 
   // Apply a partial post update locally and mark the selected post dirty for autosave.
   function updatePost(postId: string, changes: Partial<BlogPost>) {
-    if (postId === selectedPostId) {
-      dirtyPostIdsRef.current.add(postId);
-      setAutosaveStatus("saving");
-    }
+    dirtyPostIdsRef.current.add(postId);
+    setAutosaveStatus("saving");
 
     setPosts((currentPosts) =>
       currentPosts.map((post) =>
@@ -228,22 +223,11 @@ export default function BlogEditor() {
   }
 
   // Create a local draft row and open it immediately. The mock backend save will run after edits.
-  function addDraftPost() {
-    const createdAt = Date.now();
-    const draft: BlogPost = {
-      id: `post-${createdAt}`,
-      title: "",
-      slug: null,
-      category: categoryOptions[0] ?? FALLBACK_CATEGORY,
-      subcategory: null,
-      tags: [],
-      status: "Draft",
-      updatedAt: new Date().toISOString().slice(0, 10),
-      shortDescription: "",
-      contentBlocks: [],
-    };
+  async function addDraftPost() {
+    const draft = await createDraftBlogPost();
     const nextTotalPosts = totalPosts + 1;
 
+    loadedPostIdsRef.current.add(draft.id);
     setPosts((currentPosts) => [draft, ...currentPosts].slice(0, BLOG_POST_PAGE_SIZE));
     setTotalPosts(nextTotalPosts);
     setTotalPages(Math.max(1, Math.ceil(nextTotalPosts / BLOG_POST_PAGE_SIZE)));
@@ -251,7 +235,7 @@ export default function BlogEditor() {
   }
 
   // Remove the selected post from local state after confirmation.
-  function deleteSelectedPost() {
+  async function deleteSelectedPost() {
     if (!selectedPost) {
       return;
     }
@@ -261,28 +245,31 @@ export default function BlogEditor() {
       return;
     }
 
+    await deleteBlogPost(selectedPost.id);
+    dirtyPostIdsRef.current.delete(selectedPost.id);
+    loadedPostIdsRef.current.delete(selectedPost.id);
     setPosts((currentPosts) => currentPosts.filter((post) => post.id !== selectedPost.id));
     selectPostForEditing(null);
     setTotalPosts((currentTotalPosts) => Math.max(0, currentTotalPosts - 1));
   }
 
-  // Create local lookup options while the backend endpoints are still mocked.
+  // Keep local lookup options responsive until the next backend-backed refresh.
   function createCategory(name: string) {
-    const category = { id: makePendingId("pending-cat", name), name };
+    const category = { id: `pending-cat-${Date.now()}`, name };
     setCategoryOptions((currentOptions) => [...currentOptions, category]);
     return category;
   }
 
   // Create a subcategory option and return it so the aside can immediately select it.
   function createSubcategory(name: string) {
-    const subcategory = { id: makePendingId("pending-sub", name), name };
+    const subcategory = { id: `pending-sub-${Date.now()}`, name };
     setSubcategoryOptions((currentOptions) => [...currentOptions, subcategory]);
     return subcategory;
   }
 
   // Create a tag option and return it so the tag picker can immediately attach it.
   function createTag(name: string) {
-    const tag = { id: makePendingId("pending-tag", name), name };
+    const tag = { id: `pending-tag-${Date.now()}`, name };
     setBackendTagOptions((currentOptions) => [...currentOptions, tag]);
     return tag;
   }

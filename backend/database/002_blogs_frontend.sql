@@ -30,15 +30,24 @@ CREATE TABLE blog_posts (
   category_id uuid NOT NULL REFERENCES blog_categories(id),
   subcategory_id uuid REFERENCES blog_subcategories(id),
   title text NOT NULL,
-  slug text NOT NULL UNIQUE,
-  url text NOT NULL UNIQUE,
+  slug text UNIQUE,
+  url text UNIQUE,
   short_description text,
   cover_image_url text,
+  content_blocks jsonb NOT NULL DEFAULT '[]'::jsonb,
   status text NOT NULL DEFAULT 'draft',
   published_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
-  CHECK (status IN ('draft', 'published', 'archived'))
+  CHECK (status IN ('draft', 'published', 'archived')),
+  CHECK (
+    status <> 'published'
+    OR (
+      slug IS NOT NULL
+      AND url IS NOT NULL
+      AND published_at IS NOT NULL
+    )
+  )
 );
 
 CREATE TABLE blog_post_tags (
