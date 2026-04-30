@@ -310,7 +310,7 @@ export default async function BlogArticlePage(
     <main className="min-h-screen bg-off-white text-text">
       <section className="overflow-hidden bg-gradient-to-br from-navy-dark via-navy to-navy-light text-white">
         <div className="absolute inset-0 opacity-[0.14] [background-image:radial-gradient(circle_at_center,rgba(255,255,255,0.34)_1.2px,transparent_1.2px)] [background-size:26px_26px]" />
-        <div className="relative mx-auto max-w-6xl px-6 py-6 sm:px-10 lg:px-16">
+        <div className="relative mx-auto max-w-7xl px-4 py-6 sm:px-10 lg:px-16">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/15 pb-5">
             <Link
               href="/"
@@ -387,8 +387,8 @@ export default async function BlogArticlePage(
         </div>
       </section>
 
-      <section className="mt-6 px-4 pb-14 sm:mt-8 sm:px-10 sm:pb-16 lg:px-16 lg:pb-24">
-        <div className="mx-auto grid max-w-6xl gap-5 sm:gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <section className="mt-6 pb-14 sm:mt-8 sm:pb-16 lg:pb-24">
+        <div className="mx-auto grid max-w-7xl gap-5 sm:gap-8 lg:grid-cols-[minmax(0,1fr)_320px] px-4 sm:px-10 lg:px-16">
           <article className="overflow-hidden rounded-[10px] border border-gray-200 bg-white shadow-[0_10px_30px_rgba(10,35,66,0.08)] sm:rounded-[12px]">
             <div className="border-b border-gray-200 bg-[linear-gradient(135deg,#f3f6fb_0%,#ffffff_58%,#eef5fc_100%)]">
               <div className="overflow-hidden rounded-[8px] sm:rounded-[10px]">

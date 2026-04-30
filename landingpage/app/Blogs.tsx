@@ -177,7 +177,7 @@ export default function Blogs() {
   return (
     <section className="bg-white">
       <div className="relative px-6 py-12 sm:px-20 sm:py-16 overflow-hidden bg-gradient-to-r from-navy-dark via-navy to-[#274d7f]">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto w-full">
           <div className="absolute inset-0 opacity-[0.14] [background-image:radial-gradient(circle_at_center,rgba(255,255,255,0.32)_1.3px,transparent_1.3px)] [background-size:28px_28px]" />
           <div className="relative">
             <div className="max-w-4xl">
@@ -194,7 +194,7 @@ export default function Blogs() {
       </div>
 
       <div className="px-6 py-12 sm:px-20 sm:py-16">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto w-full">
           <div className="flex flex-wrap gap-3">
             {categories.map((category) => {
               const isActive = selectedCategory === category.id;

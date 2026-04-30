@@ -1,7 +1,7 @@
 export default function Intro() {
     return (
         <div className="sm:px-20 px-6 pb-10 bg-gradient-to-br from-navy-dark to-navy-mid p-6 text-white flex justify-center">
-            <div className="flex max-w-7xl gap-10">
+            <div className="flex max-w-7xl gap-10 w-full">
                 <div className="max-w-200">
 
                     {/* Avatar */}
