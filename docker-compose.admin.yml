@@ -1,0 +1,37 @@
+services:
+  adminpage:
+    build:
+      context: ./adminpage
+    container_name: clinic-adminpage
+    env_file:
+      - ./.env.local
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      ADMIN_API_BASE_URL: http://admin-backend:5002
+    depends_on:
+      - admin-backend
+    ports:
+      - "3001:3000"
+    restart: unless-stopped
+    networks:
+      - admin-public
+      - admin-private
+
+  admin-backend:
+    build:
+      context: ./backend/admin
+    container_name: clinic-admin-backend
+    env_file:
+      - ./.env.local
+    restart: unless-stopped
+    networks:
+      - admin-private
+
+networks:
+  admin-public:
+    driver: bridge
+  admin-private:
+    driver: bridge
+    internal: true
+
