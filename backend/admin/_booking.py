@@ -106,9 +106,10 @@ def db_get_slots(*, start: str | None, end: str | None) -> list[dict[str, Any]]:
     _validate_slot_range(start_at, end_at)
 
     query = ADMIN_SLOT_SELECT + """
-        -- Return any slot that overlaps the requested calendar window.
+        -- Return any active slot that overlaps the requested calendar window.
         WHERE s.start_at < %s
           AND s.end_at > %s
+          AND s.is_active = true
         ORDER BY s.start_at ASC
     """
 
@@ -214,25 +215,28 @@ def db_delete_slot(*, slot_id: str) -> None:
     with DB_POOL.connection() as conn:
         with conn.transaction():
             with conn.cursor() as cur:
-                # The schema keeps bookings linked to slots without ON DELETE,
-                # so preserve any slot that has booking history.
+                # Archiving is allowed unless the slot is still occupied by an
+                # active pending or confirmed booking.
                 cur.execute(
                     """
                     SELECT id
                     FROM bookings
                     WHERE slot_id = %s
+                      AND status IN ('pending', 'confirmed')
                     LIMIT 1
                     FOR UPDATE
                     """,
                     (slot_id,),
                 )
                 if cur.fetchone() is not None:
-                    raise AdminSlotConflictError("cannot delete a slot with booking history")
+                    raise AdminSlotConflictError("Không thể xóa lịch hẹn đã được book. Contact bệnh nhân trước khi hủy.")
 
                 cur.execute(
                     """
-                    DELETE FROM slots
+                    UPDATE slots
+                    SET is_active = false
                     WHERE id = %s
+                      AND is_active = true
                     RETURNING id
                     """,
                     (slot_id,),

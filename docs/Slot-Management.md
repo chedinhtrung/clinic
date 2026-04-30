@@ -197,9 +197,10 @@ Frontend status: wired for editable slots. `SlotEditor.tsx` sends the updated
 start and end values to the patch endpoint, then refreshes the visible calendar
 range. Booked slots are shown read-only in the editor.
 
-## Deleting A Slot
+## Archiving A Slot
 
-The admin backend now supports deleting an unbooked slot:
+The admin backend still uses the delete action from the frontend, but the
+backend behavior is now archival rather than hard deletion:
 
 ```http
 DELETE /api/slots/<slot_id>
@@ -211,30 +212,40 @@ The route calls:
 db_delete_slot(slot_id=slot_id)
 ```
 
-The backend refuses to delete slots with any booking history and returns
-`409 Conflict`. This includes expired, cancelled, and finished bookings, not
-only active `pending` or `confirmed` bookings.
+The backend archives the slot by setting:
+
+```text
+slots.is_active = false
+```
+
+The backend refuses to archive slots that are still held by an active booking
+and returns `409 Conflict`. Active booking means:
+
+- `pending`
+- `confirmed`
+
+Cancelled, expired, and finished bookings do not block archival.
 
 ## Slot History Policy
 
-The current design intentionally uses a conservative historical slot model.
-Once a row in `bookings` references a slot, that slot should no longer be
-updated or deleted by the admin, even if the booking is no longer active.
+The current design intentionally preserves historical slot references without
+requiring hard deletion.
 
 This preserves the original appointment time for historical booking records,
-payment/confirmation references, patient history, and future audit needs. The
-admin calendar still displays slot availability based only on active
-`pending` or `confirmed` bookings, but mutation rules are stricter because
-older bookings still depend on `slots.start_at` and `slots.end_at`.
+payment/confirmation references, patient history, and future audit needs.
+Archived slots remain linked to historical bookings, but they disappear from
+live scheduling because `is_active = false`.
 
-If the product later needs cancelled or expired slots to become fully reusable,
-the safer path is to first store immutable appointment-time snapshots directly
-on `bookings`, then relax the admin update/delete rules.
+The admin calendar and public booking flow should only operate on active slots.
+If the product later needs cancelled or expired slots to become fully reusable
+as editable records, the safer path is to first store immutable appointment-time
+snapshots directly on `bookings`, then relax the slot mutation rules further.
 
-Frontend status: wired. Unsaved frontend-only `creating` slots can be discarded
-without an API call. Existing editable slots call the delete endpoint, then the
-visible calendar range is refreshed. Booked slots are shown read-only in the
-editor.
+Frontend status: unchanged. Unsaved frontend-only `creating` slots can be
+discarded without an API call. Existing editable slots still call the delete
+endpoint, but the backend now archives the slot instead of removing the row.
+The visible calendar range is then refreshed. Slots held by active `pending` or
+`confirmed` bookings remain read-only in the editor.
 
 ## Current Implementation Status
 

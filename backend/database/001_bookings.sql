@@ -15,6 +15,7 @@ CREATE TABLE slots (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   start_at timestamptz NOT NULL,
   end_at timestamptz NOT NULL,
+  is_active boolean NOT NULL DEFAULT true,
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
@@ -37,6 +38,7 @@ CREATE INDEX idx_bookings_rev_code ON bookings(reservation_code);
 CREATE INDEX idx_bookings_patient_id ON bookings(patient_id);
 CREATE INDEX idx_bookings_confirmation_hash ON bookings(confirmation_hash);
 CREATE INDEX idx_slots_start_at ON slots(start_at);
+CREATE INDEX idx_slots_is_active_start_at ON slots(is_active, start_at);
 CREATE UNIQUE INDEX unique_patient_identity
 ON patients((lower(trim(email))), birthdate)
 WHERE email IS NOT NULL

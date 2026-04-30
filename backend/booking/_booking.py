@@ -239,7 +239,8 @@ def db_get_available_dates(session_id: str | None = None) -> list[str]:
     query = """
         SELECT DISTINCT DATE(s.start_at) AS available_date
         FROM slots s
-        WHERE s.start_at >= date_trunc('day', now()) + interval '1 day'
+        WHERE s.is_active = true
+          AND s.start_at >= date_trunc('day', now()) + interval '1 day'
           AND NOT EXISTS (
               SELECT 1
               FROM bookings b
@@ -271,7 +272,8 @@ def db_get_available_slots(selected_date_raw: str, session_id: str | None = None
     query = """
         SELECT s.start_at, s.end_at, s.id
         FROM slots s
-        WHERE s.start_at >= %s
+        WHERE s.is_active = true
+          AND s.start_at >= %s
           AND s.start_at < %s
           AND NOT EXISTS (
               SELECT 1
@@ -318,7 +320,7 @@ def db_claim_slot(*, slot_id: str, session_id: str) -> dict[str, str | int]:
                         # Lock the target slot row so competing claims serialize cleanly.
                         cur.execute(
                             """
-                            SELECT id, start_at, end_at
+                            SELECT id, start_at, end_at, is_active
                             FROM slots
                             WHERE id = %s
                             FOR UPDATE
@@ -327,6 +329,8 @@ def db_claim_slot(*, slot_id: str, session_id: str) -> dict[str, str | int]:
                         )
                         slot_row = cur.fetchone()
                         if slot_row is None:
+                            raise ValueError("slot not found")
+                        if not slot_row[3]:
                             raise ValueError("slot not found")
 
                         # Check whether the selected slot is already held or confirmed.
