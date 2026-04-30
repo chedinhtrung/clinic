@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 type NavbarProps = {
     selectedTab: string;
@@ -16,10 +17,19 @@ const navItems = [
 
 export default function Navbar({ selectedTab, setSelectedTab }: NavbarProps) {
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const router = useRouter();
+
+    async function handleLogout() {
+        await fetch("/api/auth/logout", {
+            method: "POST",
+        });
+        router.replace("/login");
+        router.refresh();
+    }
 
     return (
         <aside
-            className={`relative shrink-0 bg-primary py-6 text-white transition-all duration-300 ${
+            className={`relative flex shrink-0 flex-col bg-primary py-6 text-white transition-all duration-300 ${
                 isCollapsed ? "w-20" : "w-80"
             }`}
         >
@@ -45,7 +55,7 @@ export default function Navbar({ selectedTab, setSelectedTab }: NavbarProps) {
                 </div>
             </div>
 
-            <nav className="flex flex-col gap-2 px-3 text-white">
+            <nav className="flex flex-1 flex-col gap-2 px-3 text-white">
                 {navItems.map((item) => {
                     const isActive = selectedTab === item.id;
 
@@ -66,6 +76,19 @@ export default function Navbar({ selectedTab, setSelectedTab }: NavbarProps) {
                     );
                 })}
             </nav>
+
+            <div className="px-3 pt-6">
+                <button
+                    type="button"
+                    onClick={handleLogout}
+                    className={`flex h-11 w-full items-center rounded-xl border border-white/15 px-3 text-left text-sm font-semibold text-white/85 transition hover:bg-white/10 hover:text-white ${
+                        isCollapsed ? "justify-center" : "justify-start"
+                    }`}
+                    title="Đăng xuất"
+                >
+                    {isCollapsed ? "O" : "Đăng xuất"}
+                </button>
+            </div>
         </aside>
     );
 }

@@ -1,9 +1,6 @@
 import type { BlogLookupData, BlogPost, BlogPostPageResponse } from "./types";
 
-const ADMIN_API_BASE_URL =
-  process.env.NEXT_PUBLIC_ADMIN_API_BASE_URL ||
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "http://localhost:5002";
+const ADMIN_API_BASE_URL = "/api/admin";
 
 type ApiErrorResponse = {
   error?: string;

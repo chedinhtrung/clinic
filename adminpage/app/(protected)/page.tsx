@@ -1,4 +1,5 @@
 "use client";
+
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import SlotManagement from "@/components/SlotMgmt";
@@ -22,3 +23,4 @@ export default function Home() {
     </div>
   );
 }
+
