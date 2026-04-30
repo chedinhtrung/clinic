@@ -1,7 +1,7 @@
 "use client";
 
 import type { BlogPost, PostLoadStatus } from "./types";
-import { createPaginationItems } from "./utils";
+import { createPaginationItems, formatBlogStatus, formatBlogUpdatedAt, isPublishedStatus } from "./utils";
 
 type BlogPostTableProps = {
   posts: BlogPost[];
@@ -88,13 +88,13 @@ export default function BlogPostTable({
               <div>
                 <span
                   className={`rounded px-2 py-0.5 text-xs font-medium ${
-                    post.status === "Published" ? "bg-[#e4f4eb] text-[#2f7d54]" : "bg-[#f7ead9] text-[#9b6a1f]"
+                    isPublishedStatus(post.status) ? "bg-[#e4f4eb] text-[#2f7d54]" : "bg-[#f7ead9] text-[#9b6a1f]"
                   }`}
                 >
-                  {post.status}
+                  {formatBlogStatus(post.status)}
                 </span>
               </div>
-              <div className="text-xs text-[#787774]">{post.updatedAt}</div>
+              <div className="text-xs text-[#787774]">{formatBlogUpdatedAt(post.updatedAt)}</div>
             </div>
           );
         })}

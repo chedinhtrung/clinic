@@ -63,3 +63,9 @@ CREATE INDEX idx_blog_posts_status ON blog_posts(status);
 CREATE INDEX idx_blog_posts_published_at ON blog_posts(published_at);
 CREATE INDEX idx_blog_subcategories_category_id ON blog_subcategories(category_id);
 CREATE INDEX idx_blog_post_tags_tag_id ON blog_post_tags(tag_id);
+
+INSERT INTO blog_categories (id, name, slug) VALUES
+  ('33333333-3333-3333-3333-333333333333', 'Tin tức', 'tin-tuc'),
+  ('11111111-1111-1111-1111-111111111111', 'Y khoa', 'y-khoa'),
+  ('22222222-2222-2222-2222-222222222222', 'Ca lâm sàng', 'ca-lam-sang'),
+  

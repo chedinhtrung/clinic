@@ -56,6 +56,23 @@ const allCategory: FilterCategory = {
   slug: null,
 };
 
+function formatPublishedDate(publishedAt: string | null) {
+  if (!publishedAt) {
+    return null;
+  }
+
+  const date = new Date(publishedAt);
+  if (Number.isNaN(date.getTime())) {
+    return publishedAt;
+  }
+
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = String(date.getFullYear());
+
+  return `${day}/${month}/${year}`;
+}
+
 async function fetchPosts(categorySlug?: string): Promise<BlogPost[]> {
   const params = new URLSearchParams();
 
@@ -203,9 +220,12 @@ export default function Blogs() {
                 rel="noreferrer"
                 className="block rounded-lg border border-[#d7dfed] bg-white px-6 py-5 text-left shadow-sm transition hover:border-navy/40 hover:shadow-md"
               >
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">
-                  {post.subcategory?.name ?? post.category.name}
-                </p>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-semibold uppercase tracking-[0.18em]">
+                  <p className="text-gold">{post.subcategory?.name ?? post.category.name}</p>
+                  {post.publishedAt && (
+                    <p className="text-[#7a8aa7]">{formatPublishedDate(post.publishedAt)}</p>
+                  )}
+                </div>
                 <h3 className="font-serif mt-2 text-lg font-bold text-navy sm:text-xl">
                   {post.title}
                 </h3>
@@ -213,6 +233,18 @@ export default function Blogs() {
                   <p className="mt-3 text-sm leading-7 text-[#516384] sm:text-base">
                     {post.shortDescription}
                   </p>
+                )}
+                {post.tags.length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {post.tags.map((tag) => (
+                      <span
+                        key={tag.id}
+                        className="rounded-full border border-[#d7dfed] bg-[#f8fafc] px-3 py-1 text-xs font-medium text-[#516384]"
+                      >
+                        #{tag.name}
+                      </span>
+                    ))}
+                  </div>
                 )}
               </a>
             ))}

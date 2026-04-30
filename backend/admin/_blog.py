@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from uuid import UUID
 from datetime import datetime, timezone
 from typing import Any
 from urllib.parse import quote
@@ -11,6 +12,17 @@ from config import BLOG_DB_POOL
 
 class AdminBlogNotFoundError(ValueError):
     """Raised when a blog post cannot be found."""
+
+
+def _is_uuid(raw_value: str) -> bool:
+    # Frontend-only temporary ids such as "pending-tag-..." should never be sent
+    # to Postgres uuid columns. This helper lets the backend distinguish durable
+    # ids from client-local placeholders.
+    try:
+        UUID(raw_value)
+    except (ValueError, TypeError):
+        return False
+    return True
 
 
 def _slugify(raw_value: str) -> str:
@@ -39,17 +51,6 @@ def _build_public_url(slug: str | None) -> str | None:
     if not slug:
         return None
     return f"https://blogs.chedinhnghia.com/{quote(slug)}"
-
-
-def _format_admin_date(raw_value: Any) -> str:
-    # The admin table currently shows a short YYYY-MM-DD string rather than the
-    # full timestamp stored in Postgres.
-    if raw_value is None:
-        return datetime.now(timezone.utc).date().isoformat()
-    if isinstance(raw_value, datetime):
-        return raw_value.date().isoformat()
-    return str(raw_value)
-
 
 def _normalize_block(block: dict[str, Any]) -> dict[str, Any]:
     # Validate and normalize one content block from the editor payload before
@@ -89,12 +90,13 @@ def _normalize_content_blocks(raw_blocks: Any) -> list[dict[str, Any]]:
 
 
 def _normalize_status(raw_status: Any) -> str:
-    # The admin UI uses title-cased labels, but the database stores lowercase
-    # statuses. Only draft and published are editable in the admin flow.
-    normalized = str(raw_status or "draft").strip().lower()
-    if normalized not in {"draft", "published"}:
-        raise ValueError("status must be Draft or Published")
-    return normalized
+    # Validate the persisted status exactly as the API contract defines it.
+    # Display labels belong in the frontend presentation layer.
+    if not isinstance(raw_status, str):
+        raise ValueError("status must be a string")
+    if raw_status not in {"draft", "published"}:
+        raise ValueError("status must be one of: draft, published")
+    return raw_status
 
 
 def _serialize_lookup_row(row: dict[str, Any]) -> dict[str, str]:
@@ -104,9 +106,8 @@ def _serialize_lookup_row(row: dict[str, Any]) -> dict[str, str]:
 
 
 def _serialize_post(row: dict[str, Any]) -> dict[str, Any]:
-    # Convert one SQL result row into the BlogPost shape expected by the admin
-    # React editor, including nested category/subcategory/tag data.
-    status = row["status"]
+    # Convert one SQL result row into the blog post API shape, keeping domain
+    # values canonical so the frontend can decide how to present them.
     return {
         "id": str(row["id"]),
         "title": row["title"] or "",
@@ -118,8 +119,8 @@ def _serialize_post(row: dict[str, Any]) -> dict[str, Any]:
             else None
         ),
         "tags": row["tags"] or [],
-        "status": "Published" if status == "published" else "Draft",
-        "updatedAt": _format_admin_date(row["updated_at"]),
+        "status": row["status"],
+        "updatedAt": row["updated_at"].isoformat() if isinstance(row["updated_at"], datetime) else str(row["updated_at"]),
         "shortDescription": row["short_description"] or "",
         "contentBlocks": row["content_blocks"] or [],
     }
@@ -172,7 +173,7 @@ def _resolve_category(cur: Any, category_payload: dict[str, Any] | None) -> dict
     category_id = str(category_payload.get("id") or "").strip()
     category_name = str(category_payload.get("name") or "").strip()
 
-    if category_id:
+    if category_id and _is_uuid(category_id):
         # Reuse the referenced category when the frontend sends a stable id.
         cur.execute(
             """
@@ -220,7 +221,7 @@ def _resolve_subcategory(
     subcategory_id = str(subcategory_payload.get("id") or "").strip()
     subcategory_name = str(subcategory_payload.get("name") or "").strip()
 
-    if subcategory_id:
+    if subcategory_id and _is_uuid(subcategory_id):
         # Reuse the referenced subcategory when the frontend already knows it.
         cur.execute(
             """
@@ -273,7 +274,7 @@ def _resolve_tags(cur: Any, tags_payload: Any) -> list[dict[str, str]]:
         tag_name = str(tag_payload.get("name") or "").strip()
 
         row = None
-        if tag_id:
+        if tag_id and _is_uuid(tag_id):
             # Reuse an existing tag whenever the frontend sends a persisted id.
             cur.execute(
                 """

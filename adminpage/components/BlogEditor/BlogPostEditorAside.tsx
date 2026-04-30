@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import BlogContentRenderer from "./BlogContentRenderer";
 import type { BlogAutosaveStatus, BlogCategory, BlogPost, BlogSubcategory, BlogTag } from "./types";
-import { slugify } from "./utils";
+import { formatBlogUpdatedAt, isPublishedStatus, slugify } from "./utils";
 
 function TextField({
   label,
@@ -164,7 +164,7 @@ export default function BlogPostEditorAside({
             <div className="flex items-center justify-between gap-4 border-b border-[#e3e2df] px-6 py-4">
               <div className="min-w-0">
                 <p className="text-xs font-medium uppercase text-[#787774]">Last edited</p>
-                <p className="mt-1 text-sm text-[#37352f]">{post.updatedAt}</p>
+                <p className="mt-1 text-sm text-[#37352f]">{formatBlogUpdatedAt(post.updatedAt)}</p>
                 <p
                   className={`mt-1 text-xs ${
                     autosaveStatus === "error" ? "text-[#b94034]" : "text-[#787774]"
@@ -178,15 +178,15 @@ export default function BlogPostEditorAside({
                   <span className="text-sm font-medium text-[#37352f]">Publish</span>
                   <button
                     type="button"
-                    aria-pressed={post.status === "Published"}
+                    aria-pressed={isPublishedStatus(post.status)}
                     onClick={onTogglePublish}
                     className={`relative h-6 w-11 rounded-full transition ${
-                      post.status === "Published" ? "bg-[#2f7d54]" : "bg-[#d8d2c6]"
+                      isPublishedStatus(post.status) ? "bg-[#2f7d54]" : "bg-[#d8d2c6]"
                     }`}
                   >
                     <span
                       className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow transition ${
-                        post.status === "Published" ? "left-6" : "left-1"
+                        isPublishedStatus(post.status) ? "left-6" : "left-1"
                       }`}
                     />
                   </button>

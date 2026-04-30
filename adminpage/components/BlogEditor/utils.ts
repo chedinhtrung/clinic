@@ -51,3 +51,24 @@ export function getTagNames(posts: BlogPost[]) {
     (firstTag, secondTag) => firstTag.name.localeCompare(secondTag.name)
   );
 }
+
+export function isPublishedStatus(status: string) {
+  return status.trim().toLowerCase() === "published";
+}
+
+export function formatBlogStatus(status: BlogPost["status"]) {
+  return isPublishedStatus(status) ? "Published" : "Draft";
+}
+
+export function formatBlogUpdatedAt(updatedAt: string) {
+  const date = new Date(updatedAt);
+  if (Number.isNaN(date.getTime())) {
+    return updatedAt;
+  }
+
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = String(date.getFullYear());
+
+  return `${day}/${month}/${year}`;
+}

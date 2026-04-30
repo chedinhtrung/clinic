@@ -1,6 +1,6 @@
 "use client";
 
-export type BlogStatus = "Draft" | "Published";
+export type BlogStatus = "draft" | "published";
 
 export type BlogCategory = {
   id: string;

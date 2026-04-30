@@ -5,7 +5,7 @@ import { autosaveBlogPost, createDraftBlogPost, deleteBlogPost, fetchBlogLookupD
 import BlogPostEditorAside from "./BlogPostEditorAside";
 import BlogPostTable from "./BlogPostTable";
 import type { BlogAutosaveStatus, BlogCategory, BlogPost, BlogSubcategory, BlogTag, PostLoadStatus } from "./types";
-import { BLOG_POST_PAGE_SIZE, createUniqueSlug, getTagNames } from "./utils";
+import { BLOG_POST_PAGE_SIZE, getTagNames, isPublishedStatus } from "./utils";
 
 export default function BlogEditor() {
   // Post list and pagination state drive the table on the left side of the admin view.
@@ -177,7 +177,7 @@ export default function BlogEditor() {
           ? {
               ...post,
               ...changes,
-              updatedAt: new Date().toISOString().slice(0, 10),
+              updatedAt: new Date().toISOString(),
             }
           : post
       )
@@ -198,21 +198,19 @@ export default function BlogEditor() {
     setAutosavedAt(null);
   }
 
-  // Publishing creates the permanent slug once, while unpublishing keeps the existing slug intact.
+  // Publishing is a domain-state change. The backend decides which persisted
+  // fields that implies, such as slug, public URL, and published timestamp.
   function toggleSelectedPostPublish() {
     if (!selectedPost) {
       return;
     }
 
-    if (selectedPost.status === "Published") {
-      updateSelectedPost({ status: "Draft" });
+    if (isPublishedStatus(selectedPost.status)) {
+      updateSelectedPost({ status: "draft" });
       return;
     }
 
-    updateSelectedPost({
-      status: "Published",
-      slug: selectedPost.slug ?? createUniqueSlug(selectedPost.title, posts.map((post) => post.slug)),
-    });
+    updateSelectedPost({ status: "published" });
   }
 
   // Commit typed table filters and reset pagination so new searches start from the first page.
