@@ -50,7 +50,7 @@ def _build_public_url(slug: str | None) -> str | None:
     # URL directly from the stored slug.
     if not slug:
         return None
-    return f"https://blogs.chedinhnghia.com/{quote(slug)}"
+    return f"https://chedinhnghia.com/blog/{quote(slug)}"
 
 def _normalize_block(block: dict[str, Any]) -> dict[str, Any]:
     # Validate and normalize one content block from the editor payload before

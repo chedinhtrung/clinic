@@ -74,7 +74,7 @@ export default function BlogPostEditorAside({
   const [tagInputText, setTagInputText] = useState("");
   const previewSlug = post ? slugify(post.title) : "";
   const visibleSlug = post?.slug ?? previewSlug;
-  const postUrl = visibleSlug ? `https://blogs.chedinhnghia.com/${visibleSlug}` : null;
+  const postUrl = visibleSlug ? `https://chedinhnghia.com/blog/${visibleSlug}` : null;
   const hasPermanentSlug = Boolean(post?.slug);
   const autosaveLabel =
     autosaveStatus === "saving"
