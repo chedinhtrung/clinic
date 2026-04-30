@@ -75,6 +75,9 @@ const BLOG_API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ??
   "http://localhost:5002";
 
+const DEFAULT_BLOG_COVER_IMAGE =
+  "https://t4.ftcdn.net/jpg/16/79/44/21/360_F_1679442196_OEsi0AFKie6hYMBpvmXwwRgRYGV4U6Lz.jpg";
+
 type BlogPostResponse = {
   post: BlogPostRecord;
 };
@@ -258,6 +261,7 @@ export default async function BlogArticlePage(
   }
 
   const readTime = estimateReadTime(post.contentBlocks);
+  const coverImageUrl = post.coverImageUrl || DEFAULT_BLOG_COVER_IMAGE;
 
   return (
     <main className="min-h-screen bg-off-white text-text">
@@ -344,23 +348,12 @@ export default async function BlogArticlePage(
         <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
           <article className="overflow-hidden rounded-[12px] border border-gray-200 bg-white shadow-[0_10px_30px_rgba(10,35,66,0.08)]">
             <div className="border-b border-gray-200 bg-[linear-gradient(135deg,#f3f6fb_0%,#ffffff_58%,#eef5fc_100%)] px-6 py-8 sm:px-10">
-              <div className="rounded-[10px] border border-dashed border-gold/40 bg-white/70 p-6">
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gold">
-                  Vi tri anh dai dien
-                </p>
-                {post.coverImageUrl ? (
-                  <div className="mt-4 overflow-hidden rounded-[8px]">
-                    <img
-                      src={post.coverImageUrl}
-                      alt={post.title}
-                      className="h-72 w-full object-cover"
-                    />
-                  </div>
-                ) : (
-                  <div className="mt-4 flex min-h-56 items-center justify-center rounded-[8px] bg-[linear-gradient(135deg,#153560_0%,#1e4a80_60%,#c4922a_140%)] px-6 text-center text-sm font-semibold tracking-[0.16em] text-white/82">
-                    Template hero image placeholder
-                  </div>
-                )}
+              <div className="overflow-hidden rounded-[10px]">
+                <img
+                  src={coverImageUrl}
+                  alt={post.title}
+                  className="h-72 w-full object-cover"
+                />
               </div>
             </div>
 
