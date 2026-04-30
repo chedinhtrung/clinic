@@ -599,26 +599,17 @@ def db_update_booking_contact_for_change_link(
                 if booking_row is None:
                     raise BookingChangeAccessError("Không thể tìm thấy lịch hẹn này.")
 
-                # Reuse an existing patient row if the edited identity now matches another patient.
+                # Keep the resolved patient identity stable after confirmation-time edits.
                 matched_patient = _find_patient_by_identity(
                     cur,
                     normalized_email=normalized_email,
                     birthdate=birthdate,
                 )
-                target_patient_id = patient_id
 
                 if matched_patient is not None and str(matched_patient[0]) != str(patient_id):
-                    target_patient_id = matched_patient[0]
-                    cur.execute(
-                        """
-                        UPDATE bookings
-                        SET patient_id = %s
-                        WHERE id = %s
-                        """,
-                        (target_patient_id, booking_id),
-                    )
+                    raise BookingEmailConflictError("Email và ngày sinh này đã được sử dụng cho hồ sơ bệnh nhân khác.")
 
-                # Persist the latest contact details onto the resolved patient row.
+                # Persist the latest contact details onto the already attached patient row.
                 cur.execute(
                     """
                     UPDATE patients
@@ -629,13 +620,13 @@ def db_update_booking_contact_for_change_link(
                         phone = %s
                     WHERE id = %s
                     """,
-                    (name, gender, normalized_email, birthdate, phone, target_patient_id),
+                    (name, gender, normalized_email, birthdate, phone, patient_id),
                 )
 
-    return db_get_booking_for_change_link(booking_id=booking_id, patient_id=str(target_patient_id))
+    return db_get_booking_for_change_link(booking_id=booking_id, patient_id=str(patient_id))
 
 
-"""Delete one booking through the emailed change link without deleting the patient record."""
+"""Cancel one booking through the emailed change link without deleting the patient record."""
 def db_delete_booking_for_change_link(*, booking_id: str, patient_id: str) -> None:
     if not booking_id:
         raise ValueError("booking_id is required")
@@ -645,11 +636,12 @@ def db_delete_booking_for_change_link(*, booking_id: str, patient_id: str) -> No
     with DB_POOL.connection() as conn:
         with conn.transaction():
             with conn.cursor() as cur:
-                # Delete only the booking that matches the emailed booking/patient pair.
+                # Mark only the booking that matches the emailed booking/patient pair as cancelled.
                 cur.execute(
                     """
-                    DELETE FROM bookings b
-                    USING patients p
+                    UPDATE bookings b
+                    SET status = 'cancelled'
+                    FROM patients p
                     WHERE b.patient_id = p.id
                       AND b.id = %s
                       AND p.id = %s
