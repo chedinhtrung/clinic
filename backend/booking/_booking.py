@@ -55,6 +55,10 @@ class BookingChangeAccessError(ValueError):
     """Raised when a change-link booking lookup fails access validation."""
 
 
+class BookingConfirmationAccessError(ValueError):
+    """Raised when an email confirmation link is invalid or expired."""
+
+
 def _normalize_email(email: str) -> str:
     return email.strip().lower()
 
@@ -64,6 +68,7 @@ def _generate_patient_code() -> int:
 
 
 def _find_patient_by_identity(cur, *, normalized_email: str, birthdate: str):
+    # Find the canonical patient row for this normalized identity pair.
     cur.execute(
         """
         SELECT id, patient_code
@@ -91,6 +96,7 @@ def _create_patient(
     for _ in range(10):
         patient_code = _generate_patient_code()
         try:
+            # Create a new patient profile when this identity has not been seen before.
             cur.execute(
                 """
                 INSERT INTO patients (patient_code, name, gender, email, birthdate, phone)
@@ -118,6 +124,39 @@ def _build_vnpay_hash_data(params: dict[str, str]) -> str:
     return "&".join(f"{key}={quote_plus(str(value))}" for key, value in sorted_items)
 
 
+def _build_sha512_hex(value: str) -> str:
+    return sha512(value.encode("utf-8")).hexdigest()
+
+
+def _build_change_link(*, booking_id: str, patient_id: str) -> str:
+    return f"{BOOKING_PUBLIC_BASE_URL}/booking/change?booking_id={booking_id}&patient_id={patient_id}"
+
+
+def _build_confirmation_link(*, booking_id: str, token: str) -> str:
+    return f"{BOOKING_PUBLIC_BASE_URL}/api/booking/confirm?booking_id={booking_id}&token={token}"
+
+
+def _send_email(*, recipient_email: str, subject: str, body: str) -> None:
+    if not recipient_email:
+        raise ValueError("recipient_email is required")
+    if not SMTP_HOST or not SMTP_USERNAME or not SMTP_PASSWORD or not SMTP_FROM_EMAIL:
+        raise BookingPaymentConfigError(
+            "SMTP configuration is incomplete. Please set SMTP_HOST, SMTP_USERNAME, SMTP_PASSWORD, and SMTP_FROM_EMAIL."
+        )
+
+    message = EmailMessage()
+    message["Subject"] = subject
+    message["From"] = f"{SMTP_FROM_NAME} <{SMTP_FROM_EMAIL}>"
+    message["To"] = recipient_email
+    message.set_content(body)
+
+    with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=30) as smtp:
+        if SMTP_USE_TLS:
+            smtp.starttls()
+        smtp.login(SMTP_USERNAME, SMTP_PASSWORD)
+        smtp.send_message(message)
+
+
 def send_booking_confirmation_email(
     *,
     recipient_email: str,
@@ -128,29 +167,7 @@ def send_booking_confirmation_email(
     slot_end_at: datetime | None = None,
     patient_id: str
 ) -> None:
-    """Send a basic confirmation email after VNPay confirms the booking."""
-    print(
-        "[booking-email] preparing confirmation email "
-        f"recipient={recipient_email!r} reservation_code={reservation_code!r} "
-        f"slot_start_at={slot_start_at!r} slot_end_at={slot_end_at!r}"
-    )
-    if not recipient_email:
-        raise ValueError("recipient_email is required")
-    if not SMTP_HOST or not SMTP_USERNAME or not SMTP_PASSWORD or not SMTP_FROM_EMAIL:
-        print(
-            "[booking-email] SMTP configuration incomplete "
-            f"host_present={bool(SMTP_HOST)} username_present={bool(SMTP_USERNAME)} "
-            f"password_present={bool(SMTP_PASSWORD)} from_present={bool(SMTP_FROM_EMAIL)}"
-        )
-        raise BookingPaymentConfigError(
-            "SMTP configuration is incomplete. Please set SMTP_HOST, SMTP_USERNAME, SMTP_PASSWORD, and SMTP_FROM_EMAIL."
-        )
-    print(
-        "[booking-email] SMTP configuration detected "
-        f"host={SMTP_HOST!r} port={SMTP_PORT!r} username={SMTP_USERNAME!r} "
-        f"from_email={SMTP_FROM_EMAIL!r} tls={SMTP_USE_TLS!r}"
-    )
-
+    """Send a basic confirmation email after a booking has been confirmed."""
     subject = f"Xác nhận lịch hẹn #{reservation_code}"
     greeting_name = recipient_name or "Quý Khách"
     slot_line = ""
@@ -167,50 +184,58 @@ def send_booking_confirmation_email(
         "Chúng tôi xác nhận lịch hẹn của bạn như sau:\n \n" \
         f"Mã đặt chỗ: {reservation_code}\n" \
         f"{slot_line} \n \n" \
-        
         f"Cuộc gọi trực tuyến: #TODO chèn link online call\n\n" \
-        
         f"Để tiết kiệm thời gian và giúp bác sỹ nắm được tổng quan tình trạng của bạn, hãy vui lòng bỏ chút thời gian để hoàn thành bước đăng ký với trợ lý của chúng tôi: \n" \
         f" #TODO: Chèn link tới trợ lý \n \n" \
-
         f"Nếu cần thay đổi thông tin liên lạc hoặc hủy lịch hẹn, vui lòng click vào link dưới đây: \n" \
-        f" https://chedinhnghia.com/booking/change?booking_id={booking_id}&patient_id={patient_id}\n \n" \
-        
+        f" {_build_change_link(booking_id=booking_id, patient_id=patient_id)}\n \n" \
         "Nếu bạn cần hỗ trợ, vui lòng phản hồi email này.\n\n"
         "Trân trọng,\n"
         f"{SMTP_FROM_NAME}"
     )
 
-    message = EmailMessage()
-    message["Subject"] = subject
-    message["From"] = f"{SMTP_FROM_NAME} <{SMTP_FROM_EMAIL}>"
-    message["To"] = recipient_email
-    message.set_content(body)
+    _send_email(recipient_email=recipient_email, subject=subject, body=body)
 
-    print(
-        "[booking-email] email message constructed "
-        f"subject={subject!r} to={recipient_email!r} from={message['From']!r}"
+
+def send_booking_confirmation_request_email(
+    *,
+    recipient_email: str,
+    recipient_name: str | None,
+    reservation_code: str | int,
+    booking_id: str,
+    confirmation_token: str,
+    slot_start_at: datetime | None = None,
+    slot_end_at: datetime | None = None,
+) -> None:
+    subject = f"Xác nhận đặt chỗ #{reservation_code}"
+    greeting_name = recipient_name or "Quý Khách"
+    slot_line = ""
+    if slot_start_at is not None:
+        slot_line = (
+            f"Thời gian: {slot_start_at.astimezone(timezone(timedelta(hours=7))).strftime('%H:%M')} - " \
+            f"{slot_end_at.astimezone(timezone(timedelta(hours=7))).strftime('%H:%M')}" \
+            f" ngày {slot_start_at.astimezone(timezone(timedelta(hours=7))).strftime('%d/%m/%Y')}"
+        )
+
+    body = (
+        f"Xin chào {greeting_name}, \n \n" \
+        "Cảm ơn bạn đã sử dụng dịch vụ của Phòng khám Cơ Xương Khớp BS. Chế Đình Nghĩa. \n" \
+        "Chúng tôi đã giữ chỗ lịch hẹn của bạn như sau:\n \n" \
+        f"Mã đặt chỗ: {reservation_code}\n" \
+        f"{slot_line} \n \n" \
+        "Vui lòng click vào link dưới đây để xác nhận lịch hẹn của bạn: \n" \
+        f" {_build_confirmation_link(booking_id=booking_id, token=confirmation_token)}\n \n" \
+        "Nếu bạn không xác nhận kịp thời, lịch giữ chỗ có thể hết hạn.\n\n"
+        "Trân trọng,\n"
+        f"{SMTP_FROM_NAME}"
     )
-    print(message)
 
-    print(f"[booking-email] opening SMTP connection to {SMTP_HOST}:{SMTP_PORT}")
-    with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=30) as smtp:
-        if SMTP_USE_TLS:
-            print("[booking-email] starting TLS")
-            smtp.starttls()
-        else:
-            print("[booking-email] SMTP_USE_TLS disabled; sending without STARTTLS")
-        print(f"[booking-email] logging in as {SMTP_USERNAME!r}")
-        smtp.login(SMTP_USERNAME, SMTP_PASSWORD)
-        print("[booking-email] SMTP login succeeded; sending message")
-        smtp.send_message(message)
-        print("[booking-email] SMTP send_message completed")
-    
-    print(f"Sent email with {SMTP_USERNAME} {SMTP_PASSWORD}")
+    _send_email(recipient_email=recipient_email, subject=subject, body=body)
 
 
 """Return all distinct slot dates from tomorrow onward that this session may claim."""
 def db_get_available_dates(session_id: str | None = None) -> list[str]:
+    # List future dates that still have at least one slot this session can claim.
     query = """
         SELECT DISTINCT DATE(s.start_at) AS available_date
         FROM slots s
@@ -241,6 +266,8 @@ def db_get_available_slots(selected_date_raw: str, session_id: str | None = None
     day_start = datetime.combine(selected_date, time.min)
     day_end = day_start + timedelta(days=1)
 
+    # Return claimable slots for one calendar day, while preserving visibility
+    # of this session's own pending hold.
     query = """
         SELECT s.start_at, s.end_at, s.id
         FROM slots s
@@ -288,6 +315,7 @@ def db_claim_slot(*, slot_id: str, session_id: str) -> dict[str, str | int]:
             with DB_POOL.connection() as conn:
                 with conn.transaction():
                     with conn.cursor() as cur:
+                        # Lock the target slot row so competing claims serialize cleanly.
                         cur.execute(
                             """
                             SELECT id, start_at, end_at
@@ -301,6 +329,7 @@ def db_claim_slot(*, slot_id: str, session_id: str) -> dict[str, str | int]:
                         if slot_row is None:
                             raise ValueError("slot not found")
 
+                        # Check whether the selected slot is already held or confirmed.
                         cur.execute(
                             """
                             SELECT id, session_id, status, reservation_code, expires_at
@@ -314,6 +343,7 @@ def db_claim_slot(*, slot_id: str, session_id: str) -> dict[str, str | int]:
                         )
                         target_booking = cur.fetchone()
 
+                        # Load this session's current pending booking so we can reuse or move it.
                         cur.execute(
                             """
                             SELECT id, slot_id, reservation_code, status
@@ -413,6 +443,7 @@ def db_get_booking(*, booking_id: str, session_id: str) -> dict[str, str | int]:
     if not session_id:
         raise ValueError("session_id is required")
 
+    # Load one booking only if it still belongs to the current browser session.
     query = """
         SELECT b.id, b.reservation_code, b.status, b.slot_id, b.expires_at, s.start_at, s.end_at,
                p.patient_code, p.name, p.email, p.phone, p.birthdate, p.gender
@@ -457,6 +488,7 @@ def db_get_booking_for_change_link(*, booking_id: str, patient_id: str) -> dict[
     if not patient_id:
         raise ValueError("patient_id is required")
 
+    # Resolve a booking from the identifiers embedded in the emailed change link.
     query = """
         SELECT b.id, b.reservation_code, b.status, b.slot_id, b.expires_at, b.confirmed_at,
                s.start_at, s.end_at, p.id, p.patient_code, p.name, p.email, p.phone, p.birthdate, p.gender
@@ -500,6 +532,7 @@ def db_cancel_pending_booking_for_session(*, session_id: str) -> None:
     if not session_id:
         raise ValueError("session_id is required")
 
+    # Cancel the latest pending booking still owned by this browser session.
     query = """
         UPDATE bookings
         SET status = 'cancelled'
@@ -548,6 +581,7 @@ def db_update_booking_contact_for_change_link(
     with DB_POOL.connection() as conn:
         with conn.transaction():
             with conn.cursor() as cur:
+                # Lock the booking and linked patient row that the emailed link is allowed to edit.
                 cur.execute(
                     """
                     SELECT b.id, b.status, p.id
@@ -565,6 +599,7 @@ def db_update_booking_contact_for_change_link(
                 if booking_row is None:
                     raise BookingChangeAccessError("Không thể tìm thấy lịch hẹn này.")
 
+                # Reuse an existing patient row if the edited identity now matches another patient.
                 matched_patient = _find_patient_by_identity(
                     cur,
                     normalized_email=normalized_email,
@@ -583,6 +618,7 @@ def db_update_booking_contact_for_change_link(
                         (target_patient_id, booking_id),
                     )
 
+                # Persist the latest contact details onto the resolved patient row.
                 cur.execute(
                     """
                     UPDATE patients
@@ -609,6 +645,7 @@ def db_delete_booking_for_change_link(*, booking_id: str, patient_id: str) -> No
     with DB_POOL.connection() as conn:
         with conn.transaction():
             with conn.cursor() as cur:
+                # Delete only the booking that matches the emailed booking/patient pair.
                 cur.execute(
                     """
                     DELETE FROM bookings b
@@ -626,7 +663,7 @@ def db_delete_booking_for_change_link(*, booking_id: str, patient_id: str) -> No
                     raise BookingChangeAccessError("Không thể tìm thấy lịch hẹn này")
 
 
-"""Persist patient details for the current session's active booking and allow payment to continue."""
+"""Persist patient details on the current session-owned booking row."""
 def db_proceed_to_payment_for_session(
     *,
     session_id: str,
@@ -654,6 +691,8 @@ def db_proceed_to_payment_for_session(
     with DB_POOL.connection() as conn:
         with conn.transaction():
             with conn.cursor() as cur:
+                # Load and lock the current session-owned pending booking that is moving
+                # from anonymous session ownership to patient-linked ownership.
                 cur.execute(
                     """
                     SELECT id, slot_id, patient_id, status, expires_at
@@ -672,7 +711,6 @@ def db_proceed_to_payment_for_session(
                     raise BookingAccessError("booking not found")
 
                 booking_id = booking_row[0]
-                slot_id = booking_row[1]
                 patient_id = booking_row[2]
                 booking_status = booking_row[3]
                 expires_at = booking_row[4]
@@ -697,35 +735,29 @@ def db_proceed_to_payment_for_session(
                     birthdate=birthdate,
                 )
 
-                identity_bookings = []
-                if matched_patient is not None:
-                    canonical_patient_id = matched_patient[0]
+                canonical_patient_id = matched_patient[0] if matched_patient is not None else patient_id
+
+                if canonical_patient_id is not None:
+                    # Inspect active bookings for this patient identity to enforce the
+                    # "at most one confirmed booking" rule.
                     cur.execute(
                         """
-                        SELECT id, slot_id, patient_id, status
+                        SELECT id, status
                         FROM bookings
                         WHERE patient_id = %s
                           AND status IN ('pending', 'confirmed')
-                        ORDER BY CASE WHEN status = 'confirmed' THEN 0 ELSE 1 END, created_at DESC
+                        ORDER BY created_at DESC
                         FOR UPDATE
                         """,
                         (canonical_patient_id,),
                     )
                     identity_bookings = cur.fetchall()
                 else:
-                    canonical_patient_id = patient_id
+                    identity_bookings = []
 
-                confirmed_booking = next((row for row in identity_bookings if row[3] == "confirmed"), None)
-                pending_booking = next((row for row in identity_bookings if row[3] == "pending"), None)
-
+                confirmed_booking = next((row for row in identity_bookings if row[1] == "confirmed"), None)
                 if confirmed_booking is not None and str(confirmed_booking[0]) != str(booking_id):
                     raise BookingEmailConflictError("Bạn đã có một lịch hẹn được xác nhận. Vui lòng kiểm tra email và hủy nếu muốn thay đổi lịch hẹn.")
-
-                canonical_booking_id = booking_id
-
-                if pending_booking is not None and str(pending_booking[0]) != str(booking_id):
-                    canonical_booking_id = pending_booking[0]
-                    canonical_patient_id = pending_booking[2]
 
                 if canonical_patient_id is None:
                     created_patient = _create_patient(
@@ -738,6 +770,7 @@ def db_proceed_to_payment_for_session(
                     )
                     canonical_patient_id = created_patient[0]
                 else:
+                    # Refresh the matched patient's contact details with the latest form submission.
                     cur.execute(
                         """
                         UPDATE patients
@@ -751,28 +784,32 @@ def db_proceed_to_payment_for_session(
                         (name, gender, normalized_email, birthdate, phone, canonical_patient_id),
                     )
 
+                # Keep the current booking row and only resolve its patient relationship.
                 cur.execute(
                     """
                     UPDATE bookings
-                    SET slot_id = %s,
+                    SET patient_id = %s,
                         session_id = %s,
-                        patient_id = %s,
                         expires_at = %s
                     WHERE id = %s
                     RETURNING id, reservation_code, status, slot_id, expires_at
                     """,
-                    (slot_id, session_id, canonical_patient_id, payment_expires_at, canonical_booking_id),
+                    (canonical_patient_id, session_id, payment_expires_at, booking_id),
                 )
                 updated_booking = cur.fetchone()
 
-                if str(canonical_booking_id) != str(booking_id):
+                if canonical_patient_id is not None:
+                    # Cancel any older pending bookings for the same patient so the latest
+                    # active session-owned booking wins.
                     cur.execute(
                         """
                         UPDATE bookings
                         SET status = 'cancelled'
-                        WHERE id = %s
+                        WHERE patient_id = %s
+                          AND status = 'pending'
+                          AND id <> %s
                         """,
-                        (booking_id,),
+                        (canonical_patient_id, booking_id),
                     )
 
     return {
@@ -782,6 +819,100 @@ def db_proceed_to_payment_for_session(
         "slotId": str(updated_booking[3]),
         "expiresAt": updated_booking[4].isoformat(),
         "displayExpiresAt": (updated_booking[4] - timedelta(minutes=1)).isoformat(),
+    }
+
+
+def db_send_booking_confirmation_for_session(*, session_id: str, booking_id: str) -> dict[str, str | int | bool]:
+    if not session_id:
+        raise ValueError("session_id is required")
+    if not booking_id:
+        raise ValueError("booking_id is required")
+
+    confirmation_token = token_urlsafe(32)
+    confirmation_hash = _build_sha512_hex(confirmation_token)
+    now_utc = datetime.now(timezone.utc)
+    confirmation_expires_at = now_utc + timedelta(minutes=BOOKING_CONFIRMATION_WINDOW_MINUTES)
+
+    with DB_POOL.connection() as conn:
+        with conn.transaction():
+            with conn.cursor() as cur:
+                # Load the session-owned booking that is requesting the no-payment confirmation email.
+                cur.execute(
+                    """
+                    SELECT b.id, b.status, b.expires_at, b.reservation_code, p.email, p.name, p.id, s.start_at, s.end_at
+                    FROM bookings b
+                    JOIN slots s ON s.id = b.slot_id
+                    LEFT JOIN patients p ON p.id = b.patient_id
+                    WHERE b.id = %s
+                      AND b.session_id = %s
+                    FOR UPDATE OF b
+                    LIMIT 1
+                    """,
+                    (booking_id, session_id),
+                )
+                booking_row = cur.fetchone()
+
+                if booking_row is None:
+                    raise BookingAccessError("booking not found")
+
+                booking_status = booking_row[1]
+                expires_at = booking_row[2]
+                recipient_email = booking_row[4]
+                recipient_name = booking_row[5]
+
+                if booking_status != "pending":
+                    raise BookingAccessError("booking is no longer pending")
+                if expires_at <= now_utc:
+                    cur.execute(
+                        """
+                        UPDATE bookings
+                        SET status = 'expired'
+                        WHERE id = %s
+                        """,
+                        (booking_id,),
+                    )
+                    raise BookingExpiredError("Bạn cĐã có người khác nhanh tay hơn đặt lịch hẹn này, bạn thử lại nhé!")
+                if not recipient_email:
+                    raise ValueError("booking is missing patient email")
+
+                # Store a one-time confirmation hash and extend the window for the email click.
+                cur.execute(
+                    """
+                    UPDATE bookings
+                    SET confirmation_hash = %s,
+                        expires_at = %s
+                    WHERE id = %s
+                    """,
+                    (confirmation_hash, confirmation_expires_at, booking_id),
+                )
+
+                email_payload = {
+                    "recipientEmail": recipient_email,
+                    "recipientName": recipient_name or "",
+                    "reservationCode": str(booking_row[3]),
+                    "bookingId": str(booking_row[0]),
+                    "patientId": str(booking_row[6]),
+                    "slotStartAt": booking_row[7].isoformat(),
+                    "slotEndAt": booking_row[8].isoformat(),
+                    "confirmationToken": confirmation_token,
+                }
+
+    send_booking_confirmation_request_email(
+        recipient_email=email_payload["recipientEmail"],
+        recipient_name=email_payload["recipientName"],
+        reservation_code=email_payload["reservationCode"],
+        booking_id=email_payload["bookingId"],
+        confirmation_token=email_payload["confirmationToken"],
+        slot_start_at=datetime.fromisoformat(email_payload["slotStartAt"]),
+        slot_end_at=datetime.fromisoformat(email_payload["slotEndAt"]),
+    )
+
+    return {
+        "ok": True,
+        "bookingId": email_payload["bookingId"],
+        "reservationCode": email_payload["reservationCode"],
+        "emailSent": True,
+        "expiresAt": confirmation_expires_at.isoformat(),
     }
 
 
@@ -796,6 +927,7 @@ def db_create_vnpay_payment_url(*, booking_id: str, session_id: str, client_ip: 
 
     now_gmt7 = datetime.now(timezone(timedelta(hours=7)))
 
+    # Load one payable booking while ensuring it still belongs to the current session.
     query = """
         SELECT b.id, b.status, b.expires_at, b.reservation_code, p.name
         FROM bookings b
@@ -854,6 +986,116 @@ def db_create_vnpay_payment_url(*, booking_id: str, session_id: str, client_ip: 
     return f"{VNPAY_PAYMENT_URL}?{query_string}"
 
 
+def db_confirm_booking_from_email_link(*, booking_id: str, confirmation_token: str) -> dict[str, str | bool | None]:
+    if not booking_id:
+        raise ValueError("booking_id is required")
+    if not confirmation_token:
+        raise ValueError("token is required")
+
+    confirmation_hash = _build_sha512_hex(confirmation_token)
+    confirmation_email_payload = None
+
+    with DB_POOL.connection() as conn:
+        with conn.transaction():
+            with conn.cursor() as cur:
+                # Lock the booking referenced by the emailed token before validating and confirming it.
+                cur.execute(
+                    """
+                    SELECT b.id, b.status, b.expires_at, b.confirmed_at, b.reservation_code, b.confirmation_hash,
+                           p.email, p.name, p.id, s.start_at, s.end_at
+                    FROM bookings b
+                    JOIN slots s ON s.id = b.slot_id
+                    LEFT JOIN patients p ON p.id = b.patient_id
+                    WHERE b.id = %s
+                    FOR UPDATE OF b
+                    LIMIT 1
+                    """,
+                    (booking_id,),
+                )
+                booking_row = cur.fetchone()
+
+                if booking_row is None:
+                    raise BookingConfirmationAccessError("booking not found")
+
+                booking_status = booking_row[1]
+                expires_at = booking_row[2]
+                confirmed_at = booking_row[3]
+                stored_confirmation_hash = booking_row[5]
+
+                if stored_confirmation_hash != confirmation_hash:
+                    raise BookingConfirmationAccessError("invalid confirmation link")
+
+                if booking_status == "confirmed":
+                    return {
+                        "ok": True,
+                        "bookingId": str(booking_row[0]),
+                        "reservationCode": str(booking_row[4]),
+                        "confirmed": True,
+                        "confirmedAt": confirmed_at.isoformat() if confirmed_at else None,
+                        "confirmationEmailSent": False,
+                    }
+
+                if booking_status != "pending":
+                    raise BookingConfirmationAccessError("booking is no longer pending")
+                if expires_at <= datetime.now(timezone.utc):
+                    cur.execute(
+                        """
+                        UPDATE bookings
+                        SET status = 'expired'
+                        WHERE id = %s
+                        """,
+                        (booking_id,),
+                    )
+                    raise BookingExpiredError("Bạn cĐã có người khác nhanh tay hơn đặt lịch hẹn này, bạn thử lại nhé!")
+
+                # Flip the booking into the confirmed state once the emailed token is accepted.
+                cur.execute(
+                    """
+                    UPDATE bookings
+                    SET status = 'confirmed',
+                        confirmed_at = now(),
+                        confirmation_hash = NULL
+                    WHERE id = %s
+                    RETURNING confirmed_at
+                    """,
+                    (booking_id,),
+                )
+                confirmed_at = cur.fetchone()[0]
+
+                if booking_row[6]:
+                    confirmation_email_payload = {
+                        "recipientEmail": booking_row[6],
+                        "recipientName": booking_row[7] or "",
+                        "reservationCode": str(booking_row[4]),
+                        "bookingId": str(booking_row[0]),
+                        "patientId": str(booking_row[8]),
+                        "slotStartAt": booking_row[9].isoformat(),
+                        "slotEndAt": booking_row[10].isoformat(),
+                    }
+
+    confirmation_email_sent = False
+    if confirmation_email_payload:
+        send_booking_confirmation_email(
+            recipient_email=confirmation_email_payload["recipientEmail"],
+            recipient_name=confirmation_email_payload["recipientName"],
+            reservation_code=confirmation_email_payload["reservationCode"],
+            booking_id=confirmation_email_payload["bookingId"],
+            patient_id=confirmation_email_payload["patientId"],
+            slot_start_at=datetime.fromisoformat(confirmation_email_payload["slotStartAt"]),
+            slot_end_at=datetime.fromisoformat(confirmation_email_payload["slotEndAt"]),
+        )
+        confirmation_email_sent = True
+
+    return {
+        "ok": True,
+        "bookingId": str(booking_id),
+        "reservationCode": confirmation_email_payload["reservationCode"] if confirmation_email_payload else None,
+        "confirmed": True,
+        "confirmedAt": confirmed_at.isoformat() if confirmed_at else None,
+        "confirmationEmailSent": confirmation_email_sent,
+    }
+
+
 """Verify VNPay callback parameters and optionally confirm the booking for IPN requests."""
 def db_process_vnpay_callback(
     callback_params: dict[str, str],
@@ -910,6 +1152,7 @@ def db_process_vnpay_callback(
         with conn.transaction():
             with conn.cursor() as cur:
                 print(f"[vnpay-callback] looking up booking for reservation_code={txn_ref!r}")
+                # Lock the booking behind this VNPay reservation code before reconciling payment.
                 cur.execute(
                     """
                     SELECT b.id, b.status, b.confirmed_at, p.email, p.name, p.id, s.start_at, s.end_at
@@ -955,6 +1198,7 @@ def db_process_vnpay_callback(
 
                 if successful_payment and booking_status != "confirmed" and allow_confirmation:
                     print(f"[vnpay-callback] confirming booking_id={booking_id!r}")
+                    # Confirm the booking only on the authoritative VNPay callback path.
                     cur.execute(
                         """
                         UPDATE bookings
@@ -976,10 +1220,10 @@ def db_process_vnpay_callback(
                             "recipientEmail": patient_email,
                             "recipientName": patient_name or "",
                             "reservationCode": str(txn_ref),
-                            "booking_id":str(booking_id),
-                            "patient_id":str(patient_id),
+                            "bookingId": str(booking_id),
+                            "patientId": str(patient_id),
                             "slotStartAt": slot_start_at.isoformat(),
-                            "slotEndAt": slot_end_at.isoformat()
+                            "slotEndAt": slot_end_at.isoformat(),
                         }
                         print(
                             "[vnpay-callback] prepared confirmation email payload "
@@ -1018,6 +1262,7 @@ def db_process_vnpay_callback(
 
 """Mark expired pending bookings so they stop blocking slot availability."""
 def db_expire_pending_bookings() -> int:
+    # Expire pending bookings whose hold or email-confirmation window has elapsed.
     query = """
         UPDATE bookings
         SET status = 'expired'

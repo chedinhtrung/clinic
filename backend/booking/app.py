@@ -235,6 +235,53 @@ def proceed_to_payment():
     return jsonify({"booking": booking})
 
 
+@app.route("/api/booking/send_confirmation_email", methods=["POST"])
+def send_booking_confirmation_email_for_session():
+    session_id = request.cookies.get(BOOKING_SESSION_COOKIE)
+    if not session_id:
+        return jsonify({"error": "missing booking session"}), 400
+
+    data = request.get_json() or {}
+
+    try:
+        result = db_send_booking_confirmation_for_session(
+            session_id=session_id,
+            booking_id=(data.get("bookingId") or "").strip(),
+        )
+    except BookingExpiredError as exc:
+        return jsonify({"error": str(exc)}), 410
+    except BookingAccessError as exc:
+        return jsonify({"error": str(exc)}), 404
+    except BookingPaymentConfigError as exc:
+        return jsonify({"error": str(exc)}), 500
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    return jsonify({"result": result})
+
+
+@app.route("/api/booking/confirm", methods=["GET"])
+def confirm_booking_from_email_link():
+    booking_id = (request.args.get("booking_id") or "").strip()
+    confirmation_token = (request.args.get("token") or "").strip()
+
+    try:
+        result = db_confirm_booking_from_email_link(
+            booking_id=booking_id,
+            confirmation_token=confirmation_token,
+        )
+    except BookingConfirmationAccessError as exc:
+        return jsonify({"error": str(exc)}), 404
+    except BookingExpiredError as exc:
+        return jsonify({"error": str(exc)}), 410
+    except BookingPaymentConfigError as exc:
+        return jsonify({"error": str(exc)}), 500
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    return jsonify({"result": result})
+
+
 @app.route("/api/payment/vnpay", methods=["POST"])
 def create_vnpay_payment():
     """Create a signed VNPay payment URL for the current booking.
@@ -320,8 +367,6 @@ def handle_vnpay_ipn():
 
     email_payload = result.get("confirmationEmail")
     print(f"[vnpay-ipn] callback result: {result!r}")
-    print(email_payload)
-    print(result)
     if result["confirmed"] and email_payload:
         print(
             "[vnpay-ipn] attempting confirmation email send "
@@ -332,8 +377,8 @@ def handle_vnpay_ipn():
                 recipient_email=email_payload["recipientEmail"],
                 recipient_name=email_payload["recipientName"],
                 reservation_code=email_payload["reservationCode"],
-                booking_id=email_payload["booking_id"],
-                patient_id=email_payload["patient_id"],
+                booking_id=email_payload["bookingId"],
+                patient_id=email_payload["patientId"],
                 slot_start_at=datetime.fromisoformat(email_payload["slotStartAt"]),
                 slot_end_at=datetime.fromisoformat(email_payload["slotEndAt"]),
             )
