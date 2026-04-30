@@ -112,14 +112,14 @@ function BookingChangeContent() {
     const res = await fetch(withApiBase(`/api/booking/change?${query.toString()}`), {
       method: "DELETE",
     });
-    const data = await res.json();
 
     if (!res.ok) {
-      throw new Error(data?.error ?? "KhÃ´ng há»§y Ä‘Æ°á»£c lá»‹ch háº¹n.");
+      alert("Không hủy được lịch hẹn. Vui lòng liên hệ Hotline để được hỗ trợ thêm.");
+      return;
     }
-
-    alert("Không hủy được lịch hẹn. Vui lòng liên hệ Hotline để được hỗ trợ thêm.");
+    alert("Lich hẹn đã được hủy thanh công.");
     router.push("/");
+   
   }
 
   const startAt = booking?.startAt ? new Date(booking.startAt) : null;
