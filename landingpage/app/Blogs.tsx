@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { withBlogApiBase } from "@/app/apiBase";
 
 type BlogCategory = {
@@ -213,11 +214,9 @@ export default function Blogs() {
           {!isLoading &&
             !errorMessage &&
             posts.map((post) => (
-              <a
+              <Link
                 key={post.id}
                 href={post.url}
-                target="_blank"
-                rel="noreferrer"
                 className="block rounded-lg border border-[#d7dfed] bg-white px-6 py-5 text-left shadow-sm transition hover:border-navy/40 hover:shadow-md"
               >
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-semibold uppercase tracking-[0.18em]">
@@ -246,7 +245,7 @@ export default function Blogs() {
                     ))}
                   </div>
                 )}
-              </a>
+              </Link>
             ))}
         </div>
       </div>

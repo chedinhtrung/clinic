@@ -1,6 +1,9 @@
 # BlogEditor
 
-This directory contains the admin blog management UI. The current implementation is still backed by mock data, but the component boundaries are shaped like the eventual backend flow: list/query posts, edit one post, autosave the selected post, and render content blocks for public preview.
+This directory contains the admin blog management UI. It is wired to the real
+admin blog backend and is responsible for listing posts, editing one selected
+post, autosaving changes, and managing the structured block content used by the
+public SSR blog page.
 
 ## Main Files
 
@@ -8,7 +11,8 @@ This directory contains the admin blog management UI. The current implementation
 - `BlogPostEditorAside.tsx` renders the slide-over editor for title, metadata, tags, publishing, content, and delete actions.
 - `BlogContentRenderer/` renders blog content blocks in read-only mode and provides the Notion-like block editor in editable mode.
 - `BlogPostTable.tsx` renders the paginated post table and row-level title edits.
-- `api.ts` contains mock backend calls for lookup data, paginated posts, and autosave.
+- `api.ts` contains the real admin backend calls for lookup data, paginated
+  posts, autosave, creation, and deletion.
 - `types.ts` defines shared blog post, block, lookup, load, and autosave types.
 - `utils.ts` contains constants and helpers such as slug generation and tag extraction.
 
@@ -75,22 +79,17 @@ The flow is:
 2. `updatePost` applies the local change, marks the post dirty, and shows `Saving...`.
 3. A debounced effect waits 900 ms after the latest selected post change.
 4. The effect calls `autosaveBlogPost(selectedPost)` from `api.ts`.
-5. The mock API waits briefly, logs the save payload, and returns a `savedAt` timestamp.
-6. The UI shows `Saved HH:MM` when the latest save succeeds.
+5. The admin backend persists the canonical post document and returns the saved post plus a `savedAt` timestamp.
+6. The UI merges the returned post back into local state and shows `Saved HH:MM` when the latest save succeeds.
 
-Autosave uses sequence numbers so stale save responses cannot overwrite newer save state. It also tracks loaded and dirty post ids so selecting/opening a post does not immediately trigger a save.
+Autosave uses sequence numbers so stale save responses cannot overwrite newer
+save state. It also tracks loaded and dirty post ids so selecting/opening a
+post does not immediately trigger a save.
 
-The mock autosave call currently logs:
-
-```ts
-{
-  id: post.id,
-  title: post.title || "Untitled",
-  blockCount: post.contentBlocks.length,
-}
-```
-
-When replacing the mock backend, keep the same `autosaveBlogPost(post): Promise<{ savedAt: string }>` shape unless the UI needs more save metadata.
+The current backend already returns
+`autosaveBlogPost(post): Promise<{ savedAt: string; post: BlogPost }>` and the
+editor merges the canonical saved post back into local state after each
+successful autosave.
 
 ## Save Status UI
 
@@ -105,4 +104,6 @@ This keeps autosave visible without adding controls to the content editing surfa
 
 ## Current Verification Notes
 
-Targeted ESLint has been run against the edited BlogEditor files. Full project TypeScript currently stops on an unrelated `SlotMgmt.tsx` issue where a temporary `Slot` object is missing required patient fields.
+The editor now persists real blog content into Postgres through the admin API.
+For broader system context, see
+[docs/blog-architecture.md](/home/steve/Desktop/clinic/docs/blog-architecture.md).

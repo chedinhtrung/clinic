@@ -2,6 +2,7 @@ import os
 
 from psycopg.rows import dict_row
 from psycopg_pool import ConnectionPool
+from urllib.parse import quote
 
 
 BLOG_DB_URL = os.environ.get("BLOG_DB_URL")
@@ -20,12 +21,18 @@ def db_healthcheck() -> bool:
     return bool(row and row["ok"] == 1)
 
 
+def _build_public_url(slug: str | None) -> str | None:
+    if not slug:
+        return None
+    return f"https://chedinhnghia.com/blog/{quote(slug)}"
+
+
 def _serialize_post(row: dict, *, include_content_blocks: bool = False) -> dict:
     post = {
         "id": str(row["id"]),
         "title": row["title"],
         "slug": row["slug"],
-        "url": row["url"],
+        "url": _build_public_url(row["slug"]),
         "shortDescription": row["short_description"],
         "coverImageUrl": row["cover_image_url"],
         "status": row["status"],
