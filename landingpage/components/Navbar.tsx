@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 
 const menuItems = [
@@ -39,9 +40,14 @@ export default function Navbar(
         <nav className="sticky top-0 z-10 bg-navy-mid px-4 py-2 text-white leading-relaxed sm:px-8">
             <div className="flex items-center gap-4">
                 <div className="flex items-center gap-4">
-                    <div className="p-1 rounded-full bg-gold aspect-square items-center hidden sm:flex">
-                        CĐN
-                    </div>
+                    <Image
+                        src="/images/logo.png"
+                        alt="TS.BS. Chế Đình Nghĩa"
+                        width={48}
+                        height={48}
+                        className="hidden h-12 w-12 rounded-full object-cover sm:block"
+                        priority
+                    />
                     <Link
                         href="/"
                         className="tracking-normal leading-relaxed text-white"
@@ -99,7 +105,16 @@ export default function Navbar(
                 className={`fixed right-0 top-0 z-30 h-dvh w-72 max-w-[85vw] bg-navy-mid shadow-2xl transition-transform duration-300 lg:hidden ${isMenuOpen ? "translate-x-0" : "translate-x-full"}`}
             >
                 <div className="flex h-16 items-center justify-between border-b border-white/15 px-5">
-                    <span className="font-bold font-serif text-sm">TS.BS. Chế Đình Nghĩa</span>
+                    <div className="flex items-center gap-3">
+                        <Image
+                            src="/images/logo.png"
+                            alt="TS.BS. Chế Đình Nghĩa"
+                            width={36}
+                            height={36}
+                            className="h-9 w-9 rounded-full object-cover"
+                        />
+                        <span className="font-bold font-serif text-sm">TS.BS. Chế Đình Nghĩa</span>
+                    </div>
                     <button
                         type="button"
                         className="flex h-9 w-9 items-center justify-center rounded-sm border border-white/30 text-white transition-colors hover:border-gold hover:text-gold"

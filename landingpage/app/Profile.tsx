@@ -50,8 +50,8 @@ export default function Profile() {
             TS. BS. Chế Đình Nghĩa
           </h2>
           <p className="mt-4 text-base leading-8 text-navy-mid/80 sm:text-lg">
-            Hơn 20 năm công tác trong ngành y, TS. BS. Chế Đình Nghĩa là chuyên gia
-            giàu kinh nghiệm trong chấn thương chỉnh hình và phẫu thuật tạo hình.
+            Hơn 20 năm công tác tại các bệnh viện tuyến đầu, TS. BS. Chế Đình Nghĩa là chuyên gia
+            hàng đầu về chấn thương chỉnh hình và phẫu thuật tạo hình.
             Bác sĩ đã điều trị nhiều ca bệnh phức tạp bằng kỹ thuật ít xâm lấn,
             giúp giảm đau, hạn chế biến chứng và rút ngắn thời gian hồi phục cho
             người bệnh.
