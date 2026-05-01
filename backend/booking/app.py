@@ -172,6 +172,7 @@ def update_booking_for_change_link():
             phone=(data.get("phone") or "").strip(),
             birthdate=data.get("birthdate", "").strip(),
             gender=data.get("gender", "").strip(),
+            patient_note=(data.get("message") or "").strip(),
         )
     except BookingEmailConflictError as exc:
         return jsonify({"error": str(exc)}), 409
@@ -222,6 +223,7 @@ def prepare_booking_confirmation():
             phone=(data.get("phone") or "").strip(),
             birthdate=data.get("birthdate", "").strip(),
             gender=data.get("gender", "").strip(),
+            patient_note=(data.get("message") or "").strip(),
         )
     except BookingEmailConflictError as exc:
         return jsonify({"error": str(exc)}), 409

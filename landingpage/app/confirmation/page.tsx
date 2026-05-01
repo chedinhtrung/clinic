@@ -20,6 +20,7 @@ type BookingDetails = {
     patientPhone?: string | null;
     patientBirthdate?: string | null;
     patientGender?: string | null;
+    patientNote?: string | null;
 }
 
 function getBrowserTimeZone() {
@@ -201,6 +202,7 @@ function ConfirmationPageContent() {
                             <p className="text-txt-gray"><span className="font-semibold text-black">Số điện thoại:</span> {booking.patientPhone || "-"}</p>
                             <p className="text-txt-gray"><span className="font-semibold text-black">Ngày sinh:</span> {booking.patientBirthdate || "-"}</p>
                             <p className="text-txt-gray"><span className="font-semibold text-black">Giới tính:</span> {booking.patientGender === "male" ? "Nam" : booking.patientGender === "female" ? "Nữ" : "-"}</p>
+                            <p className="text-txt-gray"><span className="font-semibold text-black">Ghi chú:</span> {booking.patientNote || "-"}</p>
                         </div>
 
                         {emailSent ? (

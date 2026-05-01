@@ -63,7 +63,8 @@ def _row_to_admin_slot(row: Any) -> dict[str, Any]:
         "patient_email": row[9],
         "patient_phone": row[10],
         "patient_gender": row[11],
-        "ai_summary": row[15],
+        "patient_note": row[15],
+        "ai_summary": row[16],
     }
 
 
@@ -83,12 +84,13 @@ ADMIN_SLOT_SELECT = """
            b.reservation_code,
            b.expires_at,
            b.confirmed_at,
-           p.ai_summary
+           b.patient_note,
+           b.ai_summary
     FROM slots s
     LEFT JOIN LATERAL (
         -- Admin status is based only on active bookings. Historical expired,
         -- cancelled, and finished bookings should not block slot availability.
-        SELECT id, slot_id, patient_id, status, reservation_code, expires_at, confirmed_at
+        SELECT id, slot_id, patient_id, status, reservation_code, expires_at, confirmed_at, patient_note, ai_summary
         FROM bookings
         WHERE slot_id = s.id
           AND status IN ('pending', 'confirmed')

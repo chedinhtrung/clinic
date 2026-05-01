@@ -345,7 +345,7 @@ export default function SlotEditor(
                     </section>
                 )}
 
-                {(slot.patient_name || slot.patient_email || slot.patient_phone || slot.ai_summary) && (
+                {(slot.patient_name || slot.patient_email || slot.patient_phone || slot.patient_note || slot.ai_summary) && (
                     <section className="mb-8">
                         <h2 className="mb-3 text-sm font-bold uppercase text-txt-gray">Thông tin bệnh nhân</h2>
                         <div className="grid gap-3 text-sm text-txt-dark md:grid-cols-2">
@@ -374,6 +374,12 @@ export default function SlotEditor(
                                 <p>{slot.patient_birthdate || "Chưa có"}</p>
                             </div>
                         </div>
+                        {slot.patient_note && (
+                            <div className="mt-4 rounded bg-bg-tinted p-4 text-sm text-txt-dark">
+                                <p className="mb-2 font-semibold text-txt-gray">Ghi chú</p>
+                                <p className="whitespace-pre-wrap">{slot.patient_note}</p>
+                            </div>
+                        )}
                         {slot.ai_summary && (
                             <div className="mt-4 rounded bg-bg-tinted p-4 text-sm text-txt-dark">
                                 <p className="mb-2 font-semibold text-txt-gray">AI summary</p>

@@ -28,6 +28,8 @@ CREATE TABLE bookings (
   expires_at timestamptz NOT NULL,
   confirmed_at timestamptz,
   confirmation_hash text,
+  patient_note text,
+  ai_summary text,
   status text NOT NULL DEFAULT 'pending',
   reservation_code bigint NOT NULL UNIQUE,
   CHECK (status IN ('pending', 'confirmed', 'expired', 'cancelled', 'finished'))

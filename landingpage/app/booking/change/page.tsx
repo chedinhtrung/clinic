@@ -22,6 +22,7 @@ type BookingDetails = {
   patientPhone?: string | null;
   patientBirthdate?: string | null;
   patientGender?: string | null;
+  patientNote?: string | null;
 }
 
 type BookingChangeFormValues = {
@@ -30,6 +31,7 @@ type BookingChangeFormValues = {
   phone: string;
   birthdate: string;
   gender: string;
+  message: string;
 }
 
 function getBrowserTimeZone() {
@@ -182,6 +184,7 @@ function BookingChangeContent() {
                 phone: booking.patientPhone ?? "",
                 birthdate: booking.patientBirthdate ?? "",
                 gender: booking.patientGender ?? "",
+                message: booking.patientNote ?? "",
               }}
               onSubmit={handleUpdate}
               onCancelBooking={handleDelete}

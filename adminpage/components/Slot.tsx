@@ -17,6 +17,7 @@ export type Slot = {
     patient_email?: string | null;
     patient_phone?: string | null;
     patient_gender?: string | null;
+    patient_note?: string | null;
     ai_summary?: string | null;
 };
 

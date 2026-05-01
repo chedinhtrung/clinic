@@ -450,6 +450,7 @@ def db_get_booking(*, booking_id: str, session_id: str) -> dict[str, str | int]:
     # Load one booking only if it still belongs to the current browser session.
     query = """
         SELECT b.id, b.reservation_code, b.status, b.slot_id, b.expires_at, s.start_at, s.end_at,
+               b.patient_note,
                p.patient_code, p.name, p.email, p.phone, p.birthdate, p.gender
         FROM bookings b
         JOIN slots s ON s.id = b.slot_id
@@ -476,12 +477,13 @@ def db_get_booking(*, booking_id: str, session_id: str) -> dict[str, str | int]:
         "displayExpiresAt": (row[4] - timedelta(minutes=1)).isoformat(),
         "startAt": row[5].isoformat(),
         "endAt": row[6].isoformat(),
-        "patientCode": row[7],
-        "patientName": row[8],
-        "patientEmail": row[9],
-        "patientPhone": row[10],
-        "patientBirthdate": row[11].isoformat() if row[11] else None,
-        "patientGender": row[12],
+        "patientNote": row[7],
+        "patientCode": row[8],
+        "patientName": row[9],
+        "patientEmail": row[10],
+        "patientPhone": row[11],
+        "patientBirthdate": row[12].isoformat() if row[12] else None,
+        "patientGender": row[13],
     }
 
 
@@ -495,6 +497,7 @@ def db_get_booking_for_change_link(*, booking_id: str, patient_id: str) -> dict[
     # Resolve a booking from the identifiers embedded in the emailed change link.
     query = """
         SELECT b.id, b.reservation_code, b.status, b.slot_id, b.expires_at, b.confirmed_at,
+               b.patient_note,
                s.start_at, s.end_at, p.id, p.patient_code, p.name, p.email, p.phone, p.birthdate, p.gender
         FROM bookings b
         JOIN slots s ON s.id = b.slot_id
@@ -519,15 +522,16 @@ def db_get_booking_for_change_link(*, booking_id: str, patient_id: str) -> dict[
         "slotId": str(row[3]),
         "expiresAt": row[4].isoformat(),
         "confirmedAt": row[5].isoformat() if row[5] else None,
-        "startAt": row[6].isoformat(),
-        "endAt": row[7].isoformat(),
-        "patientId": str(row[8]),
-        "patientCode": row[9],
-        "patientName": row[10],
-        "patientEmail": row[11],
-        "patientPhone": row[12],
-        "patientBirthdate": row[13].isoformat() if row[13] else None,
-        "patientGender": row[14],
+        "patientNote": row[6],
+        "startAt": row[7].isoformat(),
+        "endAt": row[8].isoformat(),
+        "patientId": str(row[9]),
+        "patientCode": row[10],
+        "patientName": row[11],
+        "patientEmail": row[12],
+        "patientPhone": row[13],
+        "patientBirthdate": row[14].isoformat() if row[14] else None,
+        "patientGender": row[15],
     }
 
 
@@ -566,6 +570,7 @@ def db_update_booking_contact_for_change_link(
     phone: str,
     birthdate: str,
     gender: str,
+    patient_note: str,
 ) -> dict[str, str | int]:
     if not booking_id:
         raise ValueError("booking_id is required")
@@ -627,6 +632,16 @@ def db_update_booking_contact_for_change_link(
                     (name, gender, normalized_email, birthdate, phone, patient_id),
                 )
 
+                cur.execute(
+                    """
+                    UPDATE bookings
+                    SET patient_note = %s
+                    WHERE id = %s
+                      AND patient_id = %s
+                    """,
+                    (patient_note, booking_id, patient_id),
+                )
+
     return db_get_booking_for_change_link(booking_id=booking_id, patient_id=str(patient_id))
 
 
@@ -668,6 +683,7 @@ def db_prepare_booking_confirmation_for_session(
     phone: str,
     birthdate: str,
     gender: str,
+    patient_note: str,
 ) -> dict[str, str | int]:
     if not session_id:
         raise ValueError("session_id is required")
@@ -786,11 +802,12 @@ def db_prepare_booking_confirmation_for_session(
                     UPDATE bookings
                     SET patient_id = %s,
                         session_id = %s,
-                        expires_at = %s
+                        expires_at = %s,
+                        patient_note = %s
                     WHERE id = %s
                     RETURNING id, reservation_code, status, slot_id, expires_at
                     """,
-                    (canonical_patient_id, session_id, payment_expires_at, booking_id),
+                    (canonical_patient_id, session_id, payment_expires_at, patient_note, booking_id),
                 )
                 updated_booking = cur.fetchone()
 

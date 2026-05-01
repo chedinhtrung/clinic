@@ -10,6 +10,7 @@ type ContactFormValues = {
   phone: string;
   birthdate: string;
   gender: string;
+  message?: string;
 }
 
 function formatBirthdateInput(value: string) {
@@ -54,7 +55,7 @@ export default function ContactForm({
     phone: initialValues?.phone ?? "",
     birthdate: formatBirthdateForDisplay(initialValues?.birthdate ?? ""),
     gender: initialValues?.gender ?? "",
-    message: "",
+    message: initialValues?.message ?? "",
   })
 
   const [isCancelling, setIsCancelling] = useState(false);
@@ -69,11 +70,13 @@ export default function ContactForm({
       phone: initialValues?.phone ?? "",
       birthdate: formatBirthdateForDisplay(initialValues?.birthdate ?? ""),
       gender: initialValues?.gender ?? "",
+      message: initialValues?.message ?? "",
     }))
   }, [
     initialValues?.birthdate,
     initialValues?.email,
     initialValues?.gender,
+    initialValues?.message,
     initialValues?.name,
     initialValues?.phone,
   ])
@@ -92,11 +95,18 @@ export default function ContactForm({
     })
   }
 
+  function handleGenderChange(value: string) {
+    setForm((current) => ({
+      ...current,
+      gender: current.gender === value ? "" : value,
+    }));
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true);
     try {
-      const res = await fetch("/api/booking/prepare_booking_confirmation", {
+      const res = await fetch(withApiBase("/api/booking/prepare_booking_confirmation"), {
         method: "POST",
         credentials: "include",
         headers: {
@@ -152,7 +162,7 @@ export default function ContactForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-w-md grid grid-cols-2 gap-3">
+    <form onSubmit={handleSubmit} className="max-w-md grid grid-cols-2 gap-3">
       <div>
         <label className="block text-sm font-medium mb-1">Họ và tên <span className="text-red-500">*</span></label>
         <input
@@ -160,6 +170,22 @@ export default function ContactForm({
           value={form.name}
           onChange={handleChange}
           className="w-full border rounded p-2"
+          required
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-1">Ngày sinh <span className="text-red-500">*</span></label>
+        <input
+          name="birthdate"
+          type="text"
+          value={form.birthdate}
+          onChange={handleChange}
+          className="w-full border rounded p-2"
+          inputMode="numeric"
+          placeholder="dd/mm/yyyy"
+          pattern="\d{2}/\d{2}/\d{4}"
+          maxLength={10}
           required
         />
       </div>
@@ -187,37 +213,31 @@ export default function ContactForm({
         />
       </div>
 
-      <div>
-        <label className="block text-sm font-medium mb-1">Ngày sinh <span className="text-red-500">*</span></label>
-        <input
-          name="birthdate"
-          type="text"
-          value={form.birthdate}
-          onChange={handleChange}
-          className="w-full border rounded p-2"
-          inputMode="numeric"
-          placeholder="dd/mm/yyyy"
-          pattern="\d{2}/\d{2}/\d{4}"
-          maxLength={10}
-          required
-        />
-      </div>
-
-      <div>
+      <div className="col-span-2">
         <label className="block text-sm font-medium mb-1">Giới tính</label>
-        <select
-          name="gender"
-          value={form.gender}
-          onChange={handleChange}
-          className="w-full border rounded p-2 bg-white"
-        >
-          <option value=""></option>
-          <option value="male">Nam</option>
-          <option value="female">Nữ</option>
-        </select>
+        <div className="flex gap-4">
+          <label className="flex items-center gap-2 text-sm text-txt-gray">
+            <input
+              type="checkbox"
+              checked={form.gender === "male"}
+              onChange={() => handleGenderChange("male")}
+              className="h-4 w-4 accent-primary"
+            />
+            Nam
+          </label>
+          <label className="flex items-center gap-2 text-sm text-txt-gray">
+            <input
+              type="checkbox"
+              checked={form.gender === "female"}
+              onChange={() => handleGenderChange("female")}
+              className="h-4 w-4 accent-primary"
+            />
+            Nữ
+          </label>
+        </div>
       </div>
 
-      <div>
+      <div className="col-span-2">
         <label className="block text-sm font-medium mb-1">Ghi chú</label>
         <textarea
           name="message"
@@ -225,7 +245,7 @@ export default function ContactForm({
           onChange={handleChange}
           className="w-full border rounded p-2"
           placeholder="Bạn có điều gì muốn nhắn nhủ?"
-          rows={3}
+          rows={4}
         />
       </div>
       <button

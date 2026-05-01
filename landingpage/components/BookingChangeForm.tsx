@@ -8,6 +8,7 @@ type BookingChangeFormValues = {
   phone: string;
   birthdate: string;
   gender: string;
+  message: string;
 }
 
 export default function BookingChangeForm({
@@ -25,6 +26,7 @@ export default function BookingChangeForm({
     phone: initialValues?.phone ?? "",
     birthdate: initialValues?.birthdate ?? "",
     gender: initialValues?.gender ?? "",
+    message: initialValues?.message ?? "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
@@ -36,11 +38,13 @@ export default function BookingChangeForm({
       phone: initialValues?.phone ?? "",
       birthdate: initialValues?.birthdate ?? "",
       gender: initialValues?.gender ?? "",
+      message: initialValues?.message ?? "",
     });
   }, [
     initialValues?.birthdate,
     initialValues?.email,
     initialValues?.gender,
+    initialValues?.message,
     initialValues?.name,
     initialValues?.phone,
   ]);
@@ -51,6 +55,13 @@ export default function BookingChangeForm({
     setForm((current) => ({
       ...current,
       [e.target.name]: e.target.value,
+    }));
+  }
+
+  function handleGenderChange(value: string) {
+    setForm((current) => ({
+      ...current,
+      gender: current.gender === value ? "" : value,
     }));
   }
 
@@ -81,12 +92,24 @@ export default function BookingChangeForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-w-md grid grid-cols-2 gap-3">
+    <form onSubmit={handleSubmit} className="max-w-md grid grid-cols-2 gap-3">
       <div>
         <label className="block text-sm font-medium mb-1">Họ và tên<span className="text-red-500">*</span></label>
         <input
           name="name"
           value={form.name}
+          onChange={handleChange}
+          className="w-full border rounded p-2"
+          required
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-1">Ngày sinh <span className="text-red-500">*</span></label>
+        <input
+          name="birthdate"
+          type="date"
+          value={form.birthdate}
           onChange={handleChange}
           className="w-full border rounded p-2"
           required
@@ -116,33 +139,41 @@ export default function BookingChangeForm({
         />
       </div>
 
-      <div>
-        <label className="block text-sm font-medium mb-1">Ngày sinh <span className="text-red-500">*</span></label>
-        <input
-          name="birthdate"
-          type="date"
-          value={form.birthdate}
+      <div className="col-span-2">
+        <label className="block text-sm font-medium mb-1">Giới tính</label>
+        <div className="flex gap-4">
+          <label className="flex items-center gap-2 text-sm text-txt-gray">
+            <input
+              type="checkbox"
+              checked={form.gender === "male"}
+              onChange={() => handleGenderChange("male")}
+              className="h-4 w-4 accent-primary"
+            />
+            Nam
+          </label>
+          <label className="flex items-center gap-2 text-sm text-txt-gray">
+            <input
+              type="checkbox"
+              checked={form.gender === "female"}
+              onChange={() => handleGenderChange("female")}
+              className="h-4 w-4 accent-primary"
+            />
+            Nữ
+          </label>
+        </div>
+      </div>
+
+      <div className="col-span-2">
+        <label className="block text-sm font-medium mb-1">Ghi chú</label>
+        <textarea
+          name="message"
+          value={form.message}
           onChange={handleChange}
           className="w-full border rounded p-2"
-          required
+          placeholder="Bạn có điều gì muốn nhắn nhủ?"
+          rows={4}
         />
       </div>
-
-      <div>
-        <label className="block text-sm font-medium mb-1">Giới tính</label>
-        <select
-          name="gender"
-          value={form.gender}
-          onChange={handleChange}
-          className="w-full border rounded p-2 bg-white"
-        >
-          <option value=""></option>
-          <option value="male">Nam</option>
-          <option value="female">Nữ</option>
-        </select>
-      </div>
-
-      <div></div>
 
       <button
         type="button"

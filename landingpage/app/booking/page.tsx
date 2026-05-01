@@ -20,6 +20,7 @@ type BookingDetails = {
     patientPhone?: string | null;
     patientBirthdate?: string | null;
     patientGender?: string | null;
+    patientNote?: string | null;
 }
 
 function getBrowserTimeZone() {
@@ -137,6 +138,7 @@ function BookingContent() {
                         phone: booking?.patientPhone ?? "",
                         birthdate: booking?.patientBirthdate ?? "",
                         gender: booking?.patientGender ?? "",
+                        message: booking?.patientNote ?? "",
                     }}
                 ></ContactForm>
             </div>
