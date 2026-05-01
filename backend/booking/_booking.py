@@ -2,6 +2,7 @@ from config import *
 from datetime import date, datetime, time, timedelta, timezone
 from email.message import EmailMessage
 from hashlib import sha512
+from html import escape
 import hmac
 from random import randint
 from secrets import token_urlsafe
@@ -144,7 +145,7 @@ def _build_chat_link(*, booking_id: str) -> str:
     return f"{BOOKING_PUBLIC_BASE_URL}/booking/chat?token={quote_plus(token)}"
 
 
-def _send_email(*, recipient_email: str, subject: str, body: str) -> None:
+def _send_email(*, recipient_email: str, subject: str, body: str, html_body: str | None = None) -> None:
     if not recipient_email:
         raise ValueError("recipient_email is required")
     if not SMTP_HOST or not SMTP_USERNAME or not SMTP_PASSWORD or not SMTP_FROM_EMAIL:
@@ -157,6 +158,8 @@ def _send_email(*, recipient_email: str, subject: str, body: str) -> None:
     message["From"] = f"{SMTP_FROM_NAME} <{SMTP_FROM_EMAIL}>"
     message["To"] = recipient_email
     message.set_content(body)
+    if html_body:
+        message.add_alternative(html_body, subtype="html")
 
     with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=30) as smtp:
         if SMTP_USE_TLS:
@@ -186,6 +189,7 @@ def send_booking_confirmation_email(
             f" ngày {slot_start_at.astimezone(timezone(timedelta(hours=7))).strftime('%d/%m/%Y')}"
         )
     chat_link = _build_chat_link(booking_id=booking_id)
+    change_link = _build_change_link(booking_id=booking_id, patient_id=patient_id)
 
     body = (
         f"Xin chào {greeting_name}, \n \n" \
@@ -197,13 +201,29 @@ def send_booking_confirmation_email(
         f"Nhằm tiết kiệm thời gian và giúp bác sĩ có cái nhìn tổng quan về tình trạng của bạn, kính mong bạn dành ít phút trả lời các câu hỏi từ trợ lý của BS. Nghĩa trước buổi hẹn: \n" \
         f" {chat_link} \n \n" \
         f"Nếu cần thay đổi thông tin liên lạc hoặc hủy lịch hẹn, vui lòng click vào link dưới đây: \n" \
-        f" {_build_change_link(booking_id=booking_id, patient_id=patient_id)}\n \n" \
+        f" {change_link}\n \n" \
         "Nếu bạn cần hỗ trợ, vui lòng phản hồi email này.\n\n"
         "Trân trọng,\n"
         f"{SMTP_FROM_NAME}"
     )
 
-    _send_email(recipient_email=recipient_email, subject=subject, body=body)
+    html_body = (
+        f"<p>Xin chào {escape(str(greeting_name))},</p>"
+        "<p>Cảm ơn bạn đã sử dụng dịch vụ của Phòng khám Cơ Xương Khớp BS. Chế Đình Nghĩa.</p>"
+        "<p>Chúng tôi xác nhận lịch hẹn của bạn như sau:</p>"
+        f"<p><strong>Mã đặt chỗ: {escape(str(reservation_code))}</strong><br>"
+        f"<strong>{escape(slot_line)}</strong></p>"
+        "<p>Cuộc gọi trực tuyến: #TODO chèn link online call</p>"
+        "<p>Nhằm tiết kiệm thời gian và giúp bác sĩ có cái nhìn tổng quan về tình trạng của bạn, kính mong bạn "
+        "<strong>dành ít phút trả lời các câu hỏi từ trợ lý của BS. Nghĩa trước buổi hẹn</strong>:</p>"
+        f"<p><a href=\"{escape(chat_link)}\">{escape(chat_link)}</a></p>"
+        "<p>Nếu cần <strong>thay đổi thông tin liên lạc hoặc hủy lịch hẹn</strong>, vui lòng click vào link dưới đây:</p>"
+        f"<p><a href=\"{escape(change_link)}\">{escape(change_link)}</a></p>"
+        "<p>Nếu bạn cần hỗ trợ, vui lòng phản hồi trực tiếp email này.</p>"
+        f"<p>Trân trọng,<br>{escape(str(SMTP_FROM_NAME))}</p>"
+    )
+
+    _send_email(recipient_email=recipient_email, subject=subject, body=body, html_body=html_body)
 
 
 def send_booking_confirmation_request_email(
@@ -225,6 +245,7 @@ def send_booking_confirmation_request_email(
             f"{slot_end_at.astimezone(timezone(timedelta(hours=7))).strftime('%H:%M')}" \
             f" ngày {slot_start_at.astimezone(timezone(timedelta(hours=7))).strftime('%d/%m/%Y')}"
         )
+    confirmation_link = _build_confirmation_link(booking_id=booking_id, token=confirmation_token)
 
     body = (
         f"Xin chào {greeting_name}, \n \n" \
@@ -233,13 +254,23 @@ def send_booking_confirmation_request_email(
         f"Mã đặt chỗ: {reservation_code}\n" \
         f"{slot_line} \n \n" \
         "Vui lòng click vào link dưới đây để xác nhận lịch hẹn của bạn: \n" \
-        f" {_build_confirmation_link(booking_id=booking_id, token=confirmation_token)}\n \n" \
-        "Nếu bạn không xác nhận kịp thời, lịch giữ chỗ có thể hết hạn.\n\n"
+        f" {confirmation_link}\n \n" \
         "Trân trọng,\n"
         f"{SMTP_FROM_NAME}"
     )
 
-    _send_email(recipient_email=recipient_email, subject=subject, body=body)
+    html_body = (
+        f"<p>Xin chào {escape(str(greeting_name))},</p>"
+        "<p>Cảm ơn bạn đã sử dụng dịch vụ của Phòng khám Cơ Xương Khớp BS. Chế Đình Nghĩa.</p>"
+        "<p>Chúng tôi đã giữ chỗ lịch hẹn của bạn như sau:</p>"
+        f"<p><strong>Mã đặt chỗ: {escape(str(reservation_code))}</strong><br>"
+        f"<strong>{escape(slot_line)}</strong></p>"
+        "<p><strong>Vui lòng click vào link dưới đây để xác nhận lịch hẹn của bạn.</strong></p>"
+        f"<p><a href=\"{escape(confirmation_link)}\">{escape(confirmation_link)}</a></p>"
+        f"<p>Trân trọng,<br>{escape(str(SMTP_FROM_NAME))}</p>"
+    )
+
+    _send_email(recipient_email=recipient_email, subject=subject, body=body, html_body=html_body)
 
 
 """Return all distinct slot dates from tomorrow onward that this session may claim."""
