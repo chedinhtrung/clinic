@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { withApiBase } from "@/app/apiBase";
 
 type ContactFormValues = {
   name: string;
@@ -131,12 +132,22 @@ export default function ContactForm({
   async function onCancelBooking() {
     setIsCancelling(true);
     try {
-      await fetch("/api/booking/cancel", {
+      const res = await fetch(withApiBase("/api/booking/cancel"), {
         method: "POST",
         credentials: "include",
       });
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        throw new Error(data?.error ?? "Không hủy được giữ chỗ. Vui lòng thử lại.");
+      }
+
+      alert("Giữ chỗ của bạn đã được hủy thành công.");
+      router.push("/");
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Không hủy được giữ chỗ. Vui lòng thử lại.");
     } finally {
-      router.push("#");
+      setIsCancelling(false);
     }
   }
 

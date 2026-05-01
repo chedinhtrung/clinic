@@ -10,7 +10,7 @@ const menuItems = [
     { id: "profile", label: "GIỚI THIỆU", href: "/profile" },
     { id: "injuries", label: "CHẤN THƯƠNG", href: "/injuries" },
     { id: "blog", label: "BÀI VIẾT", href: "/blog" },
-    { id: "contact", label: "LIÊN HỆ", href: "/#booking" },
+    { id: "contact", label: "LIÊN HỆ", href: "/contact" },
 ];
 
 const socialLinks = [
@@ -55,7 +55,8 @@ export default function Navbar() {
         (page === "home" && pathname === "/") ||
         (page === "profile" && pathname === "/profile") ||
         (page === "injuries" && pathname === "/injuries") ||
-        (page === "blog" && pathname.startsWith("/blog"));
+        (page === "blog" && pathname.startsWith("/blog")) ||
+        (page === "contact" && pathname === "/contact");
 
     const desktopLinkClass = (page: string) => [
         "flex h-full items-center border-b-4 text-center transition-colors cursor-pointer",

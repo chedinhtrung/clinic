@@ -73,6 +73,8 @@ export default function BookingChangeForm({
     setIsCancelling(true);
     try {
       await onCancelBooking();
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Không hủy được lịch hẹn. Vui lòng thử lại.");
     } finally {
       setIsCancelling(false);
     }
