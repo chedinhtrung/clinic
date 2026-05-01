@@ -8,6 +8,7 @@ import Booking from "@/app/Booking";
 import Blogs from "@/app/Blogs";
 import Injuries from "@/app/Injuries";
 import { useState } from "react";
+import Profile from "@/app/Profile";
 
 export default function Home() {
   const [selectedPage, setSelectedPage] = useState("home");
@@ -34,6 +35,12 @@ export default function Home() {
       {
         selectedPage === "injuries" && (
           <Injuries />
+        )
+      }
+
+      {
+        selectedPage === "profile" && (
+          <Profile />
         )
       }
       
