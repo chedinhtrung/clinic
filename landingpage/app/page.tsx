@@ -3,6 +3,49 @@ import Intro from "@/app/Intro";
 import Booking from "@/app/Booking";
 import Image from "next/image";
 
+const physicianSchema = {
+  "@context": "https://schema.org",
+  "@type": ["Physician", "Person"],
+  "@id": "https://chedinhnghia.com/#physician",
+  mainEntityOfPage: "https://chedinhnghia.com",
+  inLanguage: "vi-VN",
+  name: "TS.BS. Chế Đình Nghĩa",
+  url: "https://chedinhnghia.com",
+  image: "https://chedinhnghia.com/images/bsnghia.jpeg",
+  medicalSpecialty: "Orthopedic",
+  description:
+    "TS.BS. Chế Đình Nghĩa là bác sĩ chuyên khoa chấn thương chỉnh hình, tư vấn và điều trị các bệnh lý cơ xương khớp, đặc biệt là khớp gối và thoái hóa khớp.",
+  jobTitle: "Bác sĩ Chấn thương Chỉnh hình",
+  worksFor: {
+    "@type": "Hospital",
+    name: "Bệnh viện Đa khoa Tâm Anh",
+  },
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Hà Nội",
+    addressCountry: "VN",
+  },
+  knowsAbout: [
+    "Chấn thương chỉnh hình",
+    "Cơ xương khớp",
+    "Thoái hóa khớp gối",
+    "Thay khớp gối",
+    "Chấn thương thể thao",
+  ],
+  availableService: {
+    "@type": "MedicalProcedure",
+    name: "Tư vấn chấn thương chỉnh hình online",
+    areaServed: "Vietnam",
+  },
+  areaServed: {
+    "@type": "Country",
+    name: "Vietnam",
+  },
+  sameAs: [
+    "https://tamanhhospital.vn/chuyen-gia/che-dinh-nghia/",
+  ],
+};
+
 const socialPages = [
   {
     title: "Facebook",
@@ -65,6 +108,13 @@ const commonSymptoms = [
 
 function SymptomSearchSection() {
   return (
+    <>
+    <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(physicianSchema),
+        }}
+      />
     <section className="bg-[#eef2f7] px-6 py-14 text-navy-dark sm:px-10 lg:px-20">
       <div className="mx-auto max-w-7xl">
         <div className="grid gap-10 lg:grid-cols-[1fr_1.1fr] lg:gap-12">
@@ -128,6 +178,7 @@ function SymptomSearchSection() {
         </div>
       </div>
     </section>
+    </>
   );
 }
 
