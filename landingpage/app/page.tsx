@@ -1,11 +1,12 @@
 import Navbar from "@/components/Navbar";
 import Intro from "@/app/Intro";
 import Booking from "@/app/Booking";
+import Image from "next/image";
 
 const socialPages = [
   {
     title: "Facebook",
-    description: "Theo dõi cập nhật và gửi tin nhắn qua trang Facebook chính thức.",
+    description: "Cập nhật và gửi tin nhắn qua trang Facebook chính thức.",
     href: "https://web.facebook.com/BSNghiachuyenxuongkhop",
     icon: (
       <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 fill-current">
@@ -15,7 +16,7 @@ const socialPages = [
   },
   {
     title: "YouTube",
-    description: "Xem các nội dung chia sẻ kiến thức cơ xương khớp và chấn thương chỉnh hình.",
+    description: "Chia sẻ kiến thức cơ xương khớp và chấn thương chỉnh hình.",
     href: "https://www.youtube.com/@nghiachedinh",
     icon: (
       <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 fill-current">
@@ -35,14 +36,106 @@ const socialPages = [
   },
 ];
 
+const commonSymptoms = [
+  {
+    title: "Đau khớp gối khi đi lại, leo cầu thang",
+    description: "Đau tăng khi vận động, ảnh hưởng sinh hoạt hằng ngày",
+    icon: "/images/kneepain.png",
+    href: "#",
+  },
+  {
+    title: "Đau vai, khó nâng tay hoặc ngủ nghiêng bị đau",
+    description: "Tầm vận động giảm, đau về đêm hoặc khi cử động vai",
+    icon: "/images/shoulderpain.png",
+    href: "#",
+  },
+  {
+    title: "Đau lưng, thoát vị đĩa đệm",
+    description: "Đau âm ỉ hoặc lan xuống chân, cúi xoay người khó chịu",
+    icon: "/images/backpain.png",
+    href: "#",
+  },
+  {
+    title: "Chấn thương khi chơi thể thao",
+    description: "Lật cổ chân, căng cơ, đau dây chằng",
+    icon: "/images/sportinjury.png",
+    href: "#",
+  },
+];
+
+function SymptomSearchSection() {
+  return (
+    <section className="bg-[#eef2f7] px-6 py-14 text-navy-dark sm:px-10 lg:px-20">
+      <div className="mx-auto max-w-7xl">
+        <div className="grid gap-10 lg:grid-cols-[1fr_1.1fr] lg:gap-12">
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#f8fbff] to-white p-7 shadow-[0_20px_45px_rgba(10,35,66,0.08)] sm:p-10">
+            <div className="h-1 w-16 rounded-full bg-gold" />
+            <p className="mt-5 text-xs font-bold uppercase tracking-[0.28em] text-gold sm:text-sm">
+              Bạn đang gặp vấn đề gì?
+            </p>
+            <h2 className="mt-5 font-serif text-2xl font-black leading-tight text-navy sm:text-3xl">
+              Tư vấn chuyên sâu các vấn đề cơ xương khớp thường gặp
+            </h2>
+            <div className="mt-6 h-1 w-20 rounded-full bg-gold/70" />
+            <p className="mt-7 max-w-xl text-base leading-8 text-[#4f6386]">
+              BS. Nghĩa giúp bạn hiểu rõ nguyên nhân và lựa chọn phương pháp điều trị
+              phù hợp, hiệu quả và an toàn.
+            </p>
+            <a
+              href="#booking"
+              className="mt-8 inline-flex items-center gap-3 rounded-xl bg-navy px-6 py-4 text-base font-bold text-white shadow-[0_12px_24px_rgba(11,39,75,0.22)] transition hover:-translate-y-0.5 hover:bg-[#133765]"
+            >
+              <span>📅</span>
+              Đặt lịch tư vấn
+            </a>
+
+            <div className="pointer-events-none absolute -bottom-24 -left-16 h-60 w-60 rounded-full bg-gold/10 blur-2xl" />
+          </div>
+
+          <ul className="grid gap-5" aria-label="Danh sách triệu chứng thường được tìm kiếm">
+            {commonSymptoms.map((symptom, index) => (
+              <li key={symptom.title}>
+                <a
+                  href={symptom.href}
+                  className="group block rounded-2xl border border-white/90 bg-white p-2 shadow-[0_10px_30px_rgba(10,35,66,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_36px_rgba(10,35,66,0.12)] sm:p-3"
+                >
+                  <div className="flex items-center gap-4 sm:gap-5">
+                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full sm:h-20 sm:w-20">
+                      <Image
+                        src={symptom.icon}
+                        alt={symptom.title}
+                        width={80}
+                        height={80}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-black text-sm font-serif leading-tight text-navy sm:text-md">
+                        {symptom.title}
+                      </h3>
+                      <p className="mt-1 text-sm leading-7 text-[#566b8f] sm:text-base">
+                        {symptom.description}
+                      </p>
+                    </div>
+                    <div className="ml-1 hidden text-3xl font-light text-gold transition group-hover:translate-x-1 sm:block">
+                      ›
+                    </div>
+                  </div>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function SocialPages() {
   return (
     <section className="bg-white px-6 py-14 text-navy-dark sm:px-10 lg:px-20">
       <div className="mx-auto max-w-7xl">
         <div className="max-w-3xl">
-          <p className="text-sm font-bold uppercase tracking-[0.24em] text-gold">
-            Kênh chính thức
-          </p>
           <h2 className="mt-4 font-serif text-2xl font-black tracking-tight sm:text-3xl">
             Theo dõi TS. BS. Chế Đình Nghĩa
           </h2>
@@ -80,6 +173,7 @@ export default function Home() {
     <div>
       <Navbar />
       <Intro />
+      <SymptomSearchSection />
       <Booking />
       <SocialPages />
     </div>

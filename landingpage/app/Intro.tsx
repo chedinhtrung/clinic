@@ -19,12 +19,16 @@ export default function Intro() {
                             </div>
                             <h1 className="font-serif text-lg sm:text-3xl font-bold py-2">TS.BS. Chế Đình Nghĩa</h1>
                             <p className="text-gold font-bold">Tiến sĩ · Bác sĩ Chuyên khoa Chấn thương Chỉnh hình</p>
+                            <p className="mt-3 max-w-md text-sm sm:text-base text-gray-400 leading-relaxed">
+                                Tư vấn online các vấn đề cơ xương khớp, chấn thương thể thao, đau khớp gối,
+                                và phục hồi sau phẫu thuật.
+                            </p>
                         </div>
                     </div>
 
                     {/* Intro text */}
                     <div className="flex flex-col sm:flex-row gap-5 sm:gap-20">
-                        <div className="text-gray-400 leading-loose ">
+                        <div className="text-gray-400 leading-loose text-lg">
 
                             <p className="mb-4">
                                 Hơn 25 năm kinh nghiệm, 20 năm công tác trong lĩnh vực chấn thương chỉnh hình tại Bệnh viện TW Quân Đội 108 với trên 10.000 ca phẫu thuật thành công. Chuyên gia về nội soi khớp, thay khớp ít xâm lấn và chấn thương thể thao tại Hà Nội.
@@ -72,12 +76,6 @@ export default function Intro() {
                     </div>
 
                     <div className="flex gap-4">
-
-                        <a href="#booking" className="flex items-center gap-2 rounded-lg bg-gold px-6 py-3 text-white font-semibold hover:bg-gold-light transition">
-                            <span>📅</span>
-                            ĐẶT LỊCH KHÁM NGAY
-                        </a>
-
                         <Link
                             href="/profile"
                             className="flex items-center gap-2 rounded-lg border border-white/40 px-6 py-3 text-white font-semibold hover:bg-white/10 transition"
@@ -143,7 +141,7 @@ export default function Intro() {
                             </div>
                         </div>
 
-                        
+
                     </div>
                 </div>
             </div>

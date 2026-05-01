@@ -365,9 +365,6 @@ export function BookingFlow({
                         <span className="text-lg leading-none">★</span>
                         <span className="h-px w-14 bg-[#d29a24]" />
                     </div>
-                    <p className="mt-2 text-base text-[#5f7191] sm:text-lg">
-                        Đơn giản · Dễ dàng · Tiết kiệm thời gian
-                    </p>
                 </div>
 
                 <div className="mb-8 grid gap-8 lg:grid-cols-[0.92fr_1.25fr]">

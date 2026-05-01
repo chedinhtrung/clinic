@@ -24,8 +24,9 @@ const merriweather = Merriweather({
 });
 
 export const metadata: Metadata = {
-  title: "TS. BS. Chế Đình Nghĩa — Chuyên khoa Cơ Xuơng Khớp và Chấn thương Chỉnh hình",
-  description: "Website của bác sỹ Chế Đình Nghĩa, chuyên khoa Cơ Xuơng Khớp và Chấn thương Chỉnh hình tại Hà Nội. Cung cấp thông tin về  dịch vụ khám chữa bệnh, đặt lịch hẹn và kiến thức y khoa.",
+  title: "TS.BS. Chế Đình Nghĩa | Tư vấn chấn thương chỉnh hình online",
+  description:
+    "TS.BS. Chế Đình Nghĩa, chuyên khoa chấn thương chỉnh hình tại Hà Nội. Tư vấn online các vấn đề cơ xương khớp, chấn thương thể thao, khớp gối, khớp vai, khớp háng và phục hồi sau phẫu thuật.",
   icons: {
     icon: "/images/logo.png",
     shortcut: "/images/logo.png",
