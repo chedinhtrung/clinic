@@ -92,7 +92,8 @@ def _chat_allowed_until(slot_start_at: datetime) -> datetime:
 
 
 def _assert_chat_allowed(*, booking_status: str, chat_status: str, slot_start_at: datetime) -> None:
-    # POST requests must be both viewable and still open for new patient input.
+    # POST requests remain open after "finished" so patients can add context and
+    # trigger an updated summary. Only repeated abuse closes the chat.
     if booking_status != "confirmed":
         raise ChatAccessError("Lịch hẹn của bạn chưa được xác nhận. Vui lòng hoàn tất đặt lịch để bắt đầu trò chuyện với trợ lý.")
     if chat_status == "abuse":
@@ -114,23 +115,46 @@ def _normalize_messages(raw_messages) -> list[dict[str, str]]:
     # extra data from earlier experiments.
     if not raw_messages:
         return []
-    return [
-        {
+    messages = []
+    for message in raw_messages:
+        if not isinstance(message, dict) or message.get("role") not in {"user", "assistant"} or not message.get("message"):
+            continue
+
+        normalized_message = {
             "role": str(message.get("role", "")),
             "message": str(message.get("message", "")),
             "created_at": str(message.get("created_at", "")),
         }
-        for message in raw_messages
-        if isinstance(message, dict) and message.get("role") in {"user", "assistant"} and message.get("message")
-    ]
+        if message.get("status") in {"active", "finished", "abuse"}:
+            normalized_message["status"] = str(message.get("status"))
+        messages.append(normalized_message)
+
+    return messages
 
 
-def _new_message(*, role: str, message: str) -> dict[str, str]:
-    return {
+def _new_message(*, role: str, message: str, status: str | None = None) -> dict[str, str]:
+    new_message = {
         "role": role,
         "message": message,
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
+    if status in {"active", "finished", "abuse"}:
+        new_message["status"] = status
+    return new_message
+
+
+def _abuse_attempt_count(messages: list[dict[str, str]]) -> int:
+    return sum(
+        1
+        for message in messages
+        if message.get("role") == "assistant" and message.get("status") == "abuse"
+    )
+
+
+def _effective_chat_status(*, chat_status: str, messages: list[dict[str, str]]) -> str:
+    if chat_status == "abuse" and _abuse_attempt_count(messages) < 3:
+        return "active"
+    return chat_status
 
 
 def _openai_client() -> OpenAI:
@@ -182,6 +206,29 @@ def _call_chat_model(messages: list[dict[str, str]]) -> dict[str, str]:
     }
 
 
+def _call_initial_greeting_model() -> str:
+    response = _openai_client().responses.create(
+        model=OPENAI_CHAT_MODEL,
+        input=[
+            {"role": "system", "content": CHAT_SYSTEM_PROMPT},
+            {
+                "role": "user",
+                "content": (
+                    "Hãy mở đầu cuộc trò chuyện tiếp nhận trước lịch hẹn. "
+                    "Chào bệnh nhân ngắn gọn, giới thiệu vai trò trợ lý, "
+                    "rồi hỏi câu đầu tiên về lý do đặt lịch hoặc triệu chứng chính. "
+                    "Chỉ trả về nội dung bệnh nhân sẽ thấy, không trả về JSON."
+                ),
+            },
+        ],
+    )
+
+    greeting = (response.output_text or "").strip()
+    if not greeting:
+        raise ChatModelError("empty assistant greeting")
+    return greeting
+
+
 def _call_summary_model(messages: list[dict[str, str]]) -> str:
     # The summary is generated only after the intake model marks the chat done.
     conversation_text = "\n".join(
@@ -224,12 +271,55 @@ def get_chat(*, token: str) -> dict[str, str | list[dict[str, str]]]:
     if row is None:
         raise ChatAccessError("booking not found")
 
-    _assert_chat_viewable(booking_status=row[1], slot_start_at=row[4])
+    booking_id = str(row[0])
+    booking_status = row[1]
+    chat_status = row[2]
+    slot_start_at = row[4]
+
+    _assert_chat_viewable(booking_status=booking_status, slot_start_at=slot_start_at)
+    messages = _normalize_messages(row[3])
+    chat_status = _effective_chat_status(chat_status=chat_status, messages=messages)
+
+    if not messages:
+        greeting = _call_initial_greeting_model()
+        greeting_message = _new_message(role="assistant", message=greeting)
+        with DB_POOL.connection() as conn:
+            with conn.transaction():
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """
+                        SELECT chat_messages
+                        FROM bookings
+                        WHERE id = %s
+                        FOR UPDATE
+                        LIMIT 1
+                        """,
+                        (booking_id,),
+                    )
+                    row = cur.fetchone()
+
+                    if row is None:
+                        raise ChatAccessError("booking not found")
+
+                    latest_messages = _normalize_messages(row[0])
+                    if latest_messages:
+                        messages = latest_messages
+                    else:
+                        messages = [greeting_message]
+                        cur.execute(
+                            """
+                            UPDATE bookings
+                            SET chat_messages = %s
+                            WHERE id = %s
+                            """,
+                            (Jsonb(messages), booking_id),
+                        )
+
 
     return {
-        "bookingId": str(row[0]),
-        "status": row[2],
-        "messages": _normalize_messages(row[3]),
+        "bookingId": booking_id,
+        "status": chat_status,
+        "messages": messages,
     }
 
 
@@ -261,9 +351,10 @@ def send_chat_message(*, token: str, message: str) -> dict[str, str | list[dict[
                     raise ChatAccessError("booking not found")
 
                 current_chat_status = row[1]
+                messages = _normalize_messages(row[2])
+                current_chat_status = _effective_chat_status(chat_status=current_chat_status, messages=messages)
                 _assert_chat_allowed(booking_status=row[0], chat_status=current_chat_status, slot_start_at=row[3])
 
-                messages = _normalize_messages(row[2])
                 messages.append(_new_message(role="user", message=patient_message))
 
                 cur.execute(
@@ -278,7 +369,11 @@ def send_chat_message(*, token: str, message: str) -> dict[str, str | list[dict[
     # The OpenAI call happens outside the transaction so we do not hold the row
     # lock during a network request.
     assistant_response = _call_chat_model(messages)
-    assistant_message = _new_message(role="assistant", message=assistant_response["message"])
+    assistant_message = _new_message(
+        role="assistant",
+        message=assistant_response["message"],
+        status=assistant_response["status"],
+    )
     messages_with_assistant = [*messages, assistant_message]
 
     summary = None
@@ -306,8 +401,22 @@ def send_chat_message(*, token: str, message: str) -> dict[str, str | list[dict[
 
                 latest_messages = _normalize_messages(row[0])
                 latest_messages.append(assistant_message)
+                abuse_attempts = _abuse_attempt_count(latest_messages)
+                final_chat_status = current_chat_status
 
-                if assistant_response["status"] == "finished" or current_chat_status == "finished":
+                if abuse_attempts >= 3:
+                    final_chat_status = "abuse"
+                    cur.execute(
+                        """
+                        UPDATE bookings
+                        SET chat_messages = %s,
+                            chat_status = 'abuse'
+                        WHERE id = %s
+                        """,
+                        (Jsonb(latest_messages), booking_id),
+                    )
+                elif assistant_response["status"] == "finished" or current_chat_status == "finished":
+                    final_chat_status = "finished"
                     cur.execute(
                         """
                         UPDATE bookings
@@ -318,17 +427,8 @@ def send_chat_message(*, token: str, message: str) -> dict[str, str | list[dict[
                         """,
                         (Jsonb(latest_messages), summary, booking_id),
                     )
-                elif assistant_response["status"] == "abuse":
-                    cur.execute(
-                        """
-                        UPDATE bookings
-                        SET chat_messages = %s,
-                            chat_status = 'abuse'
-                        WHERE id = %s
-                        """,
-                        (Jsonb(latest_messages), booking_id),
-                    )
                 else:
+                    final_chat_status = "active"
                     cur.execute(
                         """
                         UPDATE bookings
@@ -340,7 +440,7 @@ def send_chat_message(*, token: str, message: str) -> dict[str, str | list[dict[
 
     return {
         "bookingId": booking_id,
-        "status": assistant_response["status"],
+        "status": final_chat_status,
         "message": assistant_response["message"],
         "messages": latest_messages,
     }

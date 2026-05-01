@@ -123,9 +123,9 @@ export default function BookingChat({ token }: BookingChatProps) {
   const inputDisabled = isLoading || isSending || status === "abuse" || Boolean(errorMessage && messages.length === 0);
   const statusMessage =
     status === "finished"
-      ? "Em đã ghi nhận thông tin và chuyển phần tóm tắt cho bác sĩ. Mình vẫn có thể bổ sung hoặc chỉnh lại thông tin nếu cần."
+      ? "Em đã cập nhật phần tóm tắt cho bác sĩ. Mình vẫn có thể bổ sung hoặc chỉnh lại thông tin nếu cần."
       : status === "abuse"
-        ? "Phiên trò chuyện đã được tạm dừng."
+        ? "Phiên trò chuyện đã được tạm dừng do nhiều nội dung không phù hợp."
         : null;
 
   return (
@@ -133,7 +133,7 @@ export default function BookingChat({ token }: BookingChatProps) {
       <div className="flex items-center gap-3 bg-primary p-4">
         <GrayAvatarSVG />
         <div>
-          <h1 className="text-base font-bold text-white">Trợ lý trước buổi hẹn</h1>
+          <h1 className="text-base font-bold text-white">Trợ lý Thanh Vân</h1>
           <p className="text-sm text-white">Phòng khám BS. Chế Đình Nghĩa</p>
         </div>
       </div>
@@ -141,10 +141,6 @@ export default function BookingChat({ token }: BookingChatProps) {
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-tinted-gray p-4">
         {isLoading ? (
           <p className="text-sm text-txt-gray">Đang tải cuộc trò chuyện...</p>
-        ) : messages.length === 0 && !errorMessage ? (
-          <div className="mr-12 rounded-lg bg-white px-4 py-3 text-txt-gray shadow-sm">
-            Dạ em chào mình, em là trợ lý của phòng khám. Em sẽ hỏi một vài câu ngắn để bác sĩ Nghĩa nắm được tình trạng trước buổi hẹn ạ.
-          </div>
         ) : null}
 
         {messages.map((chatMessage, index) => (
@@ -162,7 +158,7 @@ export default function BookingChat({ token }: BookingChatProps) {
 
         {isSending ? (
           <div className="mr-12 rounded-lg bg-white px-4 py-2 text-sm text-txt-gray shadow-sm">
-            Trợ lý đang trả lời...
+            Typing...
           </div>
         ) : null}
 
