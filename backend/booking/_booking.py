@@ -133,7 +133,7 @@ def _build_change_link(*, booking_id: str, patient_id: str) -> str:
 
 
 def _build_confirmation_link(*, booking_id: str, token: str) -> str:
-    return f"{BOOKING_PUBLIC_BASE_URL}/api/booking/confirm?booking_id={booking_id}&token={token}"
+    return f"{BOOKING_PUBLIC_BASE_URL}/booking/confirm?booking_id={booking_id}&token={token}"
 
 
 def _send_email(*, recipient_email: str, subject: str, body: str) -> None:

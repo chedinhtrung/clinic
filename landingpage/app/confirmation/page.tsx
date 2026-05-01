@@ -92,6 +92,42 @@ function ConfirmationPageContent() {
         router.push("/");
     }, [hasHandledExpiry, router, secondsLeft]);
 
+    useEffect(() => {
+        if (!emailSent || !bookingId) {
+            return;
+        }
+
+        let isCurrent = true;
+
+        async function pollBookingConfirmation() {
+            try {
+                const res = await fetch(withApiBase(`/api/booking/${bookingId}`), {
+                    credentials: "include",
+                });
+                const data = await res.json().catch(() => null);
+
+                if (!res.ok || !isCurrent) {
+                    return;
+                }
+
+                if (data?.booking?.status === "confirmed") {
+                    alert("Lịch hẹn của bạn đã được xác nhận thành công.");
+                    router.push("/");
+                }
+            } catch {
+                // Keep polling; transient network errors should not interrupt the confirmation wait.
+            }
+        }
+
+        pollBookingConfirmation();
+        const intervalId = window.setInterval(pollBookingConfirmation, 3000);
+
+        return () => {
+            isCurrent = false;
+            window.clearInterval(intervalId);
+        };
+    }, [bookingId, emailSent, router]);
+
     async function onSendConfirmationEmail() {
         if (!booking) {
             return;
