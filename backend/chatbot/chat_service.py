@@ -159,16 +159,49 @@ def _effective_chat_status(*, chat_status: str, messages: list[dict[str, str]]) 
     return chat_status
 
 
+def _patient_age(birthdate) -> int | None:
+    if not birthdate:
+        return None
+    today = datetime.now(timezone(timedelta(hours=7))).date()
+    return today.year - birthdate.year - ((today.month, today.day) < (birthdate.month, birthdate.day))
+
+
+def _patient_context_message(*, name, gender, birthdate, patient_note) -> dict[str, str] | None:
+    context_parts = []
+    if name:
+        context_parts.append(f"Tên bệnh nhân: {name}")
+    age = _patient_age(birthdate)
+    if age is not None:
+        context_parts.append(f"Tuổi: {age}")
+    if gender:
+        context_parts.append(f"Giới tính: {gender}")
+    if patient_note:
+        context_parts.append(f"Ghi chú/lý do bệnh nhân đã gửi khi đặt lịch: {patient_note}")
+
+    if not context_parts:
+        return None
+
+    return {
+        "role": "system",
+        "content": (
+            "Thông tin đã có từ lịch hẹn. Hãy dùng tự nhiên để xưng hô, tránh hỏi lại điều đã biết, "
+            "nhưng vẫn xác nhận hoặc đào sâu khi cần:\n" + "\n".join(context_parts)
+        ),
+    }
+
+
 def _openai_client() -> OpenAI:
     if not OPENAI_API_KEY:
         raise ChatConfigError("OPENAI_API_KEY is not set")
     return OpenAI(api_key=OPENAI_API_KEY)
 
 
-def _call_chat_model(messages: list[dict[str, str]]) -> dict[str, str]:
+def _call_chat_model(messages: list[dict[str, str]], patient_context: dict[str, str] | None = None) -> dict[str, str]:
     # Rebuild model context from persisted booking messages; no in-memory
     # assistant state is shared between patients or workers.
     model_input = [{"role": "system", "content": CHAT_SYSTEM_PROMPT}]
+    if patient_context:
+        model_input.append(patient_context)
     model_input.extend(
         {"role": message["role"], "content": message["message"]}
         for message in messages
@@ -208,21 +241,26 @@ def _call_chat_model(messages: list[dict[str, str]]) -> dict[str, str]:
     }
 
 
-def _call_initial_greeting_model() -> str:
+def _call_initial_greeting_model(patient_context: dict[str, str] | None = None) -> str:
+    model_input = [{"role": "system", "content": CHAT_SYSTEM_PROMPT}]
+    if patient_context:
+        model_input.append(patient_context)
+    model_input.append(
+        {
+            "role": "user",
+            "content": (
+                "Hãy mở đầu cuộc trò chuyện tiếp nhận trước lịch hẹn. "
+                "Nếu biết tên bệnh nhân, hãy chào bằng tên một cách tự nhiên. "
+                "Nếu bệnh nhân đã gửi ghi chú/lý do đặt lịch, hãy nhắc lại ngắn gọn nội dung đó ở đầu cuộc trò chuyện để thể hiện phòng khám đã chú ý, rồi hỏi câu đào sâu phù hợp tiếp theo. "
+                "Nếu chưa có ghi chú, hãy hỏi câu đầu tiên về lý do đặt lịch hoặc triệu chứng chính. "
+                "Chỉ trả về nội dung bệnh nhân sẽ thấy, không trả về JSON."
+            ),
+        }
+    )
+
     response = _openai_client().responses.create(
         model=OPENAI_CHAT_MODEL,
-        input=[
-            {"role": "system", "content": CHAT_SYSTEM_PROMPT},
-            {
-                "role": "user",
-                "content": (
-                    "Hãy mở đầu cuộc trò chuyện tiếp nhận trước lịch hẹn. "
-                    "Chào bệnh nhân ngắn gọn, giới thiệu vai trò trợ lý, "
-                    "rồi hỏi câu đầu tiên về lý do đặt lịch hoặc triệu chứng chính. "
-                    "Chỉ trả về nội dung bệnh nhân sẽ thấy, không trả về JSON."
-                ),
-            },
-        ],
+        input=model_input,
     )
 
     greeting = (response.output_text or "").strip()
@@ -260,9 +298,11 @@ def get_chat(*, token: str) -> dict[str, str | list[dict[str, str]]]:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT b.id, b.status, b.chat_status, b.chat_messages, s.start_at
+                SELECT b.id, b.status, b.chat_status, b.chat_messages, s.start_at,
+                       p.name, p.gender, p.birthdate, b.patient_note
                 FROM bookings b
                 JOIN slots s ON s.id = b.slot_id
+                LEFT JOIN patients p ON p.id = b.patient_id
                 WHERE b.id = %s
                 LIMIT 1
                 """,
@@ -277,13 +317,14 @@ def get_chat(*, token: str) -> dict[str, str | list[dict[str, str]]]:
     booking_status = row[1]
     chat_status = row[2]
     slot_start_at = row[4]
+    patient_context = _patient_context_message(name=row[5], gender=row[6], birthdate=row[7], patient_note=row[8])
 
     _assert_chat_viewable(booking_status=booking_status, slot_start_at=slot_start_at)
     messages = _normalize_messages(row[3])
     chat_status = _effective_chat_status(chat_status=chat_status, messages=messages)
 
     if not messages:
-        greeting = _call_initial_greeting_model()
+        greeting = _call_initial_greeting_model(patient_context=patient_context)
         greeting_message = _new_message(role="assistant", message=greeting)
         with DB_POOL.connection() as conn:
             with conn.transaction():
@@ -338,9 +379,11 @@ def send_chat_message(*, token: str, message: str) -> dict[str, str | list[dict[
             with conn.cursor() as cur:
                 cur.execute(
                     """
-                    SELECT b.status, b.chat_status, b.chat_messages, s.start_at
+                    SELECT b.status, b.chat_status, b.chat_messages, s.start_at,
+                           p.name, p.gender, p.birthdate, b.patient_note
                     FROM bookings b
                     JOIN slots s ON s.id = b.slot_id
+                    LEFT JOIN patients p ON p.id = b.patient_id
                     WHERE b.id = %s
                     FOR UPDATE OF b
                     LIMIT 1
@@ -356,6 +399,7 @@ def send_chat_message(*, token: str, message: str) -> dict[str, str | list[dict[
                 messages = _normalize_messages(row[2])
                 current_chat_status = _effective_chat_status(chat_status=current_chat_status, messages=messages)
                 _assert_chat_allowed(booking_status=row[0], chat_status=current_chat_status, slot_start_at=row[3])
+                patient_context = _patient_context_message(name=row[4], gender=row[5], birthdate=row[6], patient_note=row[7])
 
                 messages.append(_new_message(role="user", message=patient_message))
 
@@ -370,7 +414,7 @@ def send_chat_message(*, token: str, message: str) -> dict[str, str | list[dict[
 
     # The OpenAI call happens outside the transaction so we do not hold the row
     # lock during a network request.
-    assistant_response = _call_chat_model(messages)
+    assistant_response = _call_chat_model(messages, patient_context=patient_context)
     assistant_message = _new_message(
         role="assistant",
         message=assistant_response["message"],
