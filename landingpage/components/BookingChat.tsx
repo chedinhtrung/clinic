@@ -26,8 +26,8 @@ export default function BookingChat({ token }: BookingChatProps) {
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }, [messages]);
+    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, isSending, status, errorMessage]);
 
   useEffect(() => {
     if (!token) {
@@ -129,7 +129,7 @@ export default function BookingChat({ token }: BookingChatProps) {
         : null;
 
   return (
-    <div className="mx-auto flex min-h-[70vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg bg-white shadow-lg">
+    <div className="mx-auto flex h-[calc(100vh-8rem)] min-h-[520px] w-full max-w-2xl flex-col overflow-hidden rounded-lg bg-white shadow-lg sm:h-[calc(100vh-10rem)]">
       <div className="flex items-center gap-3 bg-primary p-4">
         <GrayAvatarSVG />
         <div>
@@ -138,7 +138,7 @@ export default function BookingChat({ token }: BookingChatProps) {
         </div>
       </div>
 
-      <div className="flex-1 space-y-3 overflow-y-auto bg-tinted-gray p-4">
+      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-tinted-gray p-4">
         {isLoading ? (
           <p className="text-sm text-txt-gray">Đang tải cuộc trò chuyện...</p>
         ) : messages.length === 0 && !errorMessage ? (

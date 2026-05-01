@@ -46,7 +46,7 @@ docker compose -f docker-compose.booking.prod.yaml down
 
 ## Take Down And Delete Volumes
 
-Danger: this deletes the Postgres data volumes for booking and blog. Use only
+DANGER!: this deletes the Postgres data volumes for booking and blog. Use only
 when you intentionally want to wipe persisted database data.
 
 ```bash
