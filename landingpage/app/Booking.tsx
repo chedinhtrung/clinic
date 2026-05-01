@@ -60,7 +60,7 @@ const bookingSteps = [
 
 const bookingBenefits = [
     {
-        title: "Uy tín & minh bạch",
+        title: "Chuyên gia hàng đầu",
         description: "Bác sỹ nhiều năm kinh nghiệm từ bệnh viện tuyến đầu.",
         icon: (
             <svg viewBox="0 0 24 24" className="h-9 w-9" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -91,7 +91,7 @@ const bookingBenefits = [
     },
     {
         title: "Không cần chờ đợi",
-        description: "Chọn lịch khám phù hợp nhất với bạn.",
+        description: "Chọn lịch tư vấn phù hợp nhất với bạn.",
         icon: (
             <svg viewBox="0 0 24 24" className="h-9 w-9" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <circle cx="12" cy="12" r="9" />
@@ -354,7 +354,7 @@ export function BookingFlow({
     }, [availableDates, cachedSlotsByDate, displayedMonth])
 
     return (
-        <section className="bg-[#fdfbf8] px-6 py-14 text-[#092452] sm:px-10 lg:px-20">
+        <section id="booking" className="scroll-mt-24 bg-[#fdfbf8] px-6 py-14 text-[#092452] sm:px-10 lg:px-20">
             <div className="mx-auto w-full max-w-7xl">
                 <div className="mb-10 text-center">
                     <h2 className="font-serif text-2xl font-black tracking-tight text-[#092452] sm:text-3xl">

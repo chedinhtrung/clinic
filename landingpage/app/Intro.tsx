@@ -1,4 +1,8 @@
-export default function Intro() {
+export default function Intro({
+    setSelectedPage,
+}: {
+    setSelectedPage: (page: string) => void;
+}) {
     return (
         <div className="sm:px-20 px-6 pb-10 bg-gradient-to-br from-navy-dark to-navy-mid p-6 text-white flex justify-center">
             <div className="flex max-w-7xl gap-10 w-full">
@@ -71,12 +75,16 @@ export default function Intro() {
 
                     <div className="flex gap-4">
 
-                        <button className="flex items-center gap-2 rounded-lg bg-gold px-6 py-3 text-white font-semibold hover:bg-gold-light transition">
+                        <a href="#booking" className="flex items-center gap-2 rounded-lg bg-gold px-6 py-3 text-white font-semibold hover:bg-gold-light transition">
                             <span>📅</span>
                             ĐẶT LỊCH KHÁM NGAY
-                        </button>
+                        </a>
 
-                        <button className="flex items-center gap-2 rounded-lg border border-white/40 px-6 py-3 text-white font-semibold hover:bg-white/10 transition">
+                        <button
+                            type="button"
+                            className="flex items-center gap-2 rounded-lg border border-white/40 px-6 py-3 text-white font-semibold hover:bg-white/10 transition"
+                            onClick={() => setSelectedPage("profile")}
+                        >
                             TÌM HIỂU THÊM →
                         </button>
                     </div>

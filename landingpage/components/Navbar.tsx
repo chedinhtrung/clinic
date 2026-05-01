@@ -22,6 +22,18 @@ export default function Navbar(
         setIsMenuOpen(false);
     };
 
+    const goToBooking = () => {
+        setSelectedPage("home");
+        setIsMenuOpen(false);
+
+        window.setTimeout(() => {
+            document.getElementById("booking")?.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+            });
+        }, 0);
+    };
+
     const desktopLinkClass = (page: string) => [
         "flex h-full items-center border-b-4 text-center transition-colors cursor-pointer",
         selectedPage === page
@@ -75,9 +87,13 @@ export default function Navbar(
                 </ul>
 
                 <div className="ml-auto hidden h-full items-center justify-center gap-2 font-bold uppercase sm:flex">
-                    <a className="bg-gold hover:bg-gold-light flex justify-center items-center rounded-sm p-2 flex-shrink-0">
+                    <button
+                        type="button"
+                        className="bg-gold hover:bg-gold-light flex justify-center items-center rounded-sm p-2 flex-shrink-0"
+                        onClick={goToBooking}
+                    >
                         Đặt lịch khám →
-                    </a>
+                    </button>
                 </div>
 
                 <button
@@ -137,9 +153,13 @@ export default function Navbar(
                     ))}
                 </ul>
                 <div className="px-5 py-3 sm:hidden">
-                    <a className="bg-gold hover:bg-gold-light flex justify-center items-center rounded-sm p-2 font-bold uppercase">
+                    <button
+                        type="button"
+                        className="bg-gold hover:bg-gold-light flex w-full justify-center items-center rounded-sm p-2 font-bold uppercase"
+                        onClick={goToBooking}
+                    >
                         Đặt lịch khám →
-                    </a>
+                    </button>
                 </div>
             </div>
         </nav>

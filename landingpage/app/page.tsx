@@ -22,7 +22,7 @@ export default function Home() {
       {
         selectedPage === "home" && (
           <div>
-            <Intro />
+            <Intro setSelectedPage={setSelectedPage} />
             <Booking />
           </div>
         )
