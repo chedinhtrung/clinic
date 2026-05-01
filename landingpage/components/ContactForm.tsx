@@ -11,6 +11,33 @@ type ContactFormValues = {
   gender: string;
 }
 
+function formatBirthdateInput(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 8);
+  const day = digits.slice(0, 2);
+  const month = digits.slice(2, 4);
+  const year = digits.slice(4, 8);
+
+  return [day, month, year].filter(Boolean).join("/");
+}
+
+function formatBirthdateForDisplay(value: string) {
+  const isoMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (isoMatch) {
+    return `${isoMatch[3]}/${isoMatch[2]}/${isoMatch[1]}`;
+  }
+
+  return formatBirthdateInput(value);
+}
+
+function birthdateDisplayToIso(value: string) {
+  const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value);
+  if (!match) {
+    return value;
+  }
+
+  return `${match[3]}-${match[2]}-${match[1]}`;
+}
+
 export default function ContactForm({
   confirmed = false,
   nextStep = "payment",
@@ -24,7 +51,7 @@ export default function ContactForm({
     name: initialValues?.name ?? "",
     email: initialValues?.email ?? "",
     phone: initialValues?.phone ?? "",
-    birthdate: initialValues?.birthdate ?? "",
+    birthdate: formatBirthdateForDisplay(initialValues?.birthdate ?? ""),
     gender: initialValues?.gender ?? "",
     message: "",
   })
@@ -39,7 +66,7 @@ export default function ContactForm({
       name: initialValues?.name ?? "",
       email: initialValues?.email ?? "",
       phone: initialValues?.phone ?? "",
-      birthdate: initialValues?.birthdate ?? "",
+      birthdate: formatBirthdateForDisplay(initialValues?.birthdate ?? ""),
       gender: initialValues?.gender ?? "",
     }))
   }, [
@@ -53,9 +80,14 @@ export default function ContactForm({
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
+    const value =
+      e.target.name === "birthdate"
+        ? formatBirthdateInput(e.target.value)
+        : e.target.value;
+
     setForm({
       ...form,
-      [e.target.name]: e.target.value,
+      [e.target.name]: value,
     })
   }
 
@@ -69,7 +101,10 @@ export default function ContactForm({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          birthdate: birthdateDisplayToIso(form.birthdate),
+        }),
       });
 
       const data = await res.json();
@@ -131,12 +166,13 @@ export default function ContactForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1">Số điện thoại</label>
+        <label className="block text-sm font-medium mb-1">Số điện thoại <span className="text-red-500">*</span></label>
         <input
           name="phone"
           value={form.phone}
           onChange={handleChange}
           className="w-full border rounded p-2"
+          required
         />
       </div>
 
@@ -149,20 +185,20 @@ export default function ContactForm({
           onChange={handleChange}
           className="w-full border rounded p-2"
           inputMode="numeric"
-          placeholder="YYYY-MM-DD"
-          pattern="\d{4}-\d{2}-\d{2}"
+          placeholder="dd/mm/yyyy"
+          pattern="\d{2}/\d{2}/\d{4}"
+          maxLength={10}
           required
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1">Giới tính <span className="text-red-500">*</span></label>
+        <label className="block text-sm font-medium mb-1">Giới tính</label>
         <select
           name="gender"
           value={form.gender}
           onChange={handleChange}
           className="w-full border rounded p-2 bg-white"
-          required
         >
           <option value=""></option>
           <option value="male">Nam</option>

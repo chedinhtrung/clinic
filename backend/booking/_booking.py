@@ -563,7 +563,7 @@ def db_update_booking_contact_for_change_link(
     patient_id: str,
     name: str,
     email: str,
-    phone: str | None,
+    phone: str,
     birthdate: str,
     gender: str,
 ) -> dict[str, str | int]:
@@ -575,10 +575,10 @@ def db_update_booking_contact_for_change_link(
         raise ValueError("name is required")
     if not email:
         raise ValueError("email is required")
+    if not phone:
+        raise ValueError("phone is required")
     if not birthdate:
         raise ValueError("birthdate is required")
-    if not gender:
-        raise ValueError("gender is required")
 
     normalized_email = _normalize_email(email)
 
@@ -665,7 +665,7 @@ def db_prepare_booking_confirmation_for_session(
     session_id: str,
     name: str,
     email: str,
-    phone: str | None,
+    phone: str,
     birthdate: str,
     gender: str,
 ) -> dict[str, str | int]:
@@ -675,10 +675,10 @@ def db_prepare_booking_confirmation_for_session(
         raise ValueError("name is required")
     if not email:
         raise ValueError("email is required")
+    if not phone:
+        raise ValueError("phone is required")
     if not birthdate:
         raise ValueError("birthdate is required")
-    if not gender:
-        raise ValueError("gender is required")
 
     normalized_email = _normalize_email(email)
     now_utc = datetime.now(timezone.utc)

@@ -104,12 +104,13 @@ export default function BookingChangeForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1">Số điện thoại</label>
+        <label className="block text-sm font-medium mb-1">Số điện thoại <span className="text-red-500">*</span></label>
         <input
           name="phone"
           value={form.phone}
           onChange={handleChange}
           className="w-full border rounded p-2"
+          required
         />
       </div>
 
@@ -126,13 +127,12 @@ export default function BookingChangeForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1">Giới tính <span className="text-red-500">*</span></label>
+        <label className="block text-sm font-medium mb-1">Giới tính</label>
         <select
           name="gender"
           value={form.gender}
           onChange={handleChange}
           className="w-full border rounded p-2 bg-white"
-          required
         >
           <option value=""></option>
           <option value="male">Nam</option>

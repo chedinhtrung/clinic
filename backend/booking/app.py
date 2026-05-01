@@ -169,7 +169,7 @@ def update_booking_for_change_link():
             patient_id=patient_id,
             name=data.get("name", "").strip(),
             email=data.get("email", "").strip(),
-            phone=(data.get("phone") or "").strip() or None,
+            phone=(data.get("phone") or "").strip(),
             birthdate=data.get("birthdate", "").strip(),
             gender=data.get("gender", "").strip(),
         )
@@ -219,7 +219,7 @@ def prepare_booking_confirmation():
             session_id=session_id,
             name=data.get("name", "").strip(),
             email=data.get("email", "").strip(),
-            phone=(data.get("phone") or "").strip() or None,
+            phone=(data.get("phone") or "").strip(),
             birthdate=data.get("birthdate", "").strip(),
             gender=data.get("gender", "").strip(),
         )
