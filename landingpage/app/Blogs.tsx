@@ -172,7 +172,7 @@ export default function Blogs() {
     }
 
     loadPosts();
-  }, [categories, currentPage, selectedCategory]);
+  }, [currentPage, selectedCategory]);
 
   return (
     <section className="bg-white">
@@ -208,8 +208,8 @@ export default function Blogs() {
                     setCurrentPage(1);
                   }}
                   className={`rounded-[4px] border px-6 py-3 text-base font-semibold transition ${isActive
-                      ? "border-navy bg-navy text-white"
-                      : "border-[#d7dfed] bg-white text-[#516384] hover:border-navy/40 hover:text-navy"
+                    ? "border-navy bg-navy text-white"
+                    : "border-[#d7dfed] bg-white text-[#516384] hover:border-navy/40 hover:text-navy"
                     }`}
                 >
                   {category.label}

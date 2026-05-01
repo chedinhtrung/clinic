@@ -3,33 +3,54 @@
 import Image from "next/image";
 
 const expertise = [
-  "Chấn thương chỉnh hình và phẫu thuật tạo hình",
-  "Vi phẫu phục hồi chi thể và tổn thương phức tạp",
-  "Điều trị liệt mặt, liệt đám rối cánh tay",
-  "Tái tạo tuyến vú và điều trị phù bạch mạch",
+  "Đa chấn thương, gãy xương phức tạp",
+  "Tổn thương dây chằng ACL, PCL, MCL, sụn chêm",
+  "Thay khớp ít xâm lấn: khớp gối, khớp háng nhân tạo",
+  "Chấn thương vận động viên",
+  "Điều trị PRP & Tế bào gốc",
 ];
 
 const milestones = [
-  "2001: Tốt nghiệp Đại học Y Hà Nội",
-  "2007: Hoàn thành Thạc sĩ Ngoại khoa",
-  "2019: Nhận bằng Tiến sĩ Y học tại Viện 108",
-  "2005 - 2022: Bác sĩ điều trị, Bệnh viện TWQĐ 108",
-  "2023 - nay: Bác sĩ điều trị, Hệ thống BVĐK Tâm Anh",
+  {
+    period: "2023 - nay",
+    title: "Phó khoa Chấn thương Chỉnh hình",
+    organization: "Hệ thống Bệnh viện Đa khoa Tâm Anh",
+  },
+  {
+    period: "2005 - 2022",
+    title: "Bác sĩ điều trị",
+    organization: "Bệnh viện Trung ương Quân đội 108",
+  },
+  {
+    period: "2011 - 2019",
+    title: "Tiến sĩ Y học",
+    organization: "Viện Nghiên cứu Khoa học Y dược lâm sàng 108",
+  },
+  {
+    period: "2005 - 2007",
+    title: "Thạc sĩ Ngoại khoa",
+    organization: "Đại học Y Hà Nội",
+  },
+  {
+    period: "1995 - 2001",
+    title: "Bác sĩ Đa khoa",
+    organization: "Đại học Y Hà Nội",
+  },
 ];
 
 export default function Profile() {
   return (
     <section className="bg-white px-6 py-14 text-navy-dark sm:px-10 lg:px-20">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-10 max-w-2xl">
+        <div className="mb-10 max-w-4xl">
           <div className="inline-flex items-center text-xs font-semibold uppercase tracking-[0.24em] text-gold">
             Hồ sơ chuyên gia
           </div>
-          <h2 className="mt-4 font-serif text-3xl font-bold tracking-tight sm:text-4xl">
-            TS.BS. Chế Đình Nghĩa
+          <h2 className="mt-4 font-serif text-2xl font-bold tracking-tight sm:text-4xl">
+            TS. BS. Chế Đình Nghĩa
           </h2>
           <p className="mt-4 text-base leading-8 text-navy-mid/80 sm:text-lg">
-            Hơn 20 năm công tác trong ngành y, TS.BS Chế Đình Nghĩa là chuyên gia
+            Hơn 20 năm công tác trong ngành y, TS. BS. Chế Đình Nghĩa là chuyên gia
             giàu kinh nghiệm trong chấn thương chỉnh hình và phẫu thuật tạo hình.
             Bác sĩ đã điều trị nhiều ca bệnh phức tạp bằng kỹ thuật ít xâm lấn,
             giúp giảm đau, hạn chế biến chứng và rút ngắn thời gian hồi phục cho
@@ -37,64 +58,58 @@ export default function Profile() {
           </p>
         </div>
 
-        <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+        <div className="grid gap-20 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
           <div className="overflow-hidden rounded-sm bg-[#f6f1e7]">
             <Image
-              src="/images/bsnghia2.webp"
+              src="/images/bsnghia.png"
               alt="TS.BS. Chế Đình Nghĩa"
-              width={1200}
-              height={1400}
+              width={900}
+              height={1200}
               className="h-full w-full object-cover"
               priority
             />
           </div>
 
-          <div className="space-y-8">
+          <div className="space-y-6">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-gold">
+              <p className="text-sm font-bold uppercase tracking-[0.15em] text-gold">
                 Điểm nhấn chuyên môn
               </p>
               <p className="mt-4 text-sm leading-7 text-navy-mid/85 sm:text-base">
-                Bác sĩ có thế mạnh trong chấn thương chỉnh hình, phẫu thuật tạo
-                hình và vi phẫu phục hồi các tổn thương phức tạp, với định hướng
-                điều trị chính xác, ít xâm lấn và tối ưu khả năng hồi phục cho
-                người bệnh.
+                Các lĩnh vực chuyên môn nổi bật bao gồm:
               </p>
-              <div className="mt-5 space-y-3">
+              <div className="mt-2 space-y-1">
                 {expertise.map((item) => (
-                  <p key={item} className="border-b border-black/10 pb-3 text-sm leading-7 text-navy-mid">
-                    {item}
-                  </p>
+                  <div key={item} className="flex items-start gap-2">
+                    <span>•</span>
+                    <p className="text-sm leading-7 text-navy-mid sm:text-base">
+                      {item}
+                    </p>
+                  </div>
                 ))}
               </div>
             </div>
 
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-gold">
+              <p className="text-sm font-bold uppercase tracking-[0.15em] text-gold">
                 Học tập và công tác
               </p>
-              <div className="mt-5 space-y-4">
+              <div className="mt-6 border-l border-[#d7dfed] pl-6">
                 {milestones.map((item) => (
-                  <p
-                    key={item}
-                    className="border-b border-black/10 pb-4 text-sm leading-7 text-navy-mid last:border-b-0 last:pb-0"
-                  >
-                    {item}
-                  </p>
+                  <div key={item.period} className="relative pb-3 last:pb-0">
+                    <span className="absolute -left-[31px] top-1 h-3 w-3 rounded-full bg-gold" />
+                    <p className="text-sm font-semibold text-gray-500">{item.period}</p>
+                    <h3 className="font-bold text-navy-dark">
+                      {item.title}
+                    </h3>
+                    <p className="text-navy-mid/75 text-sm">
+                      {item.organization}
+                    </p>
+                  </div>
                 ))}
               </div>
             </div>
 
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-gold">
-                Định hướng chuyên môn
-              </p>
-              <p className="mt-4 text-sm leading-7 text-navy-mid/85 sm:text-base">
-                Bên cạnh điều trị lâm sàng, bác sĩ còn tích cực nghiên cứu khoa học
-                và ứng dụng kỹ thuật vi phẫu hiện đại nhằm nâng cao hiệu quả điều
-                trị, phục hồi chức năng và chất lượng sống cho người bệnh.
-              </p>
-            </div>
           </div>
         </div>
       </div>

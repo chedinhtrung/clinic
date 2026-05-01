@@ -31,18 +31,6 @@ export default function Intro() {
 
                     </div>
 
-                    <div className="flex gap-4">
-
-                        <button className="flex items-center gap-2 rounded-lg bg-gold px-6 py-3 text-white font-semibold hover:bg-gold-light transition">
-                            <span>📅</span>
-                            ĐẶT LỊCH KHÁM NGAY
-                        </button>
-
-                        <button className="flex items-center gap-2 rounded-lg border border-white/40 px-6 py-3 text-white font-semibold hover:bg-white/10 transition">
-                            TÌM HIỂU THÊM →
-                        </button>
-                    </div>
-
                     {/* highlights */}
 
                     <div className="py-10">
@@ -79,6 +67,18 @@ export default function Intro() {
                             </div>
 
                         </div>
+                    </div>
+
+                    <div className="flex gap-4">
+
+                        <button className="flex items-center gap-2 rounded-lg bg-gold px-6 py-3 text-white font-semibold hover:bg-gold-light transition">
+                            <span>📅</span>
+                            ĐẶT LỊCH KHÁM NGAY
+                        </button>
+
+                        <button className="flex items-center gap-2 rounded-lg border border-white/40 px-6 py-3 text-white font-semibold hover:bg-white/10 transition">
+                            TÌM HIỂU THÊM →
+                        </button>
                     </div>
 
                 </div>
