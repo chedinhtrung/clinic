@@ -95,7 +95,7 @@ def _assert_chat_allowed(*, booking_status: str, chat_status: str, slot_start_at
     # POST requests must be both viewable and still open for new patient input.
     if booking_status != "confirmed":
         raise ChatAccessError("Lịch hẹn của bạn chưa được xác nhận. Vui lòng hoàn tất đặt lịch để bắt đầu trò chuyện với trợ lý.")
-    if chat_status != "active":
+    if chat_status == "abuse":
         raise ChatAccessError("Trò chuyện đã kết thúc.")
     if datetime.now(timezone.utc) >= _chat_allowed_until(slot_start_at).astimezone(timezone.utc):
         raise ChatAccessError("Liên kết trò chuyện đã hết hạn.")
@@ -260,7 +260,8 @@ def send_chat_message(*, token: str, message: str) -> dict[str, str | list[dict[
                 if row is None:
                     raise ChatAccessError("booking not found")
 
-                _assert_chat_allowed(booking_status=row[0], chat_status=row[1], slot_start_at=row[3])
+                current_chat_status = row[1]
+                _assert_chat_allowed(booking_status=row[0], chat_status=current_chat_status, slot_start_at=row[3])
 
                 messages = _normalize_messages(row[2])
                 messages.append(_new_message(role="user", message=patient_message))
@@ -281,7 +282,7 @@ def send_chat_message(*, token: str, message: str) -> dict[str, str | list[dict[
     messages_with_assistant = [*messages, assistant_message]
 
     summary = None
-    if assistant_response["status"] == "finished":
+    if assistant_response["status"] == "finished" or current_chat_status == "finished":
         summary = _call_summary_model(messages_with_assistant)
 
     # Re-lock and append to the latest row state in case another request changed
@@ -306,7 +307,7 @@ def send_chat_message(*, token: str, message: str) -> dict[str, str | list[dict[
                 latest_messages = _normalize_messages(row[0])
                 latest_messages.append(assistant_message)
 
-                if assistant_response["status"] == "finished":
+                if assistant_response["status"] == "finished" or current_chat_status == "finished":
                     cur.execute(
                         """
                         UPDATE bookings

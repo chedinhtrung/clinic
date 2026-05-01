@@ -120,10 +120,10 @@ export default function BookingChat({ token }: BookingChatProps) {
     }
   }
 
-  const inputDisabled = isLoading || isSending || status !== "active" || Boolean(errorMessage && messages.length === 0);
+  const inputDisabled = isLoading || isSending || status === "abuse" || Boolean(errorMessage && messages.length === 0);
   const statusMessage =
     status === "finished"
-      ? "Em đã ghi nhận thông tin và chuyển phần tóm tắt cho bác sĩ."
+      ? "Em đã ghi nhận thông tin và chuyển phần tóm tắt cho bác sĩ. Mình vẫn có thể bổ sung hoặc chỉnh lại thông tin nếu cần."
       : status === "abuse"
         ? "Phiên trò chuyện đã được tạm dừng."
         : null;
