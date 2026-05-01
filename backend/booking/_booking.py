@@ -236,7 +236,7 @@ def send_booking_confirmation_request_email(
     slot_start_at: datetime | None = None,
     slot_end_at: datetime | None = None,
 ) -> None:
-    subject = f"Xác nhận đặt chỗ #{reservation_code}"
+    subject = f"Lịch hẹn chờ xác nhận #{reservation_code}"
     greeting_name = recipient_name or "Quý Khách"
     slot_line = ""
     if slot_start_at is not None:
