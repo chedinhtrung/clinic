@@ -75,7 +75,7 @@ export default function BookingChat({ token }: BookingChatProps) {
 
   async function sendMessage() {
     const userText = input.trim();
-    if (!userText || isSending || status !== "active") {
+    if (!userText || isSending || status === "abuse") {
       return;
     }
 
