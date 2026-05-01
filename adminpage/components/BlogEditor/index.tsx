@@ -251,13 +251,6 @@ export default function BlogEditor() {
     setTotalPosts((currentTotalPosts) => Math.max(0, currentTotalPosts - 1));
   }
 
-  // Keep local lookup options responsive until the next backend-backed refresh.
-  function createCategory(name: string) {
-    const category = { id: `pending-cat-${Date.now()}`, name };
-    setCategoryOptions((currentOptions) => [...currentOptions, category]);
-    return category;
-  }
-
   // Create a subcategory option and return it so the aside can immediately select it.
   function createSubcategory(name: string) {
     const subcategory = { id: `pending-sub-${Date.now()}`, name };
@@ -350,7 +343,6 @@ export default function BlogEditor() {
         onUpdatePost={updateSelectedPost}
         onTogglePublish={toggleSelectedPostPublish}
         onDeletePost={deleteSelectedPost}
-        onCreateCategory={createCategory}
         onCreateSubcategory={createSubcategory}
         onCreateTag={createTag}
       />

@@ -51,7 +51,6 @@ type BlogPostEditorAsideProps = {
   onUpdatePost: (changes: Partial<BlogPost>) => void;
   onTogglePublish: () => void;
   onDeletePost: () => void;
-  onCreateCategory: (name: string) => BlogCategory;
   onCreateSubcategory: (name: string) => BlogSubcategory;
   onCreateTag: (name: string) => BlogTag;
 };
@@ -67,7 +66,6 @@ export default function BlogPostEditorAside({
   onUpdatePost,
   onTogglePublish,
   onDeletePost,
-  onCreateCategory,
   onCreateSubcategory,
   onCreateTag,
 }: BlogPostEditorAsideProps) {
@@ -95,21 +93,15 @@ export default function BlogPostEditorAside({
     });
   }, [post, tagInputText, tagOptions]);
 
-  function commitCategory(value: string) {
+  function selectCategory(categoryId: string) {
     if (!post) {
       return;
     }
 
-    const normalizedName = value.trim();
-    if (!normalizedName) {
-      onUpdatePost({ category: post.category });
-      return;
+    const category = categoryOptions.find((option) => option.id === categoryId);
+    if (category) {
+      onUpdatePost({ category });
     }
-
-    const category =
-      categoryOptions.find((option) => option.name.toLowerCase() === normalizedName.toLowerCase()) ??
-      onCreateCategory(normalizedName);
-    onUpdatePost({ category });
   }
 
   function commitSubcategory(value: string) {
@@ -233,24 +225,21 @@ export default function BlogPostEditorAside({
               <div className="grid gap-4 lg:grid-cols-[1fr_1fr_1.4fr]">
                 <label className="block">
                   <span className="text-xs font-medium text-[#787774]">Category</span>
-                  <input
-                    list="blog-category-options"
-                    value={post.category.name}
-                    onChange={(event) => onUpdatePost({ category: { ...post.category, name: event.target.value } })}
-                    onBlur={(event) => commitCategory(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter") {
-                        event.preventDefault();
-                        commitCategory(event.currentTarget.value);
-                      }
-                    }}
+                  <select
+                    value={post.category.id}
+                    onChange={(event) => selectCategory(event.target.value)}
+                    disabled={categoryOptions.length === 0}
                     className="mt-2 w-full rounded-md border border-[#e3e2df] bg-white px-3 py-2 text-sm text-[#37352f] outline-none transition focus:border-[#b9b8b4]"
-                  />
-                  <datalist id="blog-category-options">
+                  >
+                    {!categoryOptions.some((category) => category.id === post.category.id) && (
+                      <option value={post.category.id}>{post.category.name}</option>
+                    )}
                     {categoryOptions.map((category) => (
-                      <option key={category.id} value={category.name} />
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
                     ))}
-                  </datalist>
+                  </select>
                 </label>
 
                 <label className="block">
