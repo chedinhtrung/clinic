@@ -201,9 +201,19 @@ function renderContentBlock(block: BlogContentBlock) {
   if (block.type === "image") {
     return (
       <figure className="overflow-hidden rounded-[8px] border border-gray-200 bg-[#f5f8fc] p-3 sm:rounded-[12px] sm:p-4">
-        <div className="flex min-h-56 items-center justify-center rounded-[6px] bg-[linear-gradient(135deg,#153560_0%,#1e4a80_60%,#c4922a_140%)] px-4 text-center text-sm font-semibold tracking-[0.16em] text-white/84 sm:min-h-72 sm:rounded-[8px] sm:px-6">
-          {block.src ? block.alt || "Hinh anh bai viet" : "Image block placeholder"}
-        </div>
+        {block.src ? (
+          <div className="overflow-hidden rounded-[6px] bg-white sm:rounded-[8px]">
+            <img
+              src={block.src}
+              alt={block.alt || ""}
+              className="mx-auto max-h-[34rem] w-full object-contain"
+            />
+          </div>
+        ) : (
+          <div className="flex min-h-56 items-center justify-center rounded-[6px] bg-[linear-gradient(135deg,#153560_0%,#1e4a80_60%,#c4922a_140%)] px-4 text-center text-sm font-semibold tracking-[0.16em] text-white/84 sm:min-h-72 sm:rounded-[8px] sm:px-6">
+            Image block placeholder
+          </div>
+        )}
         {block.caption ? (
           <figcaption className="mt-3 text-sm leading-7 text-gray-600">
             {block.caption}
