@@ -1,14 +1,17 @@
+"use client"
+
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const menuItems = [
     { id: "home", label: "TRANG CHỦ", href: "/" },
-    { id: "profile", label: "GIỚI THIỆU" },
-    { id: "injuries", label: "CHẤN THƯƠNG" },
-    { id: "methods", label: "PHẪU THUẬT" },
-    { id: "blog", label: "BÀI VIẾT" },
-    { id: "contact", label: "LIÊN HỆ" },
+    { id: "profile", label: "GIỚI THIỆU", href: "/profile" },
+    { id: "injuries", label: "CHẤN THƯƠNG", href: "/injuries" },
+    { id: "methods", label: "PHẪU THUẬT", href: "/injuries#phau-thuat" },
+    { id: "blog", label: "BÀI VIẾT", href: "/blog" },
+    { id: "contact", label: "LIÊN HỆ", href: "/#booking" },
 ];
 
 const socialLinks = [
@@ -41,39 +44,30 @@ const socialLinks = [
     },
 ];
 
-export default function Navbar(
-    { selectedPage, setSelectedPage }
-        : { selectedPage: string, setSelectedPage: (page: string) => void }
-) {
+export default function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const pathname = usePathname();
 
-    const selectPage = (page: string) => {
-        setSelectedPage(page);
+    const closeMenu = () => {
         setIsMenuOpen(false);
     };
 
-    const goToBooking = () => {
-        setSelectedPage("home");
-        setIsMenuOpen(false);
-
-        window.setTimeout(() => {
-            document.getElementById("booking")?.scrollIntoView({
-                behavior: "smooth",
-                block: "start",
-            });
-        }, 0);
-    };
+    const isActive = (page: string) =>
+        (page === "home" && pathname === "/") ||
+        (page === "profile" && pathname === "/profile") ||
+        (page === "injuries" && pathname === "/injuries") ||
+        (page === "blog" && pathname.startsWith("/blog"));
 
     const desktopLinkClass = (page: string) => [
         "flex h-full items-center border-b-4 text-center transition-colors cursor-pointer",
-        selectedPage === page
+        isActive(page)
             ? "border-b-gold text-gold"
             : "border-b-transparent text-white hover:border-b-gold hover:text-gold",
     ].join(" ");
 
     const mobileLinkClass = (page: string) => [
         "flex w-full items-center border-l-4 px-5 py-4 text-sm font-bold transition-colors",
-        selectedPage === page
+        isActive(page)
             ? "border-l-gold bg-white/10 text-gold"
             : "border-l-transparent text-white hover:border-l-gold hover:bg-white/10 hover:text-gold",
     ].join(" ");
@@ -105,14 +99,14 @@ export default function Navbar(
 
                 <ul className="hidden h-12 flex-1 items-center justify-center gap-8 text-sm font-bold lg:flex">
                     {menuItems.map((item) => (
-                        <a
+                        <Link
                             key={item.id}
                             href={item.href}
                             className={desktopLinkClass(item.id)}
-                            onClick={() => { selectPage(item.id) }}
+                            onClick={closeMenu}
                         >
                             {item.label}
-                        </a>
+                        </Link>
                     ))}
                 </ul>
 
@@ -132,13 +126,13 @@ export default function Navbar(
                             </a>
                         ))}
                     </div>
-                    <button
-                        type="button"
+                    <Link
+                        href="/#booking"
                         className="bg-gold hover:bg-gold-light flex justify-center items-center rounded-sm p-2 flex-shrink-0 font-bold uppercase"
-                        onClick={goToBooking}
+                        onClick={closeMenu}
                     >
                         Đặt lịch khám →
-                    </button>
+                    </Link>
                 </div>
 
                 <button
@@ -187,14 +181,14 @@ export default function Navbar(
                 </div>
                 <ul className="py-3">
                     {menuItems.map((item) => (
-                        <a
+                        <Link
                             key={item.id}
                             href={item.href}
                             className={mobileLinkClass(item.id)}
-                            onClick={() => { selectPage(item.id) }}
+                            onClick={closeMenu}
                         >
                             {item.label}
-                        </a>
+                        </Link>
                     ))}
                 </ul>
                 <div className="flex items-center gap-2 border-t border-white/15 px-5 py-4" aria-label="Social media links">
@@ -214,13 +208,13 @@ export default function Navbar(
                     ))}
                 </div>
                 <div className="px-5 py-3 sm:hidden">
-                    <button
-                        type="button"
+                    <Link
+                        href="/#booking"
                         className="bg-gold hover:bg-gold-light flex w-full justify-center items-center rounded-sm p-2 font-bold uppercase"
-                        onClick={goToBooking}
+                        onClick={closeMenu}
                     >
                         Đặt lịch khám →
-                    </button>
+                    </Link>
                 </div>
             </div>
         </nav>

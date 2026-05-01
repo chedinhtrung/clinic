@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import CalendarSVG from "@/components/CalendarSVG";
 import { withApiBase } from "@/app/apiBase";
+import Navbar from "@/components/Navbar";
 
 type BookingDetails = {
     id: string;
@@ -182,8 +183,11 @@ function PaymentPageContent() {
 
 export default function PaymentPage() {
     return (
-        <Suspense fallback={<div className="bg-tinted-gray p-6 sm:p-10" />}>
-            <PaymentPageContent />
-        </Suspense>
+        <>
+            <Navbar />
+            <Suspense fallback={<div className="bg-tinted-gray p-6 sm:p-10" />}>
+                <PaymentPageContent />
+            </Suspense>
+        </>
     );
 }

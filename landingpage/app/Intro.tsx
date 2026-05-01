@@ -1,8 +1,6 @@
-export default function Intro({
-    setSelectedPage,
-}: {
-    setSelectedPage: (page: string) => void;
-}) {
+import Link from "next/link";
+
+export default function Intro() {
     return (
         <div className="sm:px-20 px-6 pb-10 bg-gradient-to-br from-navy-dark to-navy-mid p-6 text-white flex justify-center">
             <div className="flex w-full max-w-7xl flex-col gap-8 xl:flex-row xl:gap-10">
@@ -80,13 +78,12 @@ export default function Intro({
                             ĐẶT LỊCH KHÁM NGAY
                         </a>
 
-                        <button
-                            type="button"
+                        <Link
+                            href="/profile"
                             className="flex items-center gap-2 rounded-lg border border-white/40 px-6 py-3 text-white font-semibold hover:bg-white/10 transition"
-                            onClick={() => setSelectedPage("profile")}
                         >
                             TÌM HIỂU THÊM →
-                        </button>
+                        </Link>
                     </div>
 
                 </div>

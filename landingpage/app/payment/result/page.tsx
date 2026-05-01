@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { withApiBase } from "@/app/apiBase";
+import Navbar from "@/components/Navbar";
 
 type PaymentResult = {
     ok: boolean;
@@ -73,8 +74,11 @@ function PaymentResultPageContent() {
 
 export default function PaymentResultPage() {
     return (
-        <Suspense fallback={<div className="bg-tinted-gray p-6 sm:p-10" />}>
-            <PaymentResultPageContent />
-        </Suspense>
+        <>
+            <Navbar />
+            <Suspense fallback={<div className="bg-tinted-gray p-6 sm:p-10" />}>
+                <PaymentResultPageContent />
+            </Suspense>
+        </>
     );
 }
