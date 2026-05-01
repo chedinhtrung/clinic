@@ -65,7 +65,7 @@ const featuredInjuries: InjuryCard[] = [
 
 export default function Injuries() {
   return (
-    <section id="phau-thuat" className="bg-[#f7f9fc] px-3 py-8 sm:px-8 lg:px-12">
+    <section className="bg-[#f7f9fc] px-3 py-8 sm:px-8 lg:px-12">
       <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[230px_minmax(0,1fr)]">
         <aside className="overflow-hidden border border-[#d7dfed] bg-white shadow-[0_14px_34px_rgba(10,35,66,0.06)]">
           <div className="bg-navy px-5 py-6">

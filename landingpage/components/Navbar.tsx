@@ -9,7 +9,6 @@ const menuItems = [
     { id: "home", label: "TRANG CHỦ", href: "/" },
     { id: "profile", label: "GIỚI THIỆU", href: "/profile" },
     { id: "injuries", label: "CHẤN THƯƠNG", href: "/injuries" },
-    { id: "methods", label: "PHẪU THUẬT", href: "/injuries#phau-thuat" },
     { id: "blog", label: "BÀI VIẾT", href: "/blog" },
     { id: "contact", label: "LIÊN HỆ", href: "/#booking" },
 ];
