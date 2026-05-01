@@ -41,3 +41,55 @@
   --rdp-accent-color: #0a5a45;
   --rdp-background-color: #e1f5ee;
 }
+
+.booking-calendar .rdp-root {
+  --rdp-accent-color: #d29a24;
+  --rdp-background-color: #f6ead6;
+  --rdp-day_button-height: 42px;
+  --rdp-day_button-width: 42px;
+  margin: 0;
+  color: #5f7191;
+}
+
+.booking-calendar .rdp-months {
+  max-width: 100%;
+}
+
+.booking-calendar .rdp-month {
+  width: 100%;
+}
+
+.booking-calendar .rdp-month_caption {
+  padding-bottom: 18px;
+}
+
+.booking-calendar .rdp-caption_label {
+  color: #092452;
+  font-size: 1.125rem;
+  font-weight: 800;
+}
+
+.booking-calendar .rdp-weekday {
+  color: #092452;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.booking-calendar .rdp-day_button {
+  font-size: 1rem;
+}
+
+.booking-calendar .rdp-selected .rdp-day_button {
+  background: #d29a24;
+  border-color: #d29a24;
+  color: #ffffff;
+}
+
+.booking-calendar .rdp-disabled:not(.rdp-selected) {
+  color: #b8c1d0;
+  opacity: 0.7;
+}
+
+.booking-calendar .rdp-chevron {
+  fill: #092452;
+}

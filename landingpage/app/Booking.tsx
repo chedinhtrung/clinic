@@ -11,6 +11,96 @@ type Slot = {
     endAt: string;
 }
 
+const bookingSteps = [
+    {
+        number: "01",
+        title: "Bước 1: Đăng ký khám",
+        description: "Chọn ngày và khung giờ phù hợp.",
+        icon: (
+            <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="17" rx="2" />
+                <path d="M8 2v4M16 2v4M3 10h18" />
+                <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" />
+            </svg>
+        ),
+    },
+    {
+        number: "02",
+        title: "Bước 2: Khai thác bệnh sử",
+        description: "Cung cấp thông tin, hồ sơ và triệu chứng.",
+        icon: (
+            <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+            </svg>
+        ),
+    },
+    {
+        number: "03",
+        title: "Bước 3: Tư vấn online",
+        description: "Đọc phim, tư vấn điều trị và kê đơn thuốc nếu phù hợp.",
+        icon: (
+            <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="m22 8-6 4 6 4V8Z" />
+                <rect x="2" y="6" width="14" height="12" rx="2" />
+            </svg>
+        ),
+    },
+    {
+        number: "04",
+        title: "Bước 4: Tư vấn trực tiếp",
+        description: "Khám và điều trị tại phòng khám khi cần thiết.",
+        icon: (
+            <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="m12 2 3.09 6.26 6.91 1-5 4.88 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.26l6.91-1L12 2Z" />
+            </svg>
+        ),
+    },
+];
+
+const bookingBenefits = [
+    {
+        title: "Bảo mật thông tin",
+        description: "Thông tin cá nhân được bảo mật tuyệt đối.",
+        icon: (
+            <svg viewBox="0 0 24 24" className="h-9 w-9" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+                <path d="m9 12 2 2 4-5" />
+            </svg>
+        ),
+    },
+    {
+        title: "Tiện lợi & nhanh chóng",
+        description: "Đặt lịch mọi lúc, mọi nơi chỉ với vài thao tác.",
+        icon: (
+            <svg viewBox="0 0 24 24" className="h-9 w-9" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 7v5l3 2" />
+            </svg>
+        ),
+    },
+    {
+        title: "Hỗ trợ tận tâm",
+        description: "Đội ngũ hỗ trợ sẵn sàng giải đáp mọi thắc mắc.",
+        icon: (
+            <svg viewBox="0 0 24 24" className="h-9 w-9" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M3 18v-6a9 9 0 0 1 18 0v6" />
+                <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3v5ZM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3v5Z" />
+            </svg>
+        ),
+    },
+    {
+        title: "Lịch khám chính xác",
+        description: "Xác nhận nhanh chóng, không bỏ lỡ lịch hẹn.",
+        icon: (
+            <svg viewBox="0 0 24 24" className="h-9 w-9" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" />
+                <path d="m8.5 12.5 2.5 2.5 4.5-5.5" />
+            </svg>
+        ),
+    },
+];
+
 function getBrowserTimeZone() {
     return Intl.DateTimeFormat().resolvedOptions().timeZone;
 }
@@ -264,94 +354,211 @@ export function BookingFlow({
     }, [availableDates, cachedSlotsByDate, displayedMonth])
 
     return (
-        <div className="bg-bg-tinted px-6 sm:px-20 py-10 flex justify-center">
-            <div className="max-w-7xl w-full">
-                <h3 className="text-primary font-bold mb-4">LỊCH KHÁM & BẢNG GIÁ</h3>
-                <div className="flex flex-col sm:flex-row mb-10 gap-5 sm:gap-20">
-
-                    <div className="shadow-lg rounded-[20px] border-2 border-primary p-8 bg-white">
-                        <h4 className="text-txt-gray font-bold">Tư vấn chuyên sâu</h4>
-                        <h4 className="text-txt-gray font-bold"><span className="text-[3.0rem] text-black font-normal">50k </span> /lượt</h4>
-                        <p className="text-txt-gray">Đọc phim, phân tích lâm sàng, tư vấn phẫu thuật <br></br><br></br></p>
-                        <p className="text-txt-dark leading-loose ">
-                            <span className="text-primary">✓</span> Video call 30 phút <br></br>
-                            <span className="text-primary">✓</span> Phân tích X-quang / MRI / CT <br></br>
-                            <span className="text-primary">✓</span> Kê đơn thuốc (nếu phù hợp)
-                        </p>
+        <section className="bg-[#fdfbf8] px-6 py-14 text-[#092452] sm:px-10 lg:px-20">
+            <div className="mx-auto w-full max-w-7xl">
+                <div className="mb-10 text-center">
+                    <h2 className="font-serif text-4xl font-black tracking-tight text-[#092452] sm:text-5xl">
+                        Quy trình khám &amp; Đặt lịch
+                    </h2>
+                    <div className="mt-5 flex items-center justify-center gap-3 text-[#d29a24]">
+                        <span className="h-px w-14 bg-[#d29a24]" />
+                        <span className="text-lg leading-none">★</span>
+                        <span className="h-px w-14 bg-[#d29a24]" />
                     </div>
-                    <div className="flex gap-6 sm:ml-auto flex-col sm:flex-row">
-                        <div className="flex justify-center">
-                            <DayPicker
-                                mode="single"
-                                today={browserToday}
-                                selected={selectedDate}
-                                onSelect={onDateSelect}
-                                month={displayedMonth}
-                                onMonthChange={setDisplayedMonth}
-                                locale={vi}
-                                disabled={[
-                                    ...(browserToday ? [{ before: browserToday }] : []),
-                                    (date) => !availableDates.some(
-                                        (availableDate) =>
-                                            availableDate.getFullYear() === date.getFullYear() &&
-                                            availableDate.getMonth() === date.getMonth() &&
-                                            availableDate.getDate() === date.getDate()
-                                    ),
-                                ]}
-                                modifiers={{
-                                    available: availableDates
-                                }}
-                                modifiersClassNames={{
-                                    available: "bg-green-100 text-green-800 rounded-full"
-                                }}
-                                required={false}
-                            />
+                    <p className="mt-5 text-base text-[#5f7191] sm:text-lg">
+                        Quy trình đơn giản · Nhanh chóng · Tiện lợi
+                    </p>
+                </div>
+
+                <div className="mb-8 grid gap-8 lg:grid-cols-[0.92fr_1.25fr]">
+                    <div className="flex flex-col">
+                        <div className="mb-5 flex items-center gap-4">
+                            <span className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-[#d3a34a] text-[#d3a34a]">
+                                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                    <circle cx="12" cy="12" r="9" />
+                                    <path d="m12 7 1.1 3.2 3.4.1-2.7 2 1 3.2-2.8-1.9-2.8 1.9 1-3.2-2.7-2 3.4-.1L12 7Z" />
+                                </svg>
+                            </span>
+                            <h3 className="text-base font-black uppercase tracking-[0.22em] text-[#092452]">
+                                Quy trình khám
+                            </h3>
                         </div>
 
-                        <div className="sm:ml-auto">
-                            <div className="h-[2.75rem] flex items-center">
-                                <h3 className="text-primary font-bold ">Khung giờ</h3>
-                            </div>
-                            <div className="flex flex-col gap-2 overflow-y-auto max-h-[250px] sm:w-[130px]">
-                                {!selectedDate && (
-                                    <p className="text-sm text-gray-500">
-                                        Vui lòng chọn ngày để xem khung giờ.
-                                    </p>
-                                )}
-                                {isLoadingSlots && (
-                                    <p className="text-sm text-gray-500 text-center">
-                                        Đang tải khung giờ...
-                                    </p>
-                                )}
-                                {slotlist.map((s) => (
-                                    <div
-                                        key={s.id}
-                                        className={`px-4 py-2 rounded-lg ${selectedSlot && s.id === selectedSlot.id ? `bg-primary text-white` : `bg-primary-light`} hover:bg-primary hover:text-white text-center`}
-                                        onClick={() => { onSlotSelect(s) }}
-                                    >
-                                        {formatSlotTime(s.startAt)} - {formatSlotTime(s.endAt)}
+                        <div className="h-full rounded-[8px] border border-[#ecdfc8] bg-[#fbf5ec] p-6 shadow-[0_20px_55px_rgba(9,36,82,0.10)] sm:p-8">
+                            <div className="space-y-7">
+                                {bookingSteps.map((step, index) => (
+                                    <div key={step.number}>
+                                        <div className="grid grid-cols-[64px_44px_1fr] items-start gap-4 sm:grid-cols-[74px_48px_1fr] sm:gap-5">
+                                            <div className="relative flex justify-center">
+                                                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#092452] text-white shadow-[0_12px_24px_rgba(9,36,82,0.20)] sm:h-[74px] sm:w-[74px]">
+                                                    {step.icon}
+                                                </div>
+                                                {index < bookingSteps.length - 1 && (
+                                                    <span className="absolute top-[82px] h-10 border-l-2 border-dotted border-[#d3a34a]/60 sm:top-[90px]" />
+                                                )}
+                                            </div>
+                                            <div className="flex h-11 w-11 items-center justify-center rounded-full border-4 border-white bg-[#fffaf3] text-sm font-black text-[#2c3851] shadow-sm">
+                                                {step.number}
+                                            </div>
+                                            <div className="pt-2">
+                                                <h4 className="text-base font-black text-[#092452] sm:text-lg">
+                                                    {step.title}
+                                                </h4>
+                                                <p className="mt-3 max-w-md text-sm leading-6 text-[#43536f] sm:text-base">
+                                                    {step.description}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        {index < bookingSteps.length - 1 && (
+                                            <div className="ml-[118px] mt-7 h-px bg-[#e1d9ca] sm:ml-[146px]" />
+                                        )}
                                     </div>
                                 ))}
                             </div>
-                            {
-                                selectedSlot ? (
-                                    <button
-                                        type="button"
-                                        className="p-2 block mt-4 w-full bg-primary text-white rounded-lg font-bold text-center disabled:opacity-60"
-                                        onClick={onClaimSlot}
-                                        disabled={isClaimingSlot}
-                                    >
-                                        {isClaimingSlot ? "Đang tải..." : "ĐẶT LỊCH"}
-                                    </button>
-                                ) : (
-                                    <div className="p-4"></div>
-                                )
-                            }
+                        </div>
+                    </div>
 
+                    <div className="flex flex-col">
+                        <div className="mb-5 flex items-center gap-4">
+                            <span className="flex h-10 w-10 items-center justify-center text-[#d3a34a]">
+                                <svg viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                    <rect x="3" y="4" width="18" height="17" rx="2" />
+                                    <path d="M8 2v4M16 2v4M3 10h18M9 15l2 2 4-5" />
+                                </svg>
+                            </span>
+                            <h3 className="text-base font-black uppercase tracking-[0.22em] text-[#092452]">
+                                Đặt lịch
+                            </h3>
+                        </div>
+
+                        <div className="grid h-full gap-0 rounded-[8px] border border-[#dfe4ec] bg-white p-5 shadow-[0_20px_55px_rgba(9,36,82,0.10)] md:grid-cols-[1fr_260px] md:p-7">
+                            <div className="flex justify-center md:justify-start md:pr-7">
+                                <div className="booking-calendar w-full max-w-[450px]">
+                                <DayPicker
+                                    mode="single"
+                                    today={browserToday}
+                                    selected={selectedDate}
+                                    onSelect={onDateSelect}
+                                    month={displayedMonth}
+                                    onMonthChange={setDisplayedMonth}
+                                    locale={vi}
+                                    disabled={[
+                                        ...(browserToday ? [{ before: browserToday }] : []),
+                                        (date) => !availableDates.some(
+                                            (availableDate) =>
+                                                availableDate.getFullYear() === date.getFullYear() &&
+                                                availableDate.getMonth() === date.getMonth() &&
+                                                availableDate.getDate() === date.getDate()
+                                        ),
+                                    ]}
+                                    modifiers={{
+                                        available: availableDates
+                                    }}
+                                    modifiersClassNames={{
+                                        available: "bg-[#f6ead6] text-[#092452] rounded-full font-semibold"
+                                    }}
+                                    required={false}
+                                />
+                                <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-[#5f7191]">
+                                    <span className="inline-flex items-center gap-3">
+                                        <span className="h-4 w-4 rounded-full bg-[#f6ead6]" />
+                                        Ngày có lịch khám
+                                    </span>
+                                    <span className="inline-flex items-center gap-3">
+                                        <span className="h-4 w-4 rounded-full bg-[#d29a24]" />
+                                        Ngày được chọn
+                                    </span>
+                                </div>
+                            </div>
+                            </div>
+
+                            <div className="mt-8 border-[#e1e6ef] md:mt-0 md:border-l md:pl-8">
+                            <div className="flex items-center">
+                                <h3 className="text-base font-black uppercase tracking-[0.22em] text-[#092452]">
+                                    Khung giờ
+                                </h3>
+                            </div>
+                            <p className="mt-4 text-sm leading-6 text-[#6a7892]">
+                                Vui lòng chọn ngày để xem khung giờ.
+                            </p>
+                            <div className="mt-6 flex max-h-[276px] flex-col gap-2 overflow-y-auto pr-2">
+                                {!selectedDate && (
+                                    <p className="py-4 text-sm text-[#6a7892]">
+                                        Chưa có ngày được chọn.
+                                    </p>
+                                )}
+                                {isLoadingSlots && (
+                                    <p className="py-4 text-center text-sm text-[#6a7892]">
+                                        Đang tải khung giờ...
+                                    </p>
+                                )}
+                                {slotlist.map((s) => {
+                                    const isSelected = Boolean(selectedSlot && s.id === selectedSlot.id);
+                                    return (
+                                        <button
+                                            key={s.id}
+                                            type="button"
+                                            className={[
+                                                "flex items-center justify-center gap-3 rounded-[6px] px-4 py-2.5 text-sm font-semibold text-center transition",
+                                                "border",
+                                                isSelected
+                                                    ? "border-[#092452] bg-[#092452] text-white shadow-[0_10px_18px_rgba(9,36,82,0.18)]"
+                                                    : "border-[#cbd4e2] bg-white text-[#092452] hover:border-[#092452]/40 hover:bg-[#f7f9fc]",
+                                            ].join(" ")}
+                                            onClick={() => { onSlotSelect(s) }}
+                                        >
+                                            <span>{formatSlotTime(s.startAt)} - {formatSlotTime(s.endAt)}</span>
+                                            {isSelected && (
+                                                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                                    <path d="m20 6-11 11-5-5" />
+                                                </svg>
+                                            )}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            {selectedSlot ? (
+                                <button
+                                    type="button"
+                                    className="mt-9 flex w-full items-center justify-center gap-3 rounded-[6px] bg-[#d29a24] px-5 py-4 font-black text-white shadow-[0_12px_22px_rgba(210,154,36,0.24)] transition hover:bg-[#bd8517] disabled:opacity-60"
+                                    onClick={onClaimSlot}
+                                    disabled={isClaimingSlot}
+                                >
+                                    <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                        <rect x="3" y="4" width="18" height="17" rx="2" />
+                                        <path d="M8 2v4M16 2v4M3 10h18M9 15l2 2 4-5" />
+                                    </svg>
+                                    {isClaimingSlot ? "Đang tải..." : "ĐẶT LỊCH"}
+                                </button>
+                            ) : (
+                                <div className="h-[88px]"></div>
+                            )}
+                            </div>
                         </div>
                     </div>
                 </div>
+
+                <div className="grid gap-5 rounded-[8px] border border-[#e2e7ef] bg-white p-6 shadow-[0_16px_42px_rgba(9,36,82,0.08)] md:grid-cols-2 lg:grid-cols-4 lg:p-7">
+                    {bookingBenefits.map((benefit, index) => (
+                        <div
+                            key={benefit.title}
+                            className={`flex gap-5 ${index > 0 ? "lg:border-l lg:border-[#e2e7ef] lg:pl-7" : ""}`}
+                        >
+                            <div className="shrink-0 text-[#092452]">
+                                {benefit.icon}
+                            </div>
+                            <div>
+                                <h4 className="text-sm font-black text-[#092452]">
+                                    {benefit.title}
+                                </h4>
+                                <p className="mt-2 text-sm leading-6 text-[#66738d]">
+                                    {benefit.description}
+                                </p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
-        </div>
+        </section>
     )
 }
