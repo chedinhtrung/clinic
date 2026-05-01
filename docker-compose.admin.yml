@@ -4,7 +4,7 @@ services:
       context: ./adminpage
     container_name: clinic-adminpage
     env_file:
-      - ./.env.local
+      - ./.env
     environment:
       NODE_ENV: production
       PORT: 3000
@@ -23,7 +23,7 @@ services:
       context: ./backend/admin
     container_name: clinic-admin-backend
     env_file:
-      - ./.env.local
+      - ./.env
     restart: unless-stopped
     networks:
       - admin-private
