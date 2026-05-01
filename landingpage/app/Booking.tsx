@@ -60,8 +60,8 @@ const bookingSteps = [
 
 const bookingBenefits = [
     {
-        title: "Bảo mật thông tin",
-        description: "Thông tin cá nhân được bảo mật tuyệt đối.",
+        title: "Uy tín & minh bạch",
+        description: "Bác sỹ nhiều năm kinh nghiệm từ bệnh viện tuyến đầu.",
         icon: (
             <svg viewBox="0 0 24 24" className="h-9 w-9" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
@@ -70,8 +70,8 @@ const bookingBenefits = [
         ),
     },
     {
-        title: "Tiện lợi & nhanh chóng",
-        description: "Đặt lịch mọi lúc, mọi nơi chỉ với vài thao tác.",
+        title: "Tiết kiệm thời gian",
+        description: "Tư vấn tại nhà, hướng dẫn chụp chiếu tại bệnh viện gần nhất.",
         icon: (
             <svg viewBox="0 0 24 24" className="h-9 w-9" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <circle cx="12" cy="12" r="9" />
@@ -80,8 +80,8 @@ const bookingBenefits = [
         ),
     },
     {
-        title: "Hỗ trợ tận tâm",
-        description: "Đội ngũ hỗ trợ sẵn sàng giải đáp mọi thắc mắc.",
+        title: "Theo dõi sát sao",
+        description: "Theo dõi và điều chỉnh hướng điều trị dựa trên tình trạng của bạn.",
         icon: (
             <svg viewBox="0 0 24 24" className="h-9 w-9" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M3 18v-6a9 9 0 0 1 18 0v6" />
@@ -90,8 +90,8 @@ const bookingBenefits = [
         ),
     },
     {
-        title: "Lịch khám chính xác",
-        description: "Xác nhận nhanh chóng, không bỏ lỡ lịch hẹn.",
+        title: "Không cần chờ đợi",
+        description: "Chọn lịch khám phù hợp nhất với bạn.",
         icon: (
             <svg viewBox="0 0 24 24" className="h-9 w-9" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <circle cx="12" cy="12" r="9" />
@@ -357,16 +357,16 @@ export function BookingFlow({
         <section className="bg-[#fdfbf8] px-6 py-14 text-[#092452] sm:px-10 lg:px-20">
             <div className="mx-auto w-full max-w-7xl">
                 <div className="mb-10 text-center">
-                    <h2 className="font-serif text-4xl font-black tracking-tight text-[#092452] sm:text-5xl">
-                        Quy trình khám &amp; Đặt lịch
+                    <h2 className="font-serif text-2xl font-black tracking-tight text-[#092452] sm:text-3xl">
+                        Đặt lịch tư vấn online
                     </h2>
-                    <div className="mt-5 flex items-center justify-center gap-3 text-[#d29a24]">
+                    <div className="mt-2 flex items-center justify-center gap-3 text-[#d29a24]">
                         <span className="h-px w-14 bg-[#d29a24]" />
                         <span className="text-lg leading-none">★</span>
                         <span className="h-px w-14 bg-[#d29a24]" />
                     </div>
-                    <p className="mt-5 text-base text-[#5f7191] sm:text-lg">
-                        Quy trình đơn giản · Nhanh chóng · Tiện lợi
+                    <p className="mt-2 text-base text-[#5f7191] sm:text-lg">
+                        Đơn giản · Dễ dàng · Tiết kiệm thời gian
                     </p>
                 </div>
 
@@ -384,33 +384,31 @@ export function BookingFlow({
                             </h3>
                         </div>
 
-                        <div className="h-full rounded-[8px] border border-[#ecdfc8] bg-[#fbf5ec] p-6 shadow-[0_20px_55px_rgba(9,36,82,0.10)] sm:p-8">
-                            <div className="space-y-7">
+                        <div className="h-full rounded-[8px] border border-[#ecdfc8] bg-[#fbf5ec] p-6 shadow-[0_20px_55px_rgba(9,36,82,0.10)] sm:p-8 flex items-center">
+                            <div className="space-y-4">
                                 {bookingSteps.map((step, index) => (
                                     <div key={step.number}>
-                                        <div className="grid grid-cols-[64px_44px_1fr] items-start gap-4 sm:grid-cols-[74px_48px_1fr] sm:gap-5">
-                                            <div className="relative flex justify-center">
-                                                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#092452] text-white shadow-[0_12px_24px_rgba(9,36,82,0.20)] sm:h-[74px] sm:w-[74px]">
+                                        <div className="grid grid-cols-[60px_1fr] items-start gap-4 sm:grid-cols-[70px_1fr] sm:gap-4">
+                                            <div className="relative flex justify-center items-center">
+                                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#092452] text-white shadow-[0_12px_24px_rgba(9,36,82,0.20)] sm:h-[50px]">
                                                     {step.icon}
                                                 </div>
                                                 {index < bookingSteps.length - 1 && (
-                                                    <span className="absolute top-[82px] h-10 border-l-2 border-dotted border-[#d3a34a]/60 sm:top-[90px]" />
+                                                    <span className="absolute top-[82px] h-10 border-l-2 border-dotted border-[#d3a34a]/60 sm:top-[50px]" />
                                                 )}
                                             </div>
-                                            <div className="flex h-11 w-11 items-center justify-center rounded-full border-4 border-white bg-[#fffaf3] text-sm font-black text-[#2c3851] shadow-sm">
-                                                {step.number}
-                                            </div>
-                                            <div className="pt-2">
+                
+                                            <div className="">
                                                 <h4 className="text-base font-black text-[#092452] sm:text-lg">
                                                     {step.title}
                                                 </h4>
-                                                <p className="mt-3 max-w-md text-sm leading-6 text-[#43536f] sm:text-base">
+                                                <p className="mt-1 max-w-md text-sm leading-6 text-[#43536f] sm:text-base">
                                                     {step.description}
                                                 </p>
                                             </div>
                                         </div>
                                         {index < bookingSteps.length - 1 && (
-                                            <div className="ml-[118px] mt-7 h-px bg-[#e1d9ca] sm:ml-[146px]" />
+                                            <div className="ml-[100px] mt-3 h-px bg-[#e1d9ca] sm:ml-[80px]" />
                                         )}
                                     </div>
                                 ))}
@@ -551,7 +549,7 @@ export function BookingFlow({
                                 <h4 className="text-sm font-black text-[#092452]">
                                     {benefit.title}
                                 </h4>
-                                <p className="mt-2 text-sm leading-6 text-[#66738d]">
+                                <p className="mt-1 text-sm leading-6 text-[#66738d]">
                                     {benefit.description}
                                 </p>
                             </div>
