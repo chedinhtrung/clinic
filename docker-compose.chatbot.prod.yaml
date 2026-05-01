@@ -1,0 +1,21 @@
+# Chatbot backend deployment stack.
+# This file runs the booking-aware AI intake chat API. It connects to the
+# booking database network so chat authorization and message persistence stay
+# tied to confirmed bookings.
+services:
+  chatbot-backend:
+    build:
+      context: ./backend/chatbot
+    container_name: clinic-chatbot-backend
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5003:5003"
+    env_file:
+      - ./.env
+    networks:
+      - clinic-booking-backend
+
+networks:
+  clinic-booking-backend:
+    external: true
+    name: clinic_clinic-booking-backend

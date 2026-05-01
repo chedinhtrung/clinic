@@ -30,9 +30,12 @@ CREATE TABLE bookings (
   confirmation_hash text,
   patient_note text,
   ai_summary text,
+  chat_messages jsonb NOT NULL DEFAULT '[]'::jsonb,
+  chat_status text NOT NULL DEFAULT 'active',
   status text NOT NULL DEFAULT 'pending',
   reservation_code bigint NOT NULL UNIQUE,
-  CHECK (status IN ('pending', 'confirmed', 'expired', 'cancelled', 'finished'))
+  CHECK (status IN ('pending', 'confirmed', 'expired', 'cancelled', 'finished')),
+  CHECK (chat_status IN ('active', 'finished', 'abuse'))
 );
 
 CREATE INDEX idx_bookings_slot_id ON bookings(slot_id);

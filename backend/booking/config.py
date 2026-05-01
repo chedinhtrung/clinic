@@ -18,3 +18,4 @@ SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD")
 SMTP_USE_TLS = os.environ.get("SMTP_USE_TLS", "true").strip().lower() not in {"0", "false", "no"}
 BOOKING_PUBLIC_BASE_URL = os.environ.get("BOOKING_PUBLIC_BASE_URL", "https://chedinhnghia.com").rstrip("/")
 BOOKING_CONFIRMATION_WINDOW_MINUTES = int(os.environ.get("BOOKING_CONFIRMATION_WINDOW_MINUTES", "60"))
+CHAT_TOKEN_SECRET = os.environ.get("CHAT_TOKEN_SECRET")

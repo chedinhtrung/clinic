@@ -9,6 +9,7 @@ services:
       args:
         NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL}
         NEXT_PUBLIC_BLOG_API_BASE_URL: ${NEXT_PUBLIC_BLOG_API_BASE_URL}
+        NEXT_PUBLIC_CHAT_API_BASE_URL: ${NEXT_PUBLIC_CHAT_API_BASE_URL}
     container_name: clinic-frontend
     restart: unless-stopped
     ports:

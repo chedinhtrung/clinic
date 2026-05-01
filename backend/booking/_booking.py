@@ -8,6 +8,7 @@ from secrets import token_urlsafe
 import smtplib
 from urllib.parse import quote_plus
 
+from itsdangerous import URLSafeSerializer
 import psycopg
 from psycopg.errors import UniqueViolation
 from psycopg_pool import ConnectionPool
@@ -136,6 +137,13 @@ def _build_confirmation_link(*, booking_id: str, token: str) -> str:
     return f"{BOOKING_PUBLIC_BASE_URL}/booking/confirm?booking_id={booking_id}&token={token}"
 
 
+def _build_chat_link(*, booking_id: str) -> str:
+    if not CHAT_TOKEN_SECRET:
+        raise BookingPaymentConfigError("CHAT_TOKEN_SECRET is not set")
+    token = URLSafeSerializer(CHAT_TOKEN_SECRET, salt="booking-chat").dumps(booking_id)
+    return f"{BOOKING_PUBLIC_BASE_URL}/booking/chat?token={quote_plus(token)}"
+
+
 def _send_email(*, recipient_email: str, subject: str, body: str) -> None:
     if not recipient_email:
         raise ValueError("recipient_email is required")
@@ -177,6 +185,7 @@ def send_booking_confirmation_email(
             f"{slot_end_at.astimezone(timezone(timedelta(hours=7))).strftime('%H:%M')}" \
             f" ngày {slot_start_at.astimezone(timezone(timedelta(hours=7))).strftime('%d/%m/%Y')}"
         )
+    chat_link = _build_chat_link(booking_id=booking_id)
 
     body = (
         f"Xin chào {greeting_name}, \n \n" \
@@ -185,8 +194,8 @@ def send_booking_confirmation_email(
         f"Mã đặt chỗ: {reservation_code}\n" \
         f"{slot_line} \n \n" \
         f"Cuộc gọi trực tuyến: #TODO chèn link online call\n\n" \
-        f"Để tiết kiệm thời gian và giúp bác sỹ nắm được tổng quan tình trạng của bạn, hãy vui lòng bỏ chút thời gian để hoàn thành bước đăng ký với trợ lý của chúng tôi: \n" \
-        f" #TODO: Chèn link tới trợ lý \n \n" \
+        f"Nhằm tiết kiệm thời gian và giúp bác sĩ có cái nhìn tổng quan về tình trạng của bạn, kính mong bạn dành ít phút trả lời các câu hỏi từ trợ lý của BS. Nghĩa trước buổi hẹn: \n" \
+        f" {chat_link} \n \n" \
         f"Nếu cần thay đổi thông tin liên lạc hoặc hủy lịch hẹn, vui lòng click vào link dưới đây: \n" \
         f" {_build_change_link(booking_id=booking_id, patient_id=patient_id)}\n \n" \
         "Nếu bạn cần hỗ trợ, vui lòng phản hồi email này.\n\n"

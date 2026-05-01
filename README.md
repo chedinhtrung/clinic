@@ -7,6 +7,7 @@ Quick Docker operations for the clinic deployment stacks.
 ```bash
 docker compose -f docker-compose.booking.prod.yaml up -d --build
 docker compose -f docker-compose.blog.prod.yaml up -d --build
+docker compose -f docker-compose.chatbot.prod.yaml up -d --build
 docker compose -f docker-compose.frontend.prod.yaml up -d --build
 docker compose -f docker-compose.admin.yml up -d --build
 ```
@@ -38,6 +39,7 @@ docker inspect clinic-admin-backend --format '{{json .NetworkSettings.Networks}}
 ```bash
 docker compose -f docker-compose.admin.yml down
 docker compose -f docker-compose.frontend.prod.yaml down
+docker compose -f docker-compose.chatbot.prod.yaml down
 docker compose -f docker-compose.blog.prod.yaml down
 docker compose -f docker-compose.booking.prod.yaml down
 ```
@@ -50,6 +52,7 @@ when you intentionally want to wipe persisted database data.
 ```bash
 docker compose -f docker-compose.admin.yml down -v
 docker compose -f docker-compose.frontend.prod.yaml down -v
+docker compose -f docker-compose.chatbot.prod.yaml down -v
 docker compose -f docker-compose.blog.prod.yaml down -v
 docker compose -f docker-compose.booking.prod.yaml down -v
 ```
@@ -59,6 +62,7 @@ docker compose -f docker-compose.booking.prod.yaml down -v
 ```bash
 docker compose -f docker-compose.booking.prod.yaml ps
 docker compose -f docker-compose.blog.prod.yaml ps
+docker compose -f docker-compose.chatbot.prod.yaml ps
 docker compose -f docker-compose.frontend.prod.yaml ps
 docker compose -f docker-compose.admin.yml ps
 ```
@@ -68,6 +72,7 @@ docker compose -f docker-compose.admin.yml ps
 ```bash
 docker compose -f docker-compose.booking.prod.yaml logs -f --tail 100
 docker compose -f docker-compose.blog.prod.yaml logs -f --tail 100
+docker compose -f docker-compose.chatbot.prod.yaml logs -f --tail 100
 docker compose -f docker-compose.frontend.prod.yaml logs -f --tail 100
 docker compose -f docker-compose.admin.yml logs -f --tail 100
 ```
@@ -79,6 +84,7 @@ docker logs clinic-booking-backend -f --tail 100
 docker logs clinic-booking-db -f --tail 100
 docker logs clinic-blog-backend -f --tail 100
 docker logs clinic-blog-db -f --tail 100
+docker logs clinic-chatbot-backend -f --tail 100
 docker logs clinic-frontend -f --tail 100
 docker logs clinic-adminpage -f --tail 100
 docker logs clinic-admin-backend -f --tail 100
