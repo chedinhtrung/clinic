@@ -11,6 +11,36 @@ const menuItems = [
     { id: "contact", label: "LIÊN HỆ" },
 ];
 
+const socialLinks = [
+    {
+        label: "Facebook",
+        href: "https://web.facebook.com/BSNghiachuyenxuongkhop",
+        icon: (
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-current">
+                <path d="M14 8.5V6.75c0-.58.39-.75.67-.75H16V3.8c-.23-.03-1.02-.1-1.94-.1-1.92 0-3.23 1.17-3.23 3.32V8.5H8.75V11h2.08v7.2H13.4V11h2.13l.34-2.5H14Z" />
+            </svg>
+        ),
+    },
+    {
+        label: "YouTube",
+        href: "https://www.youtube.com/@nghiachedinh",
+        icon: (
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 fill-current">
+                <path d="M20.15 7.2a2.5 2.5 0 0 0-1.76-1.77C16.84 5 12 5 12 5s-4.84 0-6.39.43A2.5 2.5 0 0 0 3.85 7.2 26 26 0 0 0 3.43 12a26 26 0 0 0 .42 4.8 2.5 2.5 0 0 0 1.76 1.77C7.16 19 12 19 12 19s4.84 0 6.39-.43a2.5 2.5 0 0 0 1.76-1.77 26 26 0 0 0 .42-4.8 26 26 0 0 0-.42-4.8ZM10.3 15V9l5.2 3-5.2 3Z" />
+            </svg>
+        ),
+    },
+    {
+        label: "TikTok",
+        href: "https://www.tiktok.com/@tsnghia_xuongkhop",
+        icon: (
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[18px] w-[18px] fill-current">
+                <path d="M15.2 3.5c.28 2.04 1.42 3.25 3.3 3.38v2.5a6.32 6.32 0 0 1-3.3-1.02v5.98c0 3.02-2.04 5.16-5.08 5.16-2.75 0-4.62-1.72-4.62-4.22 0-2.65 2.03-4.52 4.9-4.52.32 0 .62.03.9.1v2.63a3.4 3.4 0 0 0-.92-.13c-1.32 0-2.17.73-2.17 1.82 0 1 .76 1.7 1.83 1.7 1.36 0 2.17-.82 2.17-2.55V3.5h2.99Z" />
+            </svg>
+        ),
+    },
+];
+
 export default function Navbar(
     { selectedPage, setSelectedPage }
         : { selectedPage: string, setSelectedPage: (page: string) => void }
@@ -86,10 +116,25 @@ export default function Navbar(
                     ))}
                 </ul>
 
-                <div className="ml-auto hidden h-full items-center justify-center gap-2 font-bold uppercase sm:flex">
+                <div className="ml-auto hidden h-full items-center justify-center gap-2 sm:flex">
+                    <div className="flex items-center gap-1.5" aria-label="Social media links">
+                        {socialLinks.map((link) => (
+                            <a
+                                key={link.label}
+                                href={link.href}
+                                target={link.href.startsWith("http") ? "_blank" : undefined}
+                                rel={link.href.startsWith("http") ? "noreferrer" : undefined}
+                                aria-label={link.label}
+                                title={link.label}
+                                className="flex h-9 w-9 items-center justify-center rounded-sm border border-white/25 text-sm font-black text-white transition-colors hover:border-gold hover:text-gold"
+                            >
+                                <span aria-hidden="true">{link.icon}</span>
+                            </a>
+                        ))}
+                    </div>
                     <button
                         type="button"
-                        className="bg-gold hover:bg-gold-light flex justify-center items-center rounded-sm p-2 flex-shrink-0"
+                        className="bg-gold hover:bg-gold-light flex justify-center items-center rounded-sm p-2 flex-shrink-0 font-bold uppercase"
                         onClick={goToBooking}
                     >
                         Đặt lịch khám →
@@ -152,6 +197,22 @@ export default function Navbar(
                         </a>
                     ))}
                 </ul>
+                <div className="flex items-center gap-2 border-t border-white/15 px-5 py-4" aria-label="Social media links">
+                    {socialLinks.map((link) => (
+                        <a
+                            key={link.label}
+                            href={link.href}
+                            target={link.href.startsWith("http") ? "_blank" : undefined}
+                            rel={link.href.startsWith("http") ? "noreferrer" : undefined}
+                            aria-label={link.label}
+                            title={link.label}
+                            className="flex h-10 w-10 items-center justify-center rounded-sm border border-white/25 text-sm font-black text-white transition-colors hover:border-gold hover:text-gold"
+                            onClick={() => setIsMenuOpen(false)}
+                        >
+                            <span aria-hidden="true">{link.icon}</span>
+                        </a>
+                    ))}
+                </div>
                 <div className="px-5 py-3 sm:hidden">
                     <button
                         type="button"

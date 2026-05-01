@@ -5,7 +5,7 @@ export default function Intro({
 }) {
     return (
         <div className="sm:px-20 px-6 pb-10 bg-gradient-to-br from-navy-dark to-navy-mid p-6 text-white flex justify-center">
-            <div className="flex max-w-7xl gap-10 w-full">
+            <div className="flex w-full max-w-7xl flex-col gap-8 xl:flex-row xl:gap-10">
                 <div className="max-w-200">
 
                     {/* Avatar */}
@@ -29,7 +29,7 @@ export default function Intro({
                         <div className="text-gray-400 leading-loose ">
 
                             <p className="mb-4">
-                                Hơn 25 năm kinh nghiệm, 20 năm công tác trong lĩnh vực chấn thương chỉnh hình tại Bệnh viện TW Quân Đội 108 với trên 10.000 ca phẫu thuật thành công. Chuyên gia về nội soi khớp, thay khớp ít xâm lấn và Y học Thể thao tại Hà Nội.
+                                Hơn 25 năm kinh nghiệm, 20 năm công tác trong lĩnh vực chấn thương chỉnh hình tại Bệnh viện TW Quân Đội 108 với trên 10.000 ca phẫu thuật thành công. Chuyên gia về nội soi khớp, thay khớp ít xâm lấn và chấn thương thể thao tại Hà Nội.
                             </p>
                         </div>
 
@@ -91,71 +91,62 @@ export default function Intro({
 
                 </div>
 
-                <div className="rounded-xl bg-navy-light py-6 px-8 text-white ml-auto hidden xl:block">
-                    <h2 className="text-gold text-sm font-semibold uppercase tracking-[0.25em] mt-8">
+                <div className="w-full rounded-lg bg-navy-light px-4 py-4 text-white shadow-xl sm:px-6 sm:py-5 xl:ml-auto xl:max-w-md xl:rounded-xl xl:px-8 xl:py-6">
+                    <h2 className="text-gold text-xs font-semibold uppercase tracking-[0.2em] sm:text-sm sm:tracking-[0.25em] xl:mt-8">
                         Chuyên khoa điều trị
                     </h2>
 
-                    <div className="mt-4 divide-y divide-white/10">
-                        <div className="py-6 cursor-pointer">
-                            <div className="flex items-center gap-5 transition-all duration-300 group hover:translate-x-2">
-                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-gold/40 bg-white/5 group-hover:bg-gold/15">
-                                    🦴
-                                </div>
-                                <div>
-                                    <h3 className=" font-bold">Gãy xương &amp; Chấn thương</h3>
-                                    <p className="mt-1  text-white/65">Đa chấn thương, gãy xương phức tạp</p>
-                                </div>
-                            </div>
-                        </div>
+                    <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:mt-4 xl:block xl:divide-y xl:divide-white/10">
 
-                        <div className="py-6 cursor-pointer ">
-                            <div className="flex items-center gap-5 transition-all duration-300 group hover:translate-x-2">
-                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-gold/40 bg-white/5 group-hover:bg-gold/15">
-                                    🔗
-                                </div>
-                                <div>
-                                    <h3 className=" font-bold">Tổn thương dây chằng</h3>
-                                    <p className="mt-1  text-white/65">ACL, PCL, MCL, sụn chêm</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="py-6 cursor-pointer">
-                            <div className="flex items-center gap-5 transition-all duration-300 group hover:translate-x-2">
-                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-gold/40 bg-white/5 group-hover:bg-gold/15">
-                                    ⚙️
-                                </div>
-                                <div>
-                                    <h3 className=" font-bold">Thay khớp ít xâm lấn</h3>
-                                    <p className="mt-1  text-white/65">Khớp gối, khớp háng nhân tạo</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="py-6 cursor-pointer">
-                            <div className="flex items-center gap-5 transition-all duration-300 group hover:translate-x-2">
-                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-gold/40 bg-white/5 group-hover:bg-gold/15">
-                                    ⚽
-                                </div>
-                                <div>
-                                    <h3 className=" font-bold">Y học Thể thao</h3>
-                                    <p className="mt-1  text-white/65">Chấn thương vận động viên</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="py-6 cursor-pointer">
-                            <div className="flex items-center gap-5 transition-all duration-300 group hover:translate-x-2">
-                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-gold/40 bg-white/5 group-hover:bg-gold/15">
+                        <div className="cursor-pointer rounded-md border border-white/10 bg-white/5 p-3 xl:rounded-none xl:border-0 xl:bg-transparent xl:px-0 xl:py-6">
+                            <div className="flex items-center gap-3 transition-all duration-300 group hover:translate-x-2 xl:gap-5">
+                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gold/40 bg-white/5 text-sm group-hover:bg-gold/15 xl:h-12 xl:w-12 xl:text-base">
                                     💉
                                 </div>
                                 <div>
-                                    <h3 className=" font-bold">Điều trị PRP &amp; Tế bào gốc</h3>
-                                    <p className="mt-1  text-white/65">Sinh học tái tạo sụn khớp</p>
+                                    <h3 className="text-sm font-bold xl:text-base">Điều trị PRP &amp; Tế bào gốc</h3>
+                                    <p className="mt-1 hidden text-white/65 xl:block">Sinh học tái tạo sụn khớp</p>
                                 </div>
                             </div>
                         </div>
+
+                        <div className="cursor-pointer rounded-md border border-white/10 bg-white/5 p-3 xl:rounded-none xl:border-0 xl:bg-transparent xl:px-0 xl:py-6">
+                            <div className="flex items-center gap-3 transition-all duration-300 group hover:translate-x-2 xl:gap-5">
+                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gold/40 bg-white/5 text-sm group-hover:bg-gold/15 xl:h-12 xl:w-12 xl:text-base">
+                                    ⚙️
+                                </div>
+                                <div>
+                                    <h3 className="text-sm font-bold xl:text-base">Thay khớp ít xâm lấn</h3>
+                                    <p className="mt-1 hidden text-white/65 xl:block">Khớp gối, khớp háng nhân tạo</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="cursor-pointer rounded-md border border-white/10 bg-white/5 p-3 xl:rounded-none xl:border-0 xl:bg-transparent xl:px-0 xl:py-6">
+                            <div className="flex items-center gap-3 transition-all duration-300 group hover:translate-x-2 xl:gap-5">
+                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gold/40 bg-white/5 text-sm group-hover:bg-gold/15 xl:h-12 xl:w-12 xl:text-base">
+                                    🦴
+                                </div>
+                                <div>
+                                    <h3 className="text-sm font-bold xl:text-base">Gãy xương &amp; Biến dạng chi thể</h3>
+                                    <p className="mt-1 hidden text-white/65 xl:block">Đa chấn thương, gãy xương phức tạp</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="cursor-pointer rounded-md border border-white/10 bg-white/5 p-3 xl:rounded-none xl:border-0 xl:bg-transparent xl:px-0 xl:py-6">
+                            <div className="flex items-center gap-3 transition-all duration-300 group hover:translate-x-2 xl:gap-5">
+                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gold/40 bg-white/5 text-sm group-hover:bg-gold/15 xl:h-12 xl:w-12 xl:text-base">
+                                    ⚽
+                                </div>
+                                <div>
+                                    <h3 className="text-sm font-bold xl:text-base">Chấn thương Thể thao</h3>
+                                    <p className="mt-1 hidden text-white/65 xl:block">Chấn thương thường gặp trong thể thao</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        
                     </div>
                 </div>
             </div>

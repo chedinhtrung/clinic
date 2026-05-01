@@ -14,7 +14,7 @@ type Slot = {
 const bookingSteps = [
     {
         number: "01",
-        title: "Bước 1: Đăng ký khám",
+        title: "Bước 1: Đăng ký tư vấn",
         description: "Chọn ngày và khung giờ phù hợp.",
         icon: (
             <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -358,7 +358,7 @@ export function BookingFlow({
             <div className="mx-auto w-full max-w-7xl">
                 <div className="mb-10 text-center">
                     <h2 className="font-serif text-2xl font-black tracking-tight text-[#092452] sm:text-3xl">
-                        Đặt lịch tư vấn online
+                        Đăng ký tư vấn online
                     </h2>
                     <div className="mt-2 flex items-center justify-center gap-3 text-[#d29a24]">
                         <span className="h-px w-14 bg-[#d29a24]" />
@@ -393,9 +393,7 @@ export function BookingFlow({
                                                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#092452] text-white shadow-[0_12px_24px_rgba(9,36,82,0.20)] sm:h-[50px]">
                                                     {step.icon}
                                                 </div>
-                                                {index < bookingSteps.length - 1 && (
-                                                    <span className="absolute top-[82px] h-10 border-l-2 border-dotted border-[#d3a34a]/60 sm:top-[50px]" />
-                                                )}
+                                                
                                             </div>
                 
                                             <div className="">
