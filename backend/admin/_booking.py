@@ -12,6 +12,7 @@ class AdminSlotNotFoundError(ValueError):
     """Raised when a slot cannot be found."""
 
 
+
 def _parse_datetime(raw_value: str | None, field_name: str) -> datetime:
     if not raw_value:
         raise ValueError(f"{field_name} is required")

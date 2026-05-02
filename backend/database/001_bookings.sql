@@ -8,6 +8,7 @@ CREATE TABLE patients (
   gender text,
   email text,
   ai_summary text,
+  notes text,
   birthdate date,
   phone text
 );

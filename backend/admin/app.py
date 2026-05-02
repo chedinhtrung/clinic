@@ -19,6 +19,7 @@ from _booking import (
     db_insert_slot,
     db_update_slot,
 )
+from _patient import db_get_patient, db_get_patient_bookings, db_get_patients_page, db_update_patient_notes
 
 
 app = Flask(__name__)
@@ -106,6 +107,72 @@ def get_slots():
         return jsonify({"error": str(exc)}), 400
 
     return jsonify(slots)
+
+
+@app.route("/api/patients", methods=["GET"])
+def get_patients():
+    try:
+        page = int(request.args.get("page", 1))
+        page_size = int(request.args.get("pageSize", 50))
+    except ValueError:
+        return jsonify({"error": "page and pageSize must be integers"}), 400
+
+    sort_by = request.args.get("sortBy", "registration_date")
+    sort_order = request.args.get("sortOrder", "desc")
+
+    try:
+        return jsonify(
+            db_get_patients_page(
+                page=page,
+                page_size=page_size,
+                sort_by=sort_by,
+                sort_order=sort_order,
+            )
+        )
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+
+@app.route("/api/patients/<patient_id>", methods=["GET"])
+def get_patient(patient_id: str):
+    try:
+        patient = db_get_patient(patient_id=patient_id)
+    except ValueError as exc:
+        message = str(exc)
+        if message == "patient not found":
+            return jsonify({"error": message}), 404
+        return jsonify({"error": message}), 400
+
+    return jsonify({"patient": patient})
+
+
+@app.route("/api/patients/<patient_id>", methods=["PATCH"])
+def update_patient(patient_id: str):
+    data = request.get_json() or {}
+    notes = data.get("notes", "")
+
+    if not isinstance(notes, str):
+        return jsonify({"error": "notes must be a string"}), 400
+
+    try:
+        patient = db_update_patient_notes(patient_id=patient_id, notes=notes)
+    except ValueError as exc:
+        message = str(exc)
+        if message == "patient not found":
+            return jsonify({"error": message}), 404
+        return jsonify({"error": message}), 400
+
+    return jsonify({"patient": patient})
+
+
+@app.route("/api/patients/<patient_id>/bookings", methods=["GET"])
+def get_patient_bookings(patient_id: str):
+    try:
+        bookings = db_get_patient_bookings(patient_id=patient_id)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    return jsonify({"bookings": bookings})
 
 
 @app.route("/api/slots/<slot_id>", methods=["GET"])

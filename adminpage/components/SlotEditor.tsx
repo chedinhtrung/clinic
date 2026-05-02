@@ -347,7 +347,14 @@ export default function SlotEditor(
 
                 {(slot.patient_name || slot.patient_email || slot.patient_phone || slot.patient_note || slot.ai_summary) && (
                     <section className="mb-8">
-                        <h2 className="mb-3 text-sm font-bold uppercase text-txt-gray">Thông tin bệnh nhân</h2>
+                        <button
+                            type="button"
+                            onClick={() => {}}
+                            className="mb-3 inline-flex items-center gap-1 text-sm font-bold uppercase text-txt-gray transition hover:text-primary"
+                        >
+                            <span>Thông tin bệnh nhân</span>
+                            <span aria-hidden="true">🔗</span>
+                        </button>
                         <div className="grid gap-3 text-sm text-txt-dark md:grid-cols-2">
                             <div>
                                 <p className="font-semibold text-txt-gray">Tên</p>
