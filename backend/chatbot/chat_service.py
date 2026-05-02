@@ -119,7 +119,14 @@ Follow OPQRST-style:
 
 ## STEP 6 — Region specific questions
 
-Based on the region of pain, ask the corresponding questions:
+For the selected pain region, ask 3–5 focused questions to clarify:
+
+Exact location of pain
+Movements that cause pain or limitation
+Mechanical symptoms (locking, instability, weakness, numbness if relevant)
+Triggering activities or context
+
+Use the following as guidance (do NOT ask all at once, pick the most relevant):
 
 ### Example: Shoulder (Vai)
 
