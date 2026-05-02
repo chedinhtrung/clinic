@@ -49,7 +49,7 @@ const physicianSchema = {
 const socialPages = [
   {
     title: "Facebook",
-    description: "Cập nhật và gửi tin nhắn qua trang Facebook chính thức.",
+    description: "Cập nhật tin tức và gửi tin nhắn qua trang Facebook chính thức.",
     href: "https://web.facebook.com/BSNghiachuyenxuongkhop",
     icon: (
       <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 fill-current">
@@ -74,6 +74,16 @@ const socialPages = [
     icon: (
       <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 fill-current">
         <path d="M15.2 3.5c.28 2.04 1.42 3.25 3.3 3.38v2.5a6.32 6.32 0 0 1-3.3-1.02v5.98c0 3.02-2.04 5.16-5.08 5.16-2.75 0-4.62-1.72-4.62-4.22 0-2.65 2.03-4.52 4.9-4.52.32 0 .62.03.9.1v2.63a3.4 3.4 0 0 0-.92-.13c-1.32 0-2.17.73-2.17 1.82 0 1 .76 1.7 1.83 1.7 1.36 0 2.17-.82 2.17-2.55V3.5h2.99Z" />
+      </svg>
+    ),
+  },
+  {
+    title: "Blog",
+    description: "Các bài viết về  bệnh lý cơ xương khớp và các phương pháp điều trị tiên tiến từ TS. BS. Chế Đình Nghĩa.",
+    href: "https://chedinhnghia.com/blog/",
+    icon: (
+      <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 fill-current">
+        <path d="M6.25 4h8.5l3 3v12.25a.75.75 0 0 1-.75.75H7a.75.75 0 0 1-.75-.75V4.75A.75.75 0 0 1 7 4h-.75Zm8.25 1.81V8h2.19L14.5 5.81ZM8.5 10.25h7v1.5h-7v-1.5Zm0 3.5h7v1.5h-7v-1.5Zm0 3.5h5v1.5h-5v-1.5Z" />
       </svg>
     ),
   },

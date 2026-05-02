@@ -137,9 +137,42 @@ export async function generateMetadata(
     };
   }
 
+  const tagKeywords = post.tags.map((tag) => tag.name).filter(Boolean).slice(0, 8);
+  const canonicalUrl = `https://chedinhnghia.com/blog/${encodeURIComponent(post.slug)}`;
+  const coverImageUrl = post.coverImageUrl || DEFAULT_BLOG_COVER_IMAGE;
+
   return {
     title: `${post.title} | TS.BS. Chế Đình Nghĩa`,
     description: post.shortDescription,
+    keywords: [
+      "chấn thương chỉnh hình",
+      "cơ xương khớp",
+      "chấn thương thể thao",
+      ...tagKeywords,
+    ],
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    openGraph: {
+      title: `${post.title} | TS.BS. Chế Đình Nghĩa`,
+      description: post.shortDescription,
+      url: canonicalUrl,
+      siteName: "TS.BS. Chế Đình Nghĩa",
+      locale: "vi_VN",
+      type: "article",
+      images: [
+        {
+          url: coverImageUrl,
+          alt: post.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${post.title} | TS.BS. Chế Đình Nghĩa`,
+      description: post.shortDescription,
+      images: [coverImageUrl],
+    },
   };
 }
 
