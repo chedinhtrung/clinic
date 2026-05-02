@@ -63,7 +63,7 @@ function BookingConfirmContent() {
         }
 
         setStatus("error");
-        setMessage(error instanceof Error ? error.message : "Không thể xác nhận lịch hẹn. Vui lòng liên hệ phòng khám.");
+        setMessage(error instanceof Error ? error.message : "Không thể xác nhận lịch hẹn. Vui lòng liên hệ trực tiếp với phòng khám qua email coxuongkhop.bsnghia@gmail.com để được hỗ trợ ngay.");
       }
     }
 
@@ -94,6 +94,9 @@ function BookingConfirmContent() {
             Vui lòng kiểm tra email để xem thông tin lịch hẹn và đường dẫn thay đổi hoặc hủy lịch nếu cần.
           </p>
         ) : null}
+        <p>
+          Sau khi xác nhận thành công, bạn sẽ được chuyển hướng đến trợ lý của BS. Nghĩa để thảo luận chi tiết về tình trạng của bạn và các bước tiếp theo. Nếu bạn không được chuyển hướng tự động, vui lòng nhấp vào liên kết trong email xác nhận hoặc liên hệ trực tiếp với phòng khám qua email coxuongkhop.bsnghia@gmail.com để được hỗ trợ ngay.
+        </p>
       </section>
     </main>
   );
