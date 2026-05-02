@@ -267,7 +267,44 @@ export default async function BlogArticlePage(
             <div className="px-4 py-7 sm:px-10 sm:py-12">
               <div className="mx-auto max-w-3xl">
                 <div className="mt-6 space-y-6 sm:mt-10 sm:space-y-8">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.contentMarkdown}</ReactMarkdown>
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      h1: ({ children }) => <h1 className="mt-8 font-serif text-4xl font-black tracking-tight text-navy">{children}</h1>,
+                      h2: ({ children }) => <h2 className="mt-8 font-serif text-3xl font-black tracking-tight text-navy">{children}</h2>,
+                      h3: ({ children }) => <h3 className="mt-7 text-2xl font-bold tracking-tight text-navy">{children}</h3>,
+                      p: ({ children }) => <p className="mt-5 text-[17px] leading-8 text-gray-800">{children}</p>,
+                      a: ({ href, children }) => (
+                        <a
+                          href={href}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="font-semibold text-[#2f6f9f] underline decoration-[#2f6f9f]/50 underline-offset-4 transition hover:text-[#1f4f73]"
+                        >
+                          {children}
+                        </a>
+                      ),
+                      ul: ({ children }) => <ul className="mt-5 list-disc space-y-2 pl-6 text-[17px] leading-8 text-gray-800">{children}</ul>,
+                      ol: ({ children }) => <ol className="mt-5 list-decimal space-y-2 pl-6 text-[17px] leading-8 text-gray-800">{children}</ol>,
+                      li: ({ children }) => <li>{children}</li>,
+                      blockquote: ({ children }) => (
+                        <blockquote className="mt-6 border-l-4 border-gold/60 bg-[#f7f9fd] px-4 py-3 text-[17px] italic leading-8 text-gray-700">
+                          {children}
+                        </blockquote>
+                      ),
+                      code: ({ children }) => (
+                        <code className="rounded bg-[#f3f6fb] px-1.5 py-0.5 text-[0.95em] text-navy">{children}</code>
+                      ),
+                      pre: ({ children }) => (
+                        <pre className="mt-6 overflow-x-auto rounded-lg bg-[#0f2747] p-4 text-sm leading-7 text-white">{children}</pre>
+                      ),
+                      img: ({ src, alt }) => (
+                        <img src={src || ""} alt={alt || ""} className="mt-6 w-full rounded-[8px] border border-gray-200 object-cover sm:rounded-[10px]" />
+                      ),
+                    }}
+                  >
+                    {post.contentMarkdown}
+                  </ReactMarkdown>
                 </div>
               </div>
             </div>
