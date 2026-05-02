@@ -269,7 +269,7 @@ export default async function BlogArticlePage(
 
               {post.tags.length > 0 ? (
                 <div className="mt-6 flex flex-wrap gap-2">
-                  {post.tags.map((tag) => (
+                  {post.tags.slice(0, 4).map((tag) => (
                     <span
                       key={tag.id}
                       className="rounded-full border border-white/15 bg-white/8 px-3 py-1 text-xs font-semibold text-white/82"
@@ -277,6 +277,11 @@ export default async function BlogArticlePage(
                       #{tag.name}
                     </span>
                   ))}
+                  {post.tags.length > 4 ? (
+                    <span className="rounded-full border border-white/15 bg-white/8 px-2 py-1 text-[10px] font-semibold text-white/75">
+                      ...
+                    </span>
+                  ) : null}
                 </div>
               ) : null}
             </div>
