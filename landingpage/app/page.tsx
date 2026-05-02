@@ -202,7 +202,7 @@ function SocialPages() {
           </h2>
         </div>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-3">
+        <div className="mt-8 grid gap-4 md:grid-cols-4">
           {socialPages.map((page) => (
             <a
               key={page.title}
