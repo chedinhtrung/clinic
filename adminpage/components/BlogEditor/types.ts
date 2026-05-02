@@ -17,37 +17,6 @@ export type BlogTag = {
   name: string;
 };
 
-export type BlogContentBlock =
-  | {
-      id: string;
-      type: "heading";
-      text: string;
-    }
-  | {
-      id: string;
-      type: "paragraph";
-      text: string;
-    }
-  | {
-      id: string;
-      type: "image";
-      src: string;
-      alt: string;
-      caption: string;
-    }
-  | {
-      id: string;
-      type: "youtube";
-      url: string;
-      caption: string;
-    }
-  | {
-      id: string;
-      type: "link";
-      url: string;
-      text: string;
-    };
-
 export type BlogPost = {
   id: string;
   title: string;
@@ -59,7 +28,7 @@ export type BlogPost = {
   updatedAt: string;
   shortDescription: string;
   coverImageUrl: string | null;
-  contentBlocks: BlogContentBlock[];
+  contentMarkdown: string;
 };
 
 export type PostLoadStatus = "idle" | "loading" | "error";

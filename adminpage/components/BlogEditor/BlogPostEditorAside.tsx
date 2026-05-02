@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import BlogContentRenderer from "./BlogContentRenderer";
+import MarkdownEditor from "./MDEditor";
 import type { BlogAutosaveStatus, BlogCategory, BlogPost, BlogSubcategory, BlogTag } from "./types";
 import { formatBlogUpdatedAt, isPublishedStatus, slugify } from "./utils";
 
@@ -352,10 +352,9 @@ export default function BlogPostEditorAside({
                 <div>
                   <p className="text-xs font-medium text-[#787774]">Content</p>
                 </div>
-                <BlogContentRenderer
-                  blocks={post.contentBlocks}
-                  editable
-                  onChange={(contentBlocks) => onUpdatePost({ contentBlocks })}
+                <MarkdownEditor
+                  value={post.contentMarkdown}
+                  onChange={(contentMarkdown) => onUpdatePost({ contentMarkdown })}
                 />
               </section>
 

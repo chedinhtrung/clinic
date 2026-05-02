@@ -5,8 +5,6 @@ from datetime import datetime, timezone
 from typing import Any
 from urllib.parse import quote
 
-from psycopg.types.json import Jsonb
-
 from config import BLOG_DB_POOL
 
 
@@ -52,41 +50,12 @@ def _build_public_url(slug: str | None) -> str | None:
         return None
     return f"https://chedinhnghia.com/blog/{quote(slug)}"
 
-def _normalize_block(block: dict[str, Any]) -> dict[str, Any]:
-    # Validate and normalize one content block from the editor payload before
-    # persisting it in jsonb. This keeps unsupported block shapes out of the DB.
-    block_type = str(block.get("type") or "").strip()
-    block_id = str(block.get("id") or "").strip()
-    if not block_type or not block_id:
-        raise ValueError("Each content block must include id and type")
-
-    normalized: dict[str, Any] = {"id": block_id, "type": block_type}
-    if block_type in {"heading", "paragraph"}:
-        normalized["text"] = str(block.get("text") or "")
-    elif block_type == "image":
-        normalized["src"] = str(block.get("src") or "")
-        normalized["alt"] = str(block.get("alt") or "")
-        normalized["caption"] = str(block.get("caption") or "")
-    elif block_type == "youtube":
-        normalized["url"] = str(block.get("url") or "")
-        normalized["caption"] = str(block.get("caption") or "")
-    elif block_type == "link":
-        normalized["url"] = str(block.get("url") or "")
-        normalized["text"] = str(block.get("text") or "")
-    else:
-        raise ValueError(f"Unsupported content block type: {block_type}")
-
-    return normalized
-
-
-def _normalize_content_blocks(raw_blocks: Any) -> list[dict[str, Any]]:
-    # The editor stores the document as ordered blocks, so the backend accepts
-    # only a list and normalizes each block into the supported schema.
-    if raw_blocks is None:
-        return []
-    if not isinstance(raw_blocks, list):
-        raise ValueError("contentBlocks must be a list")
-    return [_normalize_block(block) for block in raw_blocks if isinstance(block, dict)]
+def _normalize_content_markdown(raw_markdown: Any) -> str:
+    if raw_markdown is None:
+        return ""
+    if not isinstance(raw_markdown, str):
+        raise ValueError("contentMarkdown must be a string")
+    return raw_markdown
 
 
 def _normalize_status(raw_status: Any) -> str:
@@ -123,7 +92,7 @@ def _serialize_post(row: dict[str, Any]) -> dict[str, Any]:
         "updatedAt": row["updated_at"].isoformat() if isinstance(row["updated_at"], datetime) else str(row["updated_at"]),
         "shortDescription": row["short_description"] or "",
         "coverImageUrl": row["cover_image_url"],
-        "contentBlocks": row["content_blocks"] or [],
+        "contentMarkdown": row["content_markdown"] or "",
     }
 
 
@@ -141,7 +110,7 @@ def _get_post_query(where_clause: str) -> str:
           bp.cover_image_url,
           bp.status,
           bp.updated_at,
-          bp.content_blocks,
+          bp.content_markdown,
           bc.id AS category_id,
           bc.name AS category_name,
           bsc.id AS subcategory_id,
@@ -474,9 +443,9 @@ def db_create_blog_post() -> dict[str, Any]:
                       url,
                       short_description,
                       status,
-                      content_blocks
+                      content_markdown
                     )
-                    VALUES (%s, %s, %s, %s, %s, 'draft', '[]'::jsonb)
+                    VALUES (%s, %s, %s, %s, %s, 'draft', '')
                     RETURNING id
                     """,
                     (category_row["id"], "", None, None, ""),
@@ -515,7 +484,7 @@ def db_update_blog_post(*, post_id: str, payload: dict[str, Any]) -> dict[str, A
     short_description = str(payload.get("shortDescription") or "")
     cover_image_url = str(payload.get("coverImageUrl") or "").strip() or None
     status = _normalize_status(payload.get("status"))
-    content_blocks = _normalize_content_blocks(payload.get("contentBlocks"))
+    content_markdown = _normalize_content_markdown(payload.get("contentMarkdown"))
 
     with BLOG_DB_POOL.connection() as conn:
         with conn.transaction():
@@ -557,7 +526,7 @@ def db_update_blog_post(*, post_id: str, payload: dict[str, Any]) -> dict[str, A
                         cover_image_url = %s,
                         status = %s,
                         published_at = {published_at_sql},
-                        content_blocks = %s::jsonb,
+                        content_markdown = %s,
                         updated_at = now()
                     WHERE id = %s
                     """,
@@ -570,7 +539,7 @@ def db_update_blog_post(*, post_id: str, payload: dict[str, Any]) -> dict[str, A
                         short_description,
                         cover_image_url,
                         status,
-                        Jsonb(content_blocks),
+                        content_markdown,
                         post_id,
                     ),
                 )

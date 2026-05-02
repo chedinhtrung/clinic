@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 type BlogCategory = {
   id: string;
@@ -20,32 +22,6 @@ type BlogTag = {
   slug: string;
 };
 
-type BlogContentBlock =
-  | {
-      id: string;
-      type: "heading" | "paragraph";
-      text: string;
-    }
-  | {
-      id: string;
-      type: "image";
-      src: string;
-      alt: string;
-      caption: string;
-    }
-  | {
-      id: string;
-      type: "youtube";
-      url: string;
-      caption: string;
-    }
-  | {
-      id: string;
-      type: "link";
-      url: string;
-      text: string;
-    };
-
 type BlogPostRecord = {
   id: string;
   title: string;
@@ -60,7 +36,7 @@ type BlogPostRecord = {
   category: BlogCategory;
   subcategory: BlogSubcategory | null;
   tags: BlogTag[];
-  contentBlocks: BlogContentBlock[];
+  contentMarkdown: string;
 };
 
 const BLOG_API_BASE_URL =
@@ -144,131 +120,9 @@ function formatPublishedDate(value: string | null) {
   }).format(date);
 }
 
-function estimateReadTime(blocks: BlogContentBlock[]) {
-  const totalWords = blocks.reduce((count, block) => {
-    if (block.type === "heading" || block.type === "paragraph" || block.type === "link") {
-      return count + block.text.trim().split(/\s+/).filter(Boolean).length;
-    }
-
-    if (block.type === "image" || block.type === "youtube") {
-      return count + block.caption.trim().split(/\s+/).filter(Boolean).length;
-    }
-
-    return count;
-  }, 0);
-
+function estimateReadTime(markdown: string) {
+  const totalWords = markdown.trim().split(/\s+/).filter(Boolean).length;
   return `${Math.max(1, Math.ceil(totalWords / 180))} phút`;
-}
-
-function extractYouTubeEmbedUrl(url: string) {
-  try {
-    const parsed = new URL(url);
-
-    if (parsed.hostname.includes("youtu.be")) {
-      return `https://www.youtube.com/embed/${parsed.pathname.replace("/", "")}`;
-    }
-
-    if (parsed.hostname.includes("youtube.com")) {
-      const videoId = parsed.searchParams.get("v");
-      if (videoId) {
-        return `https://www.youtube.com/embed/${videoId}`;
-      }
-    }
-  } catch {
-    return null;
-  }
-
-  return null;
-}
-
-function renderContentBlock(block: BlogContentBlock) {
-  if (block.type === "heading") {
-    return (
-      <h2 className="font-serif text-2xl font-black tracking-tight text-navy">
-        {block.text}
-      </h2>
-    );
-  }
-
-  if (block.type === "paragraph") {
-    return (
-      <p className="text-[17px] leading-8 text-gray-800">
-        {block.text}
-      </p>
-    );
-  }
-
-  if (block.type === "image") {
-    return (
-      <figure className="overflow-hidden rounded-[8px] border border-gray-200 bg-[#f5f8fc] p-3 sm:rounded-[12px] sm:p-4">
-        {block.src ? (
-          <div className="overflow-hidden rounded-[6px] bg-white sm:rounded-[8px]">
-            <img
-              src={block.src}
-              alt={block.alt || ""}
-              className="mx-auto max-h-[34rem] w-full object-contain"
-            />
-          </div>
-        ) : (
-          <div className="flex min-h-56 items-center justify-center rounded-[6px] bg-[linear-gradient(135deg,#153560_0%,#1e4a80_60%,#c4922a_140%)] px-4 text-center text-sm font-semibold tracking-[0.16em] text-white/84 sm:min-h-72 sm:rounded-[8px] sm:px-6">
-            Image block placeholder
-          </div>
-        )}
-        {block.caption ? (
-          <figcaption className="mt-3 text-sm leading-7 text-gray-600">
-            {block.caption}
-          </figcaption>
-        ) : null}
-      </figure>
-    );
-  }
-
-  if (block.type === "youtube") {
-    const embedUrl = extractYouTubeEmbedUrl(block.url);
-
-    return (
-      <figure className="overflow-hidden rounded-[8px] border border-gray-200 bg-[#f7f9fd] p-3 sm:rounded-[12px] sm:p-4">
-        {embedUrl ? (
-          <div className="aspect-video overflow-hidden rounded-[6px] bg-navy sm:rounded-[8px]">
-            <iframe
-              src={embedUrl}
-              title={block.caption || "YouTube video"}
-              className="h-full w-full"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
-        ) : (
-          <div className="flex min-h-48 items-center justify-center rounded-[6px] bg-navy px-4 text-center text-sm font-semibold tracking-[0.16em] text-white/82 sm:min-h-56 sm:rounded-[8px] sm:px-6">
-            YouTube block placeholder
-          </div>
-        )}
-        {block.caption ? (
-          <figcaption className="mt-3 text-sm leading-7 text-gray-600">
-            {block.caption}
-          </figcaption>
-        ) : null}
-      </figure>
-    );
-  }
-
-  if (block.type === "link") {
-    return (
-      <p className="rounded-[8px] border border-gold/25 bg-[#fffaf0] px-4 py-3 text-sm font-semibold text-navy sm:rounded-[10px] sm:px-5 sm:py-4">
-        Tai lieu tham khao:{" "}
-        <a
-          href={block.url}
-          className="text-gold underline decoration-gold/50 underline-offset-4"
-          target="_blank"
-          rel="noreferrer"
-        >
-          {block.text}
-        </a>
-      </p>
-    );
-  }
-
-  return null;
 }
 
 export async function generateMetadata(
@@ -313,7 +167,7 @@ export default async function BlogArticlePage(
     excludeSlug: post.slug,
     page: relatedPage,
   });
-  const readTime = estimateReadTime(post.contentBlocks);
+  const readTime = estimateReadTime(post.contentMarkdown);
   const coverImageUrl = post.coverImageUrl || DEFAULT_BLOG_COVER_IMAGE;
 
   return (
@@ -413,11 +267,7 @@ export default async function BlogArticlePage(
             <div className="px-4 py-7 sm:px-10 sm:py-12">
               <div className="mx-auto max-w-3xl">
                 <div className="mt-6 space-y-6 sm:mt-10 sm:space-y-8">
-                  {post.contentBlocks.map((block) => (
-                    <section key={block.id}>
-                      {renderContentBlock(block)}
-                    </section>
-                  ))}
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.contentMarkdown}</ReactMarkdown>
                 </div>
               </div>
             </div>

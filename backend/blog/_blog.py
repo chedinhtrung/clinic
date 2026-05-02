@@ -57,7 +57,7 @@ def _serialize_post(row: dict, *, include_content_blocks: bool = False) -> dict:
     }
 
     if include_content_blocks:
-        post["contentBlocks"] = row["content_blocks"] or []
+        post["contentMarkdown"] = row["content_markdown"] or ""
 
     return post
 
@@ -71,7 +71,7 @@ def _published_post_query(where_sql: str) -> str:
           bp.url,
           bp.short_description,
           bp.cover_image_url,
-          bp.content_blocks,
+          bp.content_markdown,
           bp.status,
           bp.published_at,
           bp.created_at,

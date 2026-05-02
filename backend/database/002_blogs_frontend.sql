@@ -34,7 +34,7 @@ CREATE TABLE blog_posts (
   url text UNIQUE,
   short_description text,
   cover_image_url text,
-  content_blocks jsonb NOT NULL DEFAULT '[]'::jsonb,
+  content_markdown text NOT NULL DEFAULT '',
   status text NOT NULL DEFAULT 'draft',
   published_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now(),
