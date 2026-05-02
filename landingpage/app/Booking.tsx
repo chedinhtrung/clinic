@@ -204,10 +204,13 @@ export function BookingFlow({
 
     // Load slots for the selected day, using the cache first when possible.
     async function onDateSelect(date: Date | undefined) {
-        setSlotlist([]);
         if (date === undefined) {
+            // DayPicker can emit undefined when clicking the already selected day.
+            // Keep the current selection/slots so repeated clicks are idempotent.
             return;
         }
+
+        setSlotlist([]);
 
         setSelectedSlot(undefined);
         setSelectedDate(date);
