@@ -17,39 +17,6 @@ export type BlogTag = {
   name: string;
 };
 
-// Legacy block editor types are kept for compatibility with BlogContentRenderer/*
-// while Markdown is now the active editor path in BlogPostEditorAside.
-export type BlogContentBlock =
-  | {
-      id: string;
-      type: "heading";
-      text: string;
-    }
-  | {
-      id: string;
-      type: "paragraph";
-      text: string;
-    }
-  | {
-      id: string;
-      type: "image";
-      src: string;
-      alt: string;
-      caption: string;
-    }
-  | {
-      id: string;
-      type: "youtube";
-      url: string;
-      caption: string;
-    }
-  | {
-      id: string;
-      type: "link";
-      url: string;
-      text: string;
-    };
-
 export type BlogPost = {
   id: string;
   title: string;
