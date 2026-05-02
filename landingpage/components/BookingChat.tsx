@@ -24,6 +24,7 @@ export default function BookingChat({ token }: BookingChatProps) {
   const [isSending, setIsSending] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  const pendingQueueRef = useRef<string[]>([]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -73,19 +74,12 @@ export default function BookingChat({ token }: BookingChatProps) {
     };
   }, [token]);
 
-  async function sendMessage() {
-    const userText = input.trim();
-    if (!userText || isSending || status === "abuse") {
+  async function flushQueue() {
+    if (isSending || status === "abuse" || pendingQueueRef.current.length === 0) {
       return;
     }
+    const batch = pendingQueueRef.current.splice(0, 8);
 
-    const optimisticMessage: ChatMessage = {
-      role: "user",
-      message: userText,
-    };
-
-    setMessages((prev) => [...prev, optimisticMessage]);
-    setInput("");
     setIsSending(true);
     setErrorMessage(null);
 
@@ -95,7 +89,7 @@ export default function BookingChat({ token }: BookingChatProps) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ token, message: userText }),
+        body: JSON.stringify({ token, messages: batch }),
       });
       const data = await res.json().catch(() => null);
 
@@ -106,10 +100,34 @@ export default function BookingChat({ token }: BookingChatProps) {
       setMessages(data?.result?.messages ?? []);
       setStatus(data?.result?.status ?? "active");
     } catch (error) {
-      setMessages((prev) => prev.filter((message) => message !== optimisticMessage));
+      pendingQueueRef.current = [...batch, ...pendingQueueRef.current];
       setErrorMessage(error instanceof Error ? error.message : "Không gửi được tin nhắn.");
     } finally {
       setIsSending(false);
+      if (pendingQueueRef.current.length > 0) {
+        setTimeout(() => {
+          void flushQueue();
+        }, 0);
+      }
+    }
+  }
+
+  function sendMessage() {
+    const userText = input.trim();
+    if (!userText || status === "abuse") {
+      return;
+    }
+
+    const optimisticMessage: ChatMessage = {
+      role: "user",
+      message: userText,
+    };
+
+    setMessages((prev) => [...prev, optimisticMessage]);
+    setInput("");
+    pendingQueueRef.current.push(userText);
+    if (!isSending) {
+      void flushQueue();
     }
   }
 
@@ -120,7 +138,7 @@ export default function BookingChat({ token }: BookingChatProps) {
     }
   }
 
-  const inputDisabled = isLoading || isSending || status === "abuse" || Boolean(errorMessage && messages.length === 0);
+  const inputDisabled = isLoading || status === "abuse" || Boolean(errorMessage && messages.length === 0);
   const statusMessage =
     status === "finished"
       ? "Em đã cập nhật phần tóm tắt cho bác sĩ. Mình vẫn có thể bổ sung hoặc chỉnh lại thông tin nếu cần."

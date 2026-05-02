@@ -33,11 +33,15 @@ def load_chat():
 @app.route("/api/chat", methods=["POST"])
 def send_message():
     data = request.get_json() or {}
+    token = (data.get("token") or "").strip()
+    incoming_messages = data.get("messages")
+    if not isinstance(incoming_messages, list):
+        return jsonify({"error": "messages must be a list"}), 400
 
     try:
         result = send_chat_message(
-            token=(data.get("token") or "").strip(),
-            message=(data.get("message") or "").strip(),
+            token=token,
+            messages=incoming_messages,
         )
     except ChatConfigError as exc:
         return jsonify({"error": str(exc)}), 500

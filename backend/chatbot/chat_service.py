@@ -366,11 +366,13 @@ def get_chat(*, token: str) -> dict[str, str | list[dict[str, str]]]:
     }
 
 
-def send_chat_message(*, token: str, message: str) -> dict[str, str | list[dict[str, str]]]:
+def send_chat_message(*, token: str, messages: list[str]) -> dict[str, str | list[dict[str, str]]]:
     booking_id = _load_booking_id(token)
-    patient_message = message.strip()
-    if not patient_message:
+    patient_messages = [message.strip() for message in messages if isinstance(message, str) and message.strip()]
+    if not patient_messages:
         raise ValueError("message is required")
+    if len(patient_messages) > 8:
+        raise ValueError("too many messages in one batch")
 
     # Save the patient message before calling OpenAI so the durable conversation
     # never loses the input that produced a later assistant response.
@@ -401,7 +403,8 @@ def send_chat_message(*, token: str, message: str) -> dict[str, str | list[dict[
                 _assert_chat_allowed(booking_status=row[0], chat_status=current_chat_status, slot_start_at=row[3])
                 patient_context = _patient_context_message(name=row[4], gender=row[5], birthdate=row[6], patient_note=row[7])
 
-                messages.append(_new_message(role="user", message=patient_message))
+                for patient_message in patient_messages:
+                    messages.append(_new_message(role="user", message=patient_message))
 
                 cur.execute(
                     """
