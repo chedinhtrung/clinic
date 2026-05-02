@@ -384,7 +384,7 @@ export default async function BlogArticlePage(
               ) : null}
 
               <Link
-                href="/booking"
+                href="/#booking"
                 className="mt-4 block rounded-[6px] border border-gold/35 bg-[#fffaf0] p-3 transition hover:border-gold/60 hover:bg-[#fff5df] sm:mt-5 sm:rounded-[8px] sm:p-4"
               >
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">
