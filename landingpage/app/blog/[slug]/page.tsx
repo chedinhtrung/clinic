@@ -382,6 +382,18 @@ export default async function BlogArticlePage(
                   )}
                 </div>
               ) : null}
+
+              <Link
+                href="/booking"
+                className="mt-4 block rounded-[6px] border border-gold/35 bg-[#fffaf0] p-3 transition hover:border-gold/60 hover:bg-[#fff5df] sm:mt-5 sm:rounded-[8px] sm:p-4"
+              >
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">
+                  Đặt lịch khám
+                </p>
+                <p className="font-serif mt-2 text-base font-bold leading-6 text-navy">
+                  Cần tư vấn trực tiếp? Đặt lịch với TS.BS. Chế Đình Nghĩa
+                </p>
+              </Link>
             </div>
           </aside>
         </div>
