@@ -206,6 +206,9 @@ export default function BlogPostEditorAside({
                 <span className="text-xs font-medium text-[#787774]">
                   {hasPermanentSlug ? "Post URL" : "Preview URL"}
                 </span>
+                <p className="mt-1 text-xs text-[#9a5b2b]">
+                  changing the title after publish changes this URL, which is not recommended for SEO.
+                </p>
                 {postUrl ? (
                   <a
                     href={postUrl}
