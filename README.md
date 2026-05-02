@@ -4,6 +4,22 @@ Quick Docker operations for the clinic deployment stacks.
 
 ## Deploy
 
+## Protected Database Volumes (Required Before Deploy)
+
+Booking and blog Postgres volumes are configured as **external** for safety, so
+`docker compose down -v` will not remove them. Because they are external, Docker
+Compose will not auto-create them.
+
+Create them once on each server before first deploy:
+
+```bash
+docker volume create clinic_booking_postgres_data
+docker volume create clinic_blog_postgres_data
+```
+
+If they were accidentally deleted, recreate them with the same commands above
+before running `docker compose up`.
+
 ```bash
 docker compose -f docker-compose.booking.prod.yaml up -d --build
 docker compose -f docker-compose.blog.prod.yaml up -d --build
