@@ -173,7 +173,7 @@ export default async function BlogArticlePage(
   return (
     <main className="min-h-screen bg-off-white text-text">
       <section className="overflow-hidden bg-gradient-to-br from-navy-dark via-navy to-navy-light text-white">
-        <div className="absolute inset-0 opacity-[0.14] [background-image:radial-gradient(circle_at_center,rgba(255,255,255,0.34)_1.2px,transparent_1.2px)] [background-size:26px_26px]" />
+        <div className="pointer-events-none absolute inset-0 opacity-[0.14] [background-image:radial-gradient(circle_at_center,rgba(255,255,255,0.34)_1.2px,transparent_1.2px)] [background-size:26px_26px]" />
         <div className="relative mx-auto max-w-7xl px-4 py-6 sm:px-10 lg:px-16">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/15 pb-5">
             <Link
