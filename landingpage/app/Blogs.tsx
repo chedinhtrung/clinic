@@ -261,7 +261,7 @@ export default function Blogs() {
                   )}
                   {post.tags.length > 0 && (
                     <div className="mt-4 flex flex-wrap gap-2">
-                      {post.tags.map((tag) => (
+                      {post.tags.slice(0, 4).map((tag) => (
                         <span
                           key={tag.id}
                           className="rounded-full border border-[#d7dfed] bg-[#f8fafc] px-3 py-1 text-xs font-medium text-[#516384]"
@@ -269,6 +269,11 @@ export default function Blogs() {
                           #{tag.name}
                         </span>
                       ))}
+                      {post.tags.length > 4 && (
+                        <span className="rounded-full border border-[#d7dfed] bg-[#f8fafc] px-2 py-1 text-[10px] font-medium text-[#516384]">
+                          ...
+                        </span>
+                      )}
                     </div>
                   )}
                 </Link>
