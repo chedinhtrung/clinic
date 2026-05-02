@@ -3,6 +3,7 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE TABLE patients (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   patient_code bigint NOT NULL UNIQUE,
+  registration_date timestamptz NOT NULL DEFAULT now(),
   name text NOT NULL,
   gender text,
   email text,

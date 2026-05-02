@@ -25,8 +25,9 @@ This document describes the current booking workflow, the main business rules, a
 8. Booking page reloads the booking authoritatively from backend.
 9. User fills contact details and submits.
 10. Backend checks expiry, resolves or creates the patient, attaches `patient_id` to the same booking row, cancels older pending bookings for the matched patient, and extends the timer for the next step.
-11. Frontend can continue either to the payment page or to the no-payment confirmation-email step.
-12. The chosen confirmation path eventually flips the booking to `confirmed`.
+11. When a patient identity is created for the first time, backend stores `patients.registration_date` at that moment.
+12. Frontend can continue either to the payment page or to the no-payment confirmation-email step.
+13. The chosen confirmation path eventually flips the booking to `confirmed`.
 
 ## Expiry Model
 

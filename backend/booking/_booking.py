@@ -495,7 +495,7 @@ def db_get_booking(*, booking_id: str, session_id: str) -> dict[str, str | int]:
     query = """
         SELECT b.id, b.reservation_code, b.status, b.slot_id, b.expires_at, s.start_at, s.end_at,
                b.patient_note,
-               p.patient_code, p.name, p.email, p.phone, p.birthdate, p.gender
+               p.patient_code, p.name, p.email, p.phone, p.birthdate, p.gender, p.registration_date
         FROM bookings b
         JOIN slots s ON s.id = b.slot_id
         LEFT JOIN patients p ON p.id = b.patient_id
@@ -528,6 +528,7 @@ def db_get_booking(*, booking_id: str, session_id: str) -> dict[str, str | int]:
         "patientPhone": row[11],
         "patientBirthdate": row[12].isoformat() if row[12] else None,
         "patientGender": row[13],
+        "patientRegistrationDate": row[14].isoformat() if row[14] else None,
     }
 
 
@@ -542,7 +543,7 @@ def db_get_booking_for_change_link(*, booking_id: str, patient_id: str) -> dict[
     query = """
         SELECT b.id, b.reservation_code, b.status, b.slot_id, b.expires_at, b.confirmed_at,
                b.patient_note,
-               s.start_at, s.end_at, p.id, p.patient_code, p.name, p.email, p.phone, p.birthdate, p.gender
+               s.start_at, s.end_at, p.id, p.patient_code, p.name, p.email, p.phone, p.birthdate, p.gender, p.registration_date
         FROM bookings b
         JOIN slots s ON s.id = b.slot_id
         JOIN patients p ON p.id = b.patient_id
@@ -578,6 +579,7 @@ def db_get_booking_for_change_link(*, booking_id: str, patient_id: str) -> dict[
         "patientPhone": row[13],
         "patientBirthdate": row[14].isoformat() if row[14] else None,
         "patientGender": row[15],
+        "patientRegistrationDate": row[16].isoformat() if row[16] else None,
     }
 
 

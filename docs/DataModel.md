@@ -13,6 +13,7 @@ Important fields:
 
 - `id`
 - `patient_code`
+- `registration_date`
 - `name`
 - `gender`
 - `email`
