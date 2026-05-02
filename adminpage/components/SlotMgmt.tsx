@@ -1,5 +1,5 @@
 "use client"
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
@@ -14,7 +14,15 @@ import viLocale from '@fullcalendar/core/locales/vi'
 import SlotEditor from "./SlotEditor";
 import { fetchSlot, fetchSlotsByRange } from "./slotApi";
 
-export default function SlotManagement() {
+export default function SlotManagement({
+    bookingToOpenId,
+    onBookingOpened,
+    onOpenPatient,
+}: {
+    bookingToOpenId: string | null;
+    onBookingOpened: () => void;
+    onOpenPatient: (patientId: string) => void;
+}) {
 
     const [slotlist, setSlotlist] = useState<Slot[]>([]); // for slots coming from database 
     const [selectedSlot, setSelectedSlot] = useState<Slot | undefined>(); // For editing existing slots
@@ -112,6 +120,32 @@ export default function SlotManagement() {
         await refreshVisibleSlots();
     };
 
+    useEffect(() => {
+        if (!bookingToOpenId) {
+            return;
+        }
+
+        const slotMatch = slotlist.find((slot) => slot.bookingId === bookingToOpenId);
+        if (!slotMatch) {
+            return;
+        }
+
+        const api = calendarRef.current?.getApi();
+        if (slotMatch.start) {
+            api?.changeView("timeGridWeek", slotMatch.start);
+        }
+
+        void (async () => {
+            try {
+                const slot = await fetchSlot(slotMatch.id);
+                setSelectedSlot(slot);
+                setTempSlot(undefined);
+            } finally {
+                onBookingOpened();
+            }
+        })();
+    }, [bookingToOpenId, slotlist, onBookingOpened]);
+
     return (
         <div className="h-[100%] flex-1 relative">
             <div className="bg-bg-tinted p-4 h-[100vh]">
@@ -171,15 +205,22 @@ export default function SlotManagement() {
 
                 />
             </div>
-            {selectedSlot && (
-                <SlotEditor
-                slot={selectedSlot}
-                setSelectedSlot={setSelectedSlot}
-                setTempSlot={setTempSlot}
-                onSlotSaved={handleSlotSaved}
-                onSlotDeleted={handleSlotDeleted}
-                ></SlotEditor>
-            )}
+            <div
+                className={`absolute right-0 top-0 z-10 transition-transform duration-300 ease-out ${
+                    selectedSlot ? "translate-x-0" : "translate-x-full pointer-events-none"
+                }`}
+            >
+                {selectedSlot && (
+                    <SlotEditor
+                    slot={selectedSlot}
+                    setSelectedSlot={setSelectedSlot}
+                    setTempSlot={setTempSlot}
+                    onSlotSaved={handleSlotSaved}
+                    onSlotDeleted={handleSlotDeleted}
+                    onOpenPatient={onOpenPatient}
+                    ></SlotEditor>
+                )}
+            </div>
         </div>
     )
 }

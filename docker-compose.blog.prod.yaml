@@ -43,6 +43,8 @@ services:
 
 volumes:
   blog_postgres_data:
+    external: true
+    name: clinic_blog_postgres_data
 
 networks:
   clinic-blog-backend:

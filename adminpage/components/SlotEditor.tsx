@@ -115,6 +115,7 @@ export default function SlotEditor(
         setTempSlot,
         onSlotSaved,
         onSlotDeleted,
+        onOpenPatient,
     }:
         {
             slot: Slot,
@@ -122,6 +123,7 @@ export default function SlotEditor(
             setTempSlot: (slot: Slot | undefined) => void,
             onSlotSaved: (slot: Slot) => Promise<void>,
             onSlotDeleted: () => Promise<void>,
+            onOpenPatient: (patientId: string) => void,
         }
 ) {
     const [startValue, setStartValue] = useState(toDisplayDateTimeValue(slot.start));
@@ -234,7 +236,7 @@ export default function SlotEditor(
     };
 
     return (
-        <aside className="absolute right-0 top-0 z-10 h-[100vh] min-w-[50vw] max-w-[720px] overflow-y-auto border-l border-gray-300 bg-white p-2 shadow-2xl">
+        <aside className="h-[100vh] min-w-[50vw] max-w-[720px] overflow-y-auto border-l border-gray-300 bg-white p-2 shadow-2xl">
             <button
                 className="rounded p-2 hover:bg-light-gray"
                 onClick={handleClose}
@@ -349,7 +351,12 @@ export default function SlotEditor(
                     <section className="mb-8">
                         <button
                             type="button"
-                            onClick={() => {}}
+                            onClick={() => {
+                                if (slot.patient_id) {
+                                    onOpenPatient(slot.patient_id);
+                                }
+                            }}
+                            disabled={!slot.patient_id}
                             className="mb-3 inline-flex items-center gap-1 text-sm font-bold uppercase text-txt-gray transition hover:text-primary"
                         >
                             <span>Thông tin bệnh nhân</span>

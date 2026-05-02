@@ -42,6 +42,8 @@ services:
 
 volumes:
   booking_postgres_data:
+    external: true
+    name: clinic_booking_postgres_data
 
 networks:
   clinic-booking-backend:

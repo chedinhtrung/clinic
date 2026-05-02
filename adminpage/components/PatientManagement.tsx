@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPaginationItems } from "./BlogEditor/utils";
+import PatientNotesEditor from "./PatientNotesEditor";
 
 type Patient = {
   id: string;
@@ -108,7 +109,15 @@ function ProfileField({ label, value }: { label: string; value: string }) {
   );
 }
 
-export default function PatientManagement() {
+export default function PatientManagement({
+  onOpenBooking,
+  patientToOpenId,
+  onPatientOpened,
+}: {
+  onOpenBooking: (bookingId: string) => void;
+  patientToOpenId: string | null;
+  onPatientOpened: () => void;
+}) {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -116,6 +125,8 @@ export default function PatientManagement() {
   const [loadStatus, setLoadStatus] = useState<LoadStatus>("idle");
   const [sortBy, setSortBy] = useState<SortBy>("registration_date");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+  const [searchText, setSearchText] = useState("");
+  const [activeSearchText, setActiveSearchText] = useState("");
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [selectedPatient, setSelectedPatient] = useState<PatientProfile | null>(null);
   const [profileLoadStatus, setProfileLoadStatus] = useState<LoadStatus>("idle");
@@ -130,15 +141,27 @@ export default function PatientManagement() {
     async function loadPatients() {
       setLoadStatus("loading");
       try {
-        const params = new URLSearchParams({ page: String(page), pageSize: String(PAGE_SIZE), sortBy, sortOrder });
-        const response = await fetch(`/api/admin/patients?${params.toString()}`);
-        const data = (await response.json().catch(() => ({}))) as PatientPageResponse & { error?: string };
-        if (!response.ok) throw new Error(data.error || "Could not load patients.");
-        if (!isCurrentLoad) return;
-        setPatients(data.patients);
-        setPage(data.page);
-        setTotalPages(data.totalPages);
-        setTotalPatients(data.totalPatients);
+        if (activeSearchText.trim()) {
+          const params = new URLSearchParams({ q: activeSearchText.trim(), limit: String(PAGE_SIZE) });
+          const response = await fetch(`/api/admin/patients/search?${params.toString()}`);
+          const data = (await response.json().catch(() => ({}))) as { patients?: Patient[]; error?: string };
+          if (!response.ok || !data.patients) throw new Error(data.error || "Could not load patients.");
+          if (!isCurrentLoad) return;
+          setPatients(data.patients);
+          setPage(1);
+          setTotalPages(1);
+          setTotalPatients(data.patients.length);
+        } else {
+          const params = new URLSearchParams({ page: String(page), pageSize: String(PAGE_SIZE), sortBy, sortOrder });
+          const response = await fetch(`/api/admin/patients?${params.toString()}`);
+          const data = (await response.json().catch(() => ({}))) as PatientPageResponse & { error?: string };
+          if (!response.ok) throw new Error(data.error || "Could not load patients.");
+          if (!isCurrentLoad) return;
+          setPatients(data.patients);
+          setPage(data.page);
+          setTotalPages(data.totalPages);
+          setTotalPatients(data.totalPatients);
+        }
         setLoadStatus("idle");
       } catch {
         if (isCurrentLoad) setLoadStatus("error");
@@ -148,7 +171,16 @@ export default function PatientManagement() {
     return () => {
       isCurrentLoad = false;
     };
-  }, [page, sortBy, sortOrder]);
+  }, [page, sortBy, sortOrder, activeSearchText]);
+
+  useEffect(() => {
+    if (!patientToOpenId) {
+      return;
+    }
+
+    setSelectedPatientId(patientToOpenId);
+    onPatientOpened();
+  }, [patientToOpenId, onPatientOpened]);
 
   useEffect(() => {
     if (!selectedPatientId) {
@@ -236,9 +268,17 @@ export default function PatientManagement() {
   const paginationItems = useMemo(() => createPaginationItems(page, totalPages), [page, totalPages]);
 
   function toggleSort(nextSortBy: SortBy) {
+    if (activeSearchText.trim()) {
+      return;
+    }
     setPage(1);
     setSortOrder((currentOrder) => (sortBy === nextSortBy ? (currentOrder === "asc" ? "desc" : "asc") : nextSortBy === "name" ? "asc" : "desc"));
     setSortBy(nextSortBy);
+  }
+
+  function submitSearch() {
+    setActiveSearchText(searchText.trim());
+    setPage(1);
   }
 
   function sortIndicator(column: SortBy) {
@@ -252,6 +292,24 @@ export default function PatientManagement() {
         <div>
           <h2 className="mt-2 text-4xl font-bold tracking-tight text-[#37352f]">Bệnh nhân</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-[#787774]">Danh sách và hồ sơ bệnh nhân đã đăng ký lịch hẹn.</p>
+        </div>
+        <div className="mt-6 max-w-xl">
+          <label className="block">
+            <span className="text-xs font-medium text-[#787774]">Search by name, phone, or id</span>
+            <input
+              value={searchText}
+              onChange={(event) => setSearchText(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  submitSearch();
+                }
+              }}
+              onBlur={submitSearch}
+              placeholder="Nguyen Van A, 090..., or patient id"
+              className="mt-2 w-full rounded-md border border-[#e3e2df] bg-white px-3 py-2 text-sm outline-none transition focus:border-[#b9b8b4]"
+            />
+          </label>
         </div>
 
         <div className="mt-6 overflow-hidden border-y border-[#e3e2df] bg-white">
@@ -285,9 +343,9 @@ export default function PatientManagement() {
           <div className="flex items-center justify-between gap-4 border-t border-[#e3e2df] px-3 py-3 text-sm text-[#787774]">
             <div>{totalPatients === 0 ? "0 patients" : `Page ${page} of ${totalPages} - ${totalPatients} patients`}</div>
             <div className="flex items-center gap-1">
-              <button type="button" onClick={() => setPage(Math.max(1, page - 1))} disabled={page === 1 || loadStatus === "loading"} className="rounded px-2 py-1 transition hover:bg-[#f1f1ef] disabled:cursor-not-allowed disabled:opacity-40">Prev</button>
+              <button type="button" onClick={() => setPage(Math.max(1, page - 1))} disabled={page === 1 || totalPages === 1 || loadStatus === "loading"} className="rounded px-2 py-1 transition hover:bg-[#f1f1ef] disabled:cursor-not-allowed disabled:opacity-40">Prev</button>
               {paginationItems.map((item, index) => item === "..." ? <span key={`ellipsis-${index}`} className="px-2 py-1 text-[#b9b8b4]">...</span> : <button key={item} type="button" onClick={() => setPage(item)} disabled={loadStatus === "loading"} className={`rounded px-2 py-1 transition hover:bg-[#f1f1ef] disabled:cursor-not-allowed disabled:opacity-40 ${item === page ? "bg-[#37352f] text-white hover:bg-[#37352f]" : ""}`}>{item}</button>)}
-              <button type="button" onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page === totalPages || loadStatus === "loading"} className="rounded px-2 py-1 transition hover:bg-[#f1f1ef] disabled:cursor-not-allowed disabled:opacity-40">Next</button>
+              <button type="button" onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page === totalPages || totalPages === 1 || loadStatus === "loading"} className="rounded px-2 py-1 transition hover:bg-[#f1f1ef] disabled:cursor-not-allowed disabled:opacity-40">Next</button>
             </div>
           </div>
         </div>
@@ -337,7 +395,9 @@ export default function PatientManagement() {
                       <h4 className="text-xs font-medium uppercase tracking-wide text-[#8b8a86]">Doctor Notes</h4>
                       <span className={`text-xs ${noteSaveStatus === "error" ? "text-[#b94034]" : "text-[#8b8a86]"}`}>{noteSaveStatus === "saving" ? "Saving..." : noteSaveStatus === "saved" ? "Saved" : noteSaveStatus === "error" ? "Save failed" : "Not saved yet"}</span>
                     </div>
-                    <textarea value={notesDraft} onChange={(event) => setNotesDraft(event.target.value)} placeholder="Write patient-specific notes..." className="mt-2 min-h-28 w-full resize-y rounded-md border border-[#e3e2df] bg-white px-3 py-2 text-sm text-[#37352f] outline-none transition placeholder:text-[#b9b8b4] focus:border-[#b9b8b4]" />
+                    <div className="mt-2 rounded-md border border-[#e3e2df] bg-white p-2">
+                      <PatientNotesEditor value={notesDraft} onChange={setNotesDraft} />
+                    </div>
                   </div>
 
                   <div>
@@ -348,7 +408,12 @@ export default function PatientManagement() {
                     {bookingsLoadStatus === "idle" && bookings.length > 0 && (
                       <div className="mt-2 space-y-2">
                         {bookings.map((booking) => (
-                          <button key={booking.id} type="button" onClick={() => {}} className="w-full rounded-md border border-[#ecebe8] bg-[#fcfcfb] px-3 py-2 text-left transition hover:border-[#d7d5d0] hover:bg-[#f7f6f3]">
+                          <button
+                            key={booking.id}
+                            type="button"
+                            onClick={() => onOpenBooking(booking.id)}
+                            className="w-full rounded-md border border-[#ecebe8] bg-[#fcfcfb] px-3 py-2 text-left transition hover:border-[#d7d5d0] hover:bg-[#f7f6f3]"
+                          >
                             <div className="flex items-center justify-between gap-3">
                               <span className="text-sm font-medium text-[#37352f]">#{booking.reservationCode}</span>
                               <span className="rounded bg-[#f1f1ef] px-2 py-0.5 text-xs text-[#5f5e5b]">{booking.status}</span>

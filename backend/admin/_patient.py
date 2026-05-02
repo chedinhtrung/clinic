@@ -3,6 +3,48 @@ from typing import Any
 from config import DB_POOL
 
 
+def db_search_patients(*, query: str, limit: int = 50) -> list[dict[str, Any]]:
+    normalized_query = query.strip()
+    if not normalized_query:
+        return []
+    if limit < 1 or limit > 200:
+        raise ValueError("limit must be between 1 and 200")
+
+    search_like = f"%{normalized_query}%"
+    try:
+        patient_code = int(normalized_query)
+    except ValueError:
+        patient_code = None
+
+    with DB_POOL.connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT id, name, birthdate, registration_date, phone
+                FROM patients
+                WHERE name ILIKE %s
+                   OR phone ILIKE %s
+                   OR CAST(id AS text) = %s
+                   OR patient_code = COALESCE(%s::bigint, -1)
+                ORDER BY registration_date DESC, id ASC
+                LIMIT %s
+                """,
+                (search_like, search_like, normalized_query, patient_code, limit),
+            )
+            rows = cur.fetchall()
+
+    return [
+        {
+            "id": str(row[0]),
+            "name": row[1],
+            "birthdate": row[2].isoformat() if row[2] else None,
+            "registrationDate": row[3].isoformat() if row[3] else None,
+            "phone": row[4],
+        }
+        for row in rows
+    ]
+
+
 def db_get_patient(*, patient_id: str) -> dict[str, Any]:
     if not patient_id:
         raise ValueError("patient_id is required")

@@ -57,6 +57,19 @@ docker compose -f docker-compose.blog.prod.yaml down -v
 docker compose -f docker-compose.booking.prod.yaml down -v
 ```
 
+Note: booking/blog Postgres volumes are configured as external volumes
+(`clinic_booking_postgres_data`, `clinic_blog_postgres_data`).
+`down -v` will not remove external volumes.
+
+## One-Time Volume Bootstrap
+
+Create the protected external volumes once before first deploy:
+
+```bash
+docker volume create clinic_booking_postgres_data
+docker volume create clinic_blog_postgres_data
+```
+
 ## Useful Checks
 
 ```bash

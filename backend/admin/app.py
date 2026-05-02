@@ -19,7 +19,7 @@ from _booking import (
     db_insert_slot,
     db_update_slot,
 )
-from _patient import db_get_patient, db_get_patient_bookings, db_get_patients_page, db_update_patient_notes
+from _patient import db_get_patient, db_get_patient_bookings, db_get_patients_page, db_search_patients, db_update_patient_notes
 
 
 app = Flask(__name__)
@@ -131,6 +131,23 @@ def get_patients():
         )
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
+
+
+@app.route("/api/patients/search", methods=["GET"])
+def search_patients():
+    query = request.args.get("q", "")
+
+    try:
+        limit = int(request.args.get("limit", 50))
+    except ValueError:
+        return jsonify({"error": "limit must be an integer"}), 400
+
+    try:
+        patients = db_search_patients(query=query, limit=limit)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    return jsonify({"patients": patients})
 
 
 @app.route("/api/patients/<patient_id>", methods=["GET"])
