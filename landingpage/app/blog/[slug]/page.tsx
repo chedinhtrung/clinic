@@ -187,7 +187,7 @@ export default async function BlogArticlePage(
                 Trang chủ
               </Link>
               <span>/</span>
-              <Link href="/#blog" className="transition hover:text-gold">
+              <Link href="/blog" className="transition hover:text-gold">
                 Bài viết
               </Link>
               <span>/</span>
@@ -325,7 +325,7 @@ export default async function BlogArticlePage(
                   relatedPosts.posts.map((relatedPost) => (
                     <Link
                       key={relatedPost.id}
-                      href={relatedPost.url}
+                      href={`/blog/${relatedPost.slug}`}
                       className="block rounded-[6px] border border-gray-200 bg-white p-3 transition hover:border-navy/25 hover:shadow-sm sm:rounded-[8px] sm:p-4"
                     >
                       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">
