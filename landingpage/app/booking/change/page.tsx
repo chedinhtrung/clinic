@@ -25,6 +25,8 @@ type BookingDetails = {
   patientNote?: string | null;
 }
 
+type BookingChangeApiError = Error & { status?: number; code?: string };
+
 type BookingChangeFormValues = {
   name: string;
   email: string;
@@ -63,12 +65,25 @@ function BookingChangeContent() {
         const data = await res.json();
 
         if (!res.ok) {
-          throw new Error(data?.error ?? "Không tìm thấy lịch hẹn này!");
+          const error = new Error(data?.error ?? "Không tìm thấy lịch hẹn này!") as BookingChangeApiError;
+          error.status = res.status;
+          error.code = data?.code;
+          throw error;
         }
 
         setBooking(data.booking);
       } catch (error) {
-        setErrorMessage(error instanceof Error ? error.message : "Không tìm thấy lịch hẹn");
+        if (error instanceof Error) {
+          const apiError = error as BookingChangeApiError;
+          if (apiError.status === 410 || apiError.code === "booking_already_cancelled") {
+            setErrorMessage("Lịch hẹn này đã được hủy trước đó rồi.");
+            setBooking(null);
+            return;
+          }
+          setErrorMessage(apiError.message);
+          return;
+        }
+        setErrorMessage("Không tìm thấy lịch hẹn");
       }
     }
 

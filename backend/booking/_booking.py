@@ -57,6 +57,10 @@ class BookingChangeAccessError(ValueError):
     """Raised when a change-link booking lookup fails access validation."""
 
 
+class BookingAlreadyCancelledError(ValueError):
+    """Raised when a change-link booking is already cancelled."""
+
+
 class BookingConfirmationAccessError(ValueError):
     """Raised when an email confirmation link is invalid or expired."""
 
@@ -554,6 +558,8 @@ def db_get_booking_for_change_link(*, booking_id: str, patient_id: str) -> dict[
 
     if row is None:
         raise BookingChangeAccessError("booking not found")
+    if row[2] == "cancelled":
+        raise BookingAlreadyCancelledError("Lịch hẹn này đã được hủy trước đó.")
 
     return {
         "id": str(row[0]),

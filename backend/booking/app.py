@@ -129,6 +129,8 @@ def get_booking_for_change_link():
 
     try:
         booking = db_get_booking_for_change_link(booking_id=booking_id, patient_id=patient_id)
+    except BookingAlreadyCancelledError as exc:
+        return jsonify({"error": str(exc), "code": "booking_already_cancelled"}), 410
     except BookingChangeAccessError as exc:
         return jsonify({"error": str(exc)}), 404
     except ValueError as exc:
