@@ -21,6 +21,10 @@ This document covers the admin editing flow only.
   Creates the shared booking DB pool and the blog DB pool.
 - `adminpage/components/BlogEditor/index.tsx`
   Owns admin blog page state and autosave orchestration.
+- `adminpage/components/BlogEditor/BlogPostEditorAside.tsx`
+  Renders post metadata controls and markdown content editing.
+- `adminpage/components/BlogEditor/MDEditor/index.tsx`
+  Provides the markdown editor surface.
 - `adminpage/components/BlogEditor/api.ts`
   Calls the admin blog HTTP API from the frontend.
 
@@ -61,12 +65,12 @@ The admin UI loads the feature inside `BlogEditor`.
    - empty title
    - no slug
    - no URL
-   - empty `content_blocks`
+   - empty `content_markdown`
 4. The returned draft is inserted into the current frontend list and opened.
 
 ### Editing and autosave
 
-1. The user edits title, metadata, tags, or content blocks.
+1. The user edits title, metadata, tags, or markdown content.
 2. `BlogEditor/index.tsx` applies the change locally and marks the post dirty.
 3. A debounced effect waits 900 ms after the latest selected-post change.
 4. The frontend sends the full post document to:
@@ -78,7 +82,7 @@ The admin UI loads the feature inside `BlogEditor`.
    - category
    - subcategory
    - tags
-   - `contentBlocks`
+   - `contentMarkdown`
 6. The backend updates `blog_posts`.
 7. The backend rewrites `blog_post_tags` for the saved tag list.
 8. The backend returns:
@@ -99,9 +103,6 @@ Publishing is currently controlled by the same autosave endpoint.
   - clears slug
   - clears URL
   - clears `published_at`
-
-That behavior is enough for the current admin workflow, though it may later be
-refined if draft posts should retain their historical published slug.
 
 ### Deleting
 
@@ -125,16 +126,14 @@ That query:
 
 This keeps the list endpoint and detail endpoint consistent.
 
-## Why The Backend Stores Block JSON
+## Canonical Content Field
 
-The admin editor is block-based, so the backend stores the canonical article
-document as `blog_posts.content_blocks jsonb`.
+The canonical article body is stored as markdown in `blog_posts.content_markdown`
+(`text`).
 
-This is important because:
+The admin frontend uses one field on the post object:
 
-- the editor can reload a post without reverse-parsing HTML
-- admin edits stay lossless
-- the public blog can later server-render from the same source of truth
+- `contentMarkdown`
 
 ## Error Handling
 
@@ -152,8 +151,8 @@ This is important because:
 
 ## Current Limitations
 
-- There is no image upload flow yet; image blocks currently store editor-supplied
-  URLs directly.
+- There is no media upload pipeline yet; markdown content currently references
+  remote URLs directly.
 - Deletion is a hard delete, not an archive/soft-delete flow.
-- The public blog rendering path is separate work and is not yet wired to this
-  admin editor source of truth.
+- Markdown rendering styles are scoped in the public page; changing visual output
+  requires updates in `landingpage/app/blog/[slug]/page.tsx`.

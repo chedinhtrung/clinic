@@ -1,31 +1,28 @@
 # Blog Data Architecture
 
-This document describes the current blog database model and the intended data
-flow between the admin editor and the future public blog.
+This document describes the current blog database model and the data flow
+between the admin editor and the public blog.
 
 ## Goals
 
 The architecture is designed around a few principles:
 
 - One canonical source of truth for blog post content.
-- Admin editing should be lossless.
-- The public blog should be able to server-render from database content.
-- Categories, subcategories, and tags should be normalized relational data.
+- Admin editing should stay simple and reliable.
+- The public blog should server-render from database content.
+- Categories, subcategories, and tags should remain normalized relational data.
 
 ## Source Of Truth
 
 The canonical article body is stored in:
 
-- `blog_posts.content_blocks`
+- `blog_posts.content_markdown`
 
-This column is `jsonb` and contains the ordered block document used by the admin
-editor.
-
-The system does not treat generated HTML as canonical source data.
+This column is `text` and contains markdown content authored in the admin editor.
 
 ## Database Files
 
-The fresh-create blog schema now lives in one file:
+The fresh-create blog schema lives in:
 
 - `backend/database/002_blogs_frontend.sql`
 
@@ -91,7 +88,7 @@ Fields:
 - `url`
 - `short_description`
 - `cover_image_url`
-- `content_blocks`
+- `content_markdown`
 - `status`
 - `published_at`
 - `created_at`
@@ -101,7 +98,7 @@ Important rules:
 
 - `slug` can be null for drafts.
 - `url` can be null for drafts.
-- `content_blocks` is required and defaults to an empty JSON array.
+- `content_markdown` is required and defaults to an empty string.
 - If `status = 'published'`, then:
   - `slug` must be non-null
   - `url` must be non-null
@@ -122,23 +119,6 @@ Notes:
 - Primary key is `(post_id, tag_id)`.
 - Deleting a post cascades to its tag joins.
 
-## Content Block Model
-
-The editor currently stores these block types:
-
-- `paragraph`
-  Fields: `id`, `type`, `text`
-- `heading`
-  Fields: `id`, `type`, `text`
-- `image`
-  Fields: `id`, `type`, `src`, `alt`, `caption`
-- `youtube`
-  Fields: `id`, `type`, `url`, `caption`
-- `link`
-  Fields: `id`, `type`, `url`, `text`
-
-The backend validates incoming blocks before storing them.
-
 ## Draft And Published States
 
 The current admin flow uses two editable states:
@@ -152,8 +132,8 @@ Behavior:
 - Publishing derives slug and URL from the current title.
 - Publishing sets `published_at` the first time a post is published.
 
-The schema also still allows `archived` as a stored database status for future
-use, though the current admin editor does not expose that status.
+The schema also allows `archived` as a stored database status for future use,
+though the current admin editor does not expose that status.
 
 ## Data Flow
 
@@ -174,37 +154,29 @@ Autosave persists:
 - post metadata
 - status
 - normalized lookup relations
-- full `content_blocks`
+- full `content_markdown`
 
 ### Public side
 
-The intended public architecture is:
+The public blog reads published posts and returns markdown content in the detail
+endpoint.
 
-1. Load published posts from the database.
-2. Server-render the block JSON into semantic HTML on request.
-3. Keep the block JSON as the only canonical article source.
+The Next.js article route then server-renders markdown using
+`react-markdown` + `remark-gfm`.
 
-That gives:
+## Why Markdown Instead Of Block JSON
 
-- good SEO because the response HTML contains article content
-- no need to reverse-parse HTML back into editor blocks
-- one shared source of truth across admin and public
-
-## Why JSONB Instead Of HTML
-
-Using `jsonb` for the article body preserves the editor’s actual structure.
+Using markdown as the canonical article body reduces editor complexity and keeps
+storage portable.
 
 Benefits:
 
-- lossless re-editing
-- safer future schema evolution
-- easier server-side rendering
-- easier future support for richer block types
+- simpler authoring architecture
+- smaller frontend/editor maintenance surface
+- broad renderer ecosystem
+- straightforward SSR rendering pipeline
 
 Tradeoff:
 
-- rendering must happen in application code rather than by directly outputting
-  stored HTML
-
-That tradeoff is intentional because the JSON document is the editor-native
-format.
+- markdown is not fully WYSIWYG
+- final visual output depends on renderer + scoped styles

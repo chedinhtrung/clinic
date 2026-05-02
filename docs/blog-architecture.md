@@ -44,7 +44,7 @@ Key fields in `blog_posts`:
 - `url`
 - `short_description`
 - `cover_image_url`
-- `content_blocks`: JSONB ordered content document
+- `content_markdown`: canonical markdown article body
 - `status`: currently `draft`, `published`, or `archived` at the DB layer
 - `published_at`
 - `created_at`
@@ -54,34 +54,9 @@ Important constraints:
 
 - published posts must have `slug`, `url`, and `published_at`
 - `slug` and `url` are unique
-- `content_blocks` defaults to an empty JSON array
+- `content_markdown` defaults to an empty string
 
 Source: [backend/database/002_blogs_frontend.sql](/home/steve/Desktop/clinic/backend/database/002_blogs_frontend.sql:1)
-
-## Content Blocks
-
-The article body is stored as ordered JSON blocks in `blog_posts.content_blocks`.
-
-Supported block types today:
-
-- `heading`
-- `paragraph`
-- `image`
-- `youtube`
-- `link`
-
-Persisted block shapes:
-
-- `heading`: `id`, `type`, `text`
-- `paragraph`: `id`, `type`, `text`
-- `image`: `id`, `type`, `src`, `alt`, `caption`
-- `youtube`: `id`, `type`, `url`, `caption`
-- `link`: `id`, `type`, `url`, `text`
-
-The backend normalizes these shapes before saving, so unsupported block types
-do not get written to the database.
-
-Source: [backend/admin/_blog.py](/home/steve/Desktop/clinic/backend/admin/_blog.py:48)
 
 ## Admin Flow
 
@@ -105,7 +80,7 @@ The admin editor works with one canonical post object:
 - tags
 - `shortDescription`
 - `coverImageUrl`
-- `contentBlocks`
+- `contentMarkdown`
 - `status`
 - `updatedAt`
 
@@ -131,7 +106,7 @@ The admin backend:
 - upserts category/subcategory/tag lookup rows as needed
 - rewrites `blog_post_tags` on each save
 - stores `cover_image_url`
-- stores the full `content_blocks` JSONB document
+- stores `content_markdown`
 
 Publishing behavior:
 
@@ -139,7 +114,7 @@ Publishing behavior:
 - it sets the public URL to `https://chedinhnghia.com/blog/<slug>`
 - it sets `published_at` if it is not already set
 
-Source: [backend/admin/_blog.py](/home/steve/Desktop/clinic/backend/admin/_blog.py:444)
+Source: [backend/admin/_blog.py](/home/steve/Desktop/clinic/backend/admin/_blog.py:1)
 
 ### Admin API
 
@@ -178,15 +153,15 @@ Source: [backend/blog/app.py](/home/steve/Desktop/clinic/backend/blog/app.py:1)
 - returns only published posts
 - supports category filter, tag filter, and limit
 - returns summary data suitable for cards and lists
-- does not include `contentBlocks`
+- does not include `contentMarkdown`
 
 `GET /api/posts/<slug>`
 
 - returns only one published post
-- includes `contentBlocks`
+- includes `contentMarkdown`
 - returns 404 if the slug does not exist or is not published
 
-Source: [backend/blog/_blog.py](/home/steve/Desktop/clinic/backend/blog/_blog.py:15)
+Source: [backend/blog/_blog.py](/home/steve/Desktop/clinic/backend/blog/_blog.py:1)
 
 ## Public SSR Page
 
@@ -205,7 +180,18 @@ The page is rendered on the server so the first HTML response already contains:
 - tags
 
 This improves SEO and avoids depending on client-side fetch before meaningful
- content appears.
+content appears.
+
+### Rendering path
+
+The page server-fetches `contentMarkdown` and renders it using:
+
+- `react-markdown`
+- `remark-gfm`
+- scoped component styles in the page
+
+This keeps markdown presentation local to the blog article route and avoids
+global style side effects.
 
 ### SSR fetch behavior
 
@@ -231,23 +217,6 @@ renders the custom route-level page:
 
 [landingpage/app/blog/[slug]/not-found.tsx](/home/steve/Desktop/clinic/landingpage/app/blog/[slug]/not-found.tsx:1)
 
-## Rendering Rules
-
-The public page currently renders blocks as follows:
-
-- `heading` -> section heading
-- `paragraph` -> article paragraph
-- `image` -> article figure with caption
-- `youtube` -> embedded YouTube iframe when URL parsing succeeds
-- `link` -> reference row with clickable anchor text
-
-The page also renders:
-
-- `coverImageUrl` as the main article cover image
-- `shortDescription` in the article hero
-- `publishedAt` and `updatedAt`
-- tags in the hero and sidebar
-
 ## URL Model
 
 Published public post URLs follow this path:
@@ -270,14 +239,3 @@ Current runtime split:
 - public Next frontend listens on port `3000`
 - public browser-side blog API requests go through `/blog-api`
 - SSR blog detail fetches use `BLOG_API_BASE_URL`
-
-## Known Gaps
-
-Areas that are still intentionally simple:
-
-- related posts are placeholder content on the public article page
-- public list pages do not yet have a dedicated standalone `/blog` route
-- the public page uses plain `<img>` tags rather than Next `Image`
-- there is no compile-to-static publishing pipeline; rendering is SSR against
-  the live blog API
-
