@@ -95,7 +95,9 @@ function BookingConfirmContent() {
           </p>
         ) : null}
         <p>
-          Sau khi xác nhận thành công, bạn sẽ được chuyển hướng đến trợ lý của BS. Nghĩa để thảo luận chi tiết về tình trạng của bạn và các bước tiếp theo. Nếu bạn không được chuyển hướng tự động, vui lòng nhấp vào liên kết trong email xác nhận hoặc liên hệ trực tiếp với phòng khám qua email coxuongkhop.bsnghia@gmail.com để được hỗ trợ ngay.
+          <br></br><br></br>
+          Sau khi xác nhận thành công, bạn sẽ được chuyển hướng đến trợ lý của Bác sĩ Nghĩa để cung cấp triệu chứng và thông tin ban đầu, giúp bác sĩ chuẩn bị tốt hơn cho buổi tư vấn. <br></br>
+          Nếu bạn không được chuyển hướng tự động, vui lòng nhấp vào liên kết trong email xác nhận hoặc liên hệ trực tiếp với phòng khám qua email coxuongkhop.bsnghia@gmail.com để được hỗ trợ ngay.
         </p>
       </section>
     </main>
