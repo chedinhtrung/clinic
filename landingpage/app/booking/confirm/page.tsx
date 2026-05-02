@@ -45,6 +45,13 @@ function BookingConfirmContent() {
 
         setReservationCode(data?.result?.reservationCode ?? null);
         setStatus("success");
+        const chatLink = data?.result?.chatLink;
+
+        if (typeof chatLink === "string" && chatLink.trim()) {
+          window.location.assign(chatLink);
+          return;
+        }
+
         setMessage(
           data?.result?.confirmationEmailSent
             ? "Lịch hẹn của bạn đã được xác nhận thành công. Một email xác nhận khác đã được gửi đến hộp thư của bạn."
