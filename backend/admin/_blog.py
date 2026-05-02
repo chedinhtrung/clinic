@@ -4,6 +4,7 @@ from uuid import UUID
 from datetime import datetime, timezone
 from typing import Any
 from urllib.parse import quote
+import unicodedata
 
 from config import BLOG_DB_POOL
 
@@ -24,9 +25,12 @@ def _is_uuid(raw_value: str) -> bool:
 
 
 def _slugify(raw_value: str) -> str:
-    # Build a stable URL slug from free text. We keep this intentionally simple:
-    # lowercase ASCII words joined by single dashes.
-    normalized = raw_value.strip().lower()
+    # Build a stable URL slug from free text.
+    # Strip Vietnamese/Unicode diacritics first so titles like
+    # "xử lý" become "xu-ly" instead of dropping core letters.
+    normalized = raw_value.strip().lower().replace("đ", "d")
+    normalized = unicodedata.normalize("NFKD", normalized)
+    normalized = "".join(char for char in normalized if not unicodedata.combining(char))
     slug_parts: list[str] = []
     pending_dash = False
 

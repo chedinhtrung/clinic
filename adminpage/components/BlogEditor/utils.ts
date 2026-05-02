@@ -6,6 +6,7 @@ export const FALLBACK_CATEGORY = { id: "cat-medical", name: "Y khoa" };
 export function slugify(title: string) {
   return title
     .toLowerCase()
+    .replace(/đ/g, "d")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
