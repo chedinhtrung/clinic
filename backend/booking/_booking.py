@@ -695,7 +695,7 @@ def db_delete_booking_for_change_link(*, booking_id: str, patient_id: str) -> No
     with DB_POOL.connection() as conn:
         with conn.transaction():
             with conn.cursor() as cur:
-                # Mark only the booking that matches the emailed booking/patient pair as cancelled.
+                # Mark only a still-confirmed booking that matches the emailed booking/patient pair as cancelled.
                 cur.execute(
                     """
                     UPDATE bookings b
@@ -704,6 +704,7 @@ def db_delete_booking_for_change_link(*, booking_id: str, patient_id: str) -> No
                     WHERE b.patient_id = p.id
                       AND b.id = %s
                       AND p.id = %s
+                      AND b.status = 'confirmed'
                     RETURNING b.id
                     """,
                     (booking_id, patient_id),
