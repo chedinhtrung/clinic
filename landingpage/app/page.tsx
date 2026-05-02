@@ -177,7 +177,7 @@ function SymptomSearchSection() {
                         {symptom.description}
                       </p>
                     </div>
-                    <div className="ml-1 hidden text-3xl font-light text-gold transition group-hover:translate-x-1 sm:block">
+                    <div className="ml-1 text-3xl font-light text-gold transition group-hover:translate-x-1 sm:block">
                       ›
                     </div>
                   </div>

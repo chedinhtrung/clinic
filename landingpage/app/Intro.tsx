@@ -93,53 +93,57 @@ export default function Intro() {
 
                     <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:mt-4 xl:block xl:divide-y xl:divide-white/10">
 
-                        <div className="cursor-pointer rounded-md border border-white/10 bg-white/5 p-3 xl:rounded-none xl:border-0 xl:bg-transparent xl:px-0 xl:py-6">
-                            <div className="flex items-center gap-3 transition-all duration-300 group hover:translate-x-2 xl:gap-5">
+                        <Link href="#" className="group block rounded-md border border-white/10 bg-white/5 p-3 xl:rounded-none xl:border-0 xl:bg-transparent xl:px-0 xl:py-6">
+                            <div className="flex items-center gap-3 transition-all duration-300 group-hover:translate-x-2 xl:gap-5">
                                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gold/40 bg-white/5 text-sm group-hover:bg-gold/15 xl:h-12 xl:w-12 xl:text-base">
                                     💉
                                 </div>
-                                <div>
+                                <div className="flex-1">
                                     <h3 className="text-sm font-bold xl:text-base">Điều trị PRP &amp; Tế bào gốc</h3>
                                     <p className="mt-1 hidden text-white/65 xl:block">Sinh học tái tạo sụn khớp</p>
                                 </div>
+                                <span aria-hidden="true" className="text-xl font-bold leading-none text-gold/80 transition-transform duration-300 group-hover:translate-x-1 xl:text-2xl">›</span>
                             </div>
-                        </div>
+                        </Link>
 
-                        <div className="cursor-pointer rounded-md border border-white/10 bg-white/5 p-3 xl:rounded-none xl:border-0 xl:bg-transparent xl:px-0 xl:py-6">
-                            <div className="flex items-center gap-3 transition-all duration-300 group hover:translate-x-2 xl:gap-5">
+                        <Link href="#" className="group block rounded-md border border-white/10 bg-white/5 p-3 xl:rounded-none xl:border-0 xl:bg-transparent xl:px-0 xl:py-6">
+                            <div className="flex items-center gap-3 transition-all duration-300 group-hover:translate-x-2 xl:gap-5">
                                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gold/40 bg-white/5 text-sm group-hover:bg-gold/15 xl:h-12 xl:w-12 xl:text-base">
                                     ⚙️
                                 </div>
-                                <div>
+                                <div className="flex-1">
                                     <h3 className="text-sm font-bold xl:text-base">Thay khớp ít xâm lấn</h3>
                                     <p className="mt-1 hidden text-white/65 xl:block">Khớp gối, khớp háng nhân tạo</p>
                                 </div>
+                                <span aria-hidden="true" className="text-xl font-bold leading-none text-gold/80 transition-transform duration-300 group-hover:translate-x-1 xl:text-2xl">›</span>
                             </div>
-                        </div>
+                        </Link>
 
-                        <div className="cursor-pointer rounded-md border border-white/10 bg-white/5 p-3 xl:rounded-none xl:border-0 xl:bg-transparent xl:px-0 xl:py-6">
-                            <div className="flex items-center gap-3 transition-all duration-300 group hover:translate-x-2 xl:gap-5">
+                        <Link href="#" className="group block rounded-md border border-white/10 bg-white/5 p-3 xl:rounded-none xl:border-0 xl:bg-transparent xl:px-0 xl:py-6">
+                            <div className="flex items-center gap-3 transition-all duration-300 group-hover:translate-x-2 xl:gap-5">
                                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gold/40 bg-white/5 text-sm group-hover:bg-gold/15 xl:h-12 xl:w-12 xl:text-base">
                                     🦴
                                 </div>
-                                <div>
+                                <div className="flex-1">
                                     <h3 className="text-sm font-bold xl:text-base">Gãy xương &amp; Biến dạng chi thể</h3>
                                     <p className="mt-1 hidden text-white/65 xl:block">Đa chấn thương, gãy xương phức tạp</p>
                                 </div>
+                                <span aria-hidden="true" className="text-xl font-bold leading-none text-gold/80 transition-transform duration-300 group-hover:translate-x-1 xl:text-2xl">›</span>
                             </div>
-                        </div>
+                        </Link>
 
-                        <div className="cursor-pointer rounded-md border border-white/10 bg-white/5 p-3 xl:rounded-none xl:border-0 xl:bg-transparent xl:px-0 xl:py-6">
-                            <div className="flex items-center gap-3 transition-all duration-300 group hover:translate-x-2 xl:gap-5">
+                        <Link href="#" className="group block rounded-md border border-white/10 bg-white/5 p-3 xl:rounded-none xl:border-0 xl:bg-transparent xl:px-0 xl:py-6">
+                            <div className="flex items-center gap-3 transition-all duration-300 group-hover:translate-x-2 xl:gap-5">
                                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gold/40 bg-white/5 text-sm group-hover:bg-gold/15 xl:h-12 xl:w-12 xl:text-base">
                                     ⚽
                                 </div>
-                                <div>
+                                <div className="flex-1">
                                     <h3 className="text-sm font-bold xl:text-base">Chấn thương Thể thao</h3>
                                     <p className="mt-1 hidden text-white/65 xl:block">Chấn thương thường gặp trong thể thao</p>
                                 </div>
+                                <span aria-hidden="true" className="text-xl font-bold leading-none text-gold/80 transition-transform duration-300 group-hover:translate-x-1 xl:text-2xl">›</span>
                             </div>
-                        </div>
+                        </Link>
 
 
                     </div>
