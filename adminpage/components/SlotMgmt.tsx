@@ -32,11 +32,17 @@ export default function SlotManagement({
 
     const calendarRef = useRef<FullCalendar | null>(null);
     const visibleRangeRef = useRef<{ start: string, end: string } | undefined>(undefined);
+    const toLocalDateKey = (value: Date): string => {
+        const year = value.getFullYear();
+        const month = String(value.getMonth() + 1).padStart(2, "0");
+        const day = String(value.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    };
 
     const confirmedDayKeys = new Set(
         slotlist
             .filter((slot) => slot.status === "confirmed")
-            .map((slot) => slot.start.toISOString().slice(0, 10))
+            .map((slot) => toLocalDateKey(slot.start))
     );
 
     const getSlotsFromRange = useCallback(async (info: DatesSetArg) => {
@@ -193,7 +199,7 @@ export default function SlotManagement({
                         getSlotsFromRange(info);
                     }}
                     dayCellClassNames={(info) => {
-                        const key = info.date.toISOString().slice(0, 10);
+                        const key = toLocalDateKey(info.date);
                         return confirmedDayKeys.has(key) ? ["admin-confirmed-day"] : [];
                     }}
                     eventOrder={(a, b) => {
