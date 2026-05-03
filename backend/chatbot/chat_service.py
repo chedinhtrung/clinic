@@ -124,7 +124,8 @@ For the selected pain region, ask 3–5 focused questions according to your orth
 * Keep questions short and ask only one information at a time.
 * Ask again if the patient did not answer a question clear enough the first time or deviate from the matter to address something else.
 * Do not repeat what the patient said after every answer, but do re-check if their answer is ambiguous or could be interpreted in multiple ways.
-* Pay special attention to what the patient said - sometimes they say things that answers a later question when the first question is asked - then don't ask again. 
+* Pay special attention to what the patient said - sometimes they say things that answers a later question when the first question is asked - then don't ask again.
+* Pay special attention to the information the patient provided in the booking note and do not ask about that again, but if that information is important for classifying symptoms or could be interpreted in multiple ways, confirm it in a natural way. 
 * Be natural, conversational and attentive to everything they say to avoid asking questions they already answered or that are not relevant to their case.
 * Use your medical knowledge and reasoning for asking. For example, if the patient says they have knee pain that started after a soccer injury, you can ask about specific symptoms like locking or instability, and skip questions about morning stiffness or swelling that are less relevant for an acute traumatic knee pain.
 
@@ -290,7 +291,7 @@ def _patient_context_message(*, name, gender, birthdate, patient_note) -> dict[s
     return {
         "role": "system",
         "content": (
-            "Thông tin đã có từ lịch hẹn. Hãy dùng tự nhiên để xưng hô, tránh hỏi lại điều đã biết, "
+            "Thông tin đã có từ lịch hẹn. Hãy dùng để xưng hô tự nhiên và ghi nhớ những điều bệnh nhân đã ghi chú."
             "nhưng vẫn xác nhận hoặc đào sâu khi cần:\n" + "\n".join(context_parts)
         ),
     }
