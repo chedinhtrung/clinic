@@ -39,6 +39,8 @@ def _slot_title(status: str, patient_name: str | None) -> str:
         return "Chờ xác nhận"
     if status == "confirmed":
         return patient_name or "Đã xác nhận"
+    if status == "finished":
+        return patient_name or "Đã hoàn thành"
     return status
 
 
@@ -89,13 +91,18 @@ ADMIN_SLOT_SELECT = """
            b.ai_summary
     FROM slots s
     LEFT JOIN LATERAL (
-        -- Admin status is based only on active bookings. Historical expired,
-        -- cancelled, and finished bookings should not block slot availability.
+        -- Prefer active bookings in admin view, but still show finished history
+        -- when no pending/confirmed row exists for a slot.
         SELECT id, slot_id, patient_id, status, reservation_code, expires_at, confirmed_at, patient_note, ai_summary
         FROM bookings
         WHERE slot_id = s.id
-          AND status IN ('pending', 'confirmed')
-        ORDER BY CASE WHEN status = 'confirmed' THEN 0 ELSE 1 END,
+          AND status IN ('pending', 'confirmed', 'finished')
+        ORDER BY CASE
+                   WHEN status = 'confirmed' THEN 0
+                   WHEN status = 'pending' THEN 1
+                   WHEN status = 'finished' THEN 2
+                   ELSE 3
+                 END,
                  created_at DESC
         LIMIT 1
     ) b ON true

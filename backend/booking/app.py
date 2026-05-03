@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from _booking import *
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 import os
 import threading
 import time
@@ -12,8 +12,11 @@ CORS(app, supports_credentials=True)
 BOOKING_SESSION_COOKIE = "booking_session_id"
 BOOKING_SESSION_MAX_AGE = 60 * 60 * 24 * 30
 EXPIRY_SWEEP_INTERVAL_SECONDS = 60
+BOOKING_FINISH_SWEEP_TZ = timezone.utc
 _expiry_thread_lock = threading.Lock()
 _expiry_thread_started = False
+_finish_thread_lock = threading.Lock()
+_finish_thread_started = False
 
 
 @app.route("/api/session", methods=["GET"])
@@ -431,7 +434,44 @@ def start_expiry_sweeper_once():
         print(f"[expiry-sweeper] started in pid={os.getpid()}")
 
 
+def _seconds_until_next_midnight_utc() -> float:
+    now_utc = datetime.now(BOOKING_FINISH_SWEEP_TZ)
+    next_midnight_utc = datetime.combine(
+        now_utc.date(),
+        datetime.min.time(),
+        tzinfo=BOOKING_FINISH_SWEEP_TZ,
+    ) + timedelta(days=1)
+    return max((next_midnight_utc - now_utc).total_seconds(), 1.0)
+
+
+def run_finished_sweeper():
+    while True:
+        sleep_seconds = _seconds_until_next_midnight_utc()
+        time.sleep(sleep_seconds)
+        try:
+            finished_count = db_finish_elapsed_confirmed_bookings()
+            print(f"[finished-sweeper] marked {finished_count} booking(s) as finished")
+        except Exception as exc:
+            print(f"[finished-sweeper] sweep failed: {exc}")
+
+
+def start_finished_sweeper_once():
+    global _finish_thread_started
+    with _finish_thread_lock:
+        if _finish_thread_started:
+            return
+        finish_thread = threading.Thread(
+            target=run_finished_sweeper,
+            daemon=True,
+            name=f"booking-finished-sweeper-{os.getpid()}",
+        )
+        finish_thread.start()
+        _finish_thread_started = True
+        print(f"[finished-sweeper] started in pid={os.getpid()}")
+
+
 start_expiry_sweeper_once()
+start_finished_sweeper_once()
 
 
 if __name__=="__main__":

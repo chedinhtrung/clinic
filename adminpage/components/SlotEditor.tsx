@@ -93,6 +93,9 @@ function statusClassName(status: Slot["status"]): string {
     if (status === "creating") {
         return "bg-[#4d756bff]";
     }
+    if (status === "finished") {
+        return "bg-[#64748b]";
+    }
 
     return "bg-[#ef4444]";
 }
@@ -103,6 +106,9 @@ function statusIcon(status: Slot["status"]) {
     }
     if (status === "confirmed") {
         return <User className="h-5 w-5" />;
+    }
+    if (status === "finished") {
+        return <span aria-hidden="true">✓</span>;
     }
 
     return <span aria-hidden="true">✓</span>;
@@ -133,7 +139,7 @@ export default function SlotEditor(
     const [isDeleting, setIsDeleting] = useState(false);
 
     const isCreating = slot.status === "creating";
-    const isBooked = slot.status === "pending" || slot.status === "confirmed";
+    const isBooked = slot.status === "pending" || slot.status === "confirmed" || slot.status === "finished";
     const patientAge = useMemo(() => calculateAge(slot.patient_birthdate), [slot.patient_birthdate]);
 
     useEffect(() => {
@@ -323,7 +329,7 @@ export default function SlotEditor(
                     
                 </section>
 
-                {(slot.bookingId || slot.patient_name || slot.status === "pending" || slot.status === "confirmed") && (
+                {(slot.bookingId || slot.patient_name || slot.status === "pending" || slot.status === "confirmed" || slot.status === "finished") && (
                     <section className="mb-8">
                         <h2 className="mb-3 text-sm font-bold uppercase text-txt-gray">Thông tin đặt lịch</h2>
                         <div className="grid gap-3 text-sm text-txt-dark md:grid-cols-2">
@@ -333,7 +339,7 @@ export default function SlotEditor(
                             </div>
                             <div>
                                 <p className="font-semibold text-txt-gray">Trạng thái</p>
-                                <p>{slot.status === "pending" ? "Chờ xác nhận" : "Đã xác nhận"}</p>
+                                <p>{slot.status === "pending" ? "Chờ xác nhận" : slot.status === "confirmed" ? "Đã xác nhận" : "Đã hoàn thành"}</p>
                             </div>
                             <div>
                                 <p className="font-semibold text-txt-gray">Hết hạn giữ chỗ</p>

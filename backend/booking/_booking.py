@@ -1354,6 +1354,24 @@ def db_expire_pending_bookings() -> int:
                 return cur.rowcount
 
 
+def db_finish_elapsed_confirmed_bookings() -> int:
+    """Mark confirmed bookings as finished after their appointment end has passed."""
+    query = """
+        UPDATE bookings b
+        SET status = 'finished'
+        FROM slots s
+        WHERE b.slot_id = s.id
+          AND b.status = 'confirmed'
+          AND s.end_at < now()
+    """
+
+    with DB_POOL.connection() as conn:
+        with conn.transaction():
+            with conn.cursor() as cur:
+                cur.execute(query)
+                return cur.rowcount
+
+
 """Validate and parse the YYYY-MM-DD date string sent by the frontend."""
 def _parse_selected_date(selected_date_raw: str) -> date:
     if not selected_date_raw:

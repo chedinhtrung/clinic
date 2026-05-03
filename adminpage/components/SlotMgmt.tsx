@@ -192,6 +192,7 @@ export default function SlotManagement({
                         title: slot.title,
                         color: slot.status === "free" ? "#0d6e56"
                             : slot.status === "pending" ? "#f59e0b"
+                                : slot.status === "finished" ? "#64748b"
                                 : slot.status === "creating" ? "#4d756bff"
                                     : "#ef4444",
                         extendedProps: {

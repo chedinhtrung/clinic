@@ -5,7 +5,7 @@ export type Slot = {
     end: Date;
     createdAt?: string;
     bookingId?: string | null;
-    status: "free" | "pending" | "confirmed" | "creating";
+    status: "free" | "pending" | "confirmed" | "finished" | "creating";
     title?: string;
     reservationCode?: number | string | null;
     bookingExpiresAt?: string | null;
@@ -24,5 +24,5 @@ export type Slot = {
 export type SlotPayload = Omit<Slot, "start" | "end" | "status"> & {
     start: string;
     end: string;
-    status: "free" | "pending" | "confirmed";
+    status: "free" | "pending" | "confirmed" | "finished";
 };
