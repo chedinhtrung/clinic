@@ -22,6 +22,7 @@ if not DB_URL:
 # Reuse PostgreSQL connections across requests so we don't pay the cost of
 # opening a brand new database connection on every API call.
 DB_POOL = ConnectionPool(conninfo=DB_URL, min_size=1, max_size=10)
+CLINIC_TZ = timezone(timedelta(hours=7))
 
 
 """Create a secure anonymous session id for browser-side booking identity."""
@@ -294,10 +295,10 @@ def send_booking_confirmation_request_email(
 def db_get_available_dates(session_id: str | None = None) -> list[str]:
     # List future dates that still have at least one slot this session can claim.
     query = """
-        SELECT DISTINCT DATE(s.start_at) AS available_date
+        SELECT DISTINCT DATE(s.start_at AT TIME ZONE 'Asia/Ho_Chi_Minh') AS available_date
         FROM slots s
         WHERE s.is_active = true
-          AND s.start_at >= date_trunc('day', now()) + interval '1 day'
+          AND s.start_at >= ((date_trunc('day', now() AT TIME ZONE 'Asia/Ho_Chi_Minh') + interval '1 day') AT TIME ZONE 'Asia/Ho_Chi_Minh')
           AND NOT EXISTS (
               SELECT 1
               FROM bookings b
@@ -321,7 +322,7 @@ def db_get_available_dates(session_id: str | None = None) -> list[str]:
 """Return all slots for one YYYY-MM-DD date that this session may claim."""
 def db_get_available_slots(selected_date_raw: str, session_id: str | None = None) -> list[dict[str, str]]:
     selected_date = _parse_selected_date(selected_date_raw)
-    day_start = datetime.combine(selected_date, time.min)
+    day_start = datetime.combine(selected_date, time.min, tzinfo=CLINIC_TZ)
     day_end = day_start + timedelta(days=1)
 
     # Return claimable slots for one calendar day, while preserving visibility
