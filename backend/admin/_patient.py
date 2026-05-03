@@ -11,10 +11,6 @@ def db_search_patients(*, query: str, limit: int = 50) -> list[dict[str, Any]]:
         raise ValueError("limit must be between 1 and 200")
 
     search_like = f"%{normalized_query}%"
-    try:
-        patient_code = int(normalized_query)
-    except ValueError:
-        patient_code = None
 
     with DB_POOL.connection() as conn:
         with conn.cursor() as cur:
@@ -25,11 +21,11 @@ def db_search_patients(*, query: str, limit: int = 50) -> list[dict[str, Any]]:
                 WHERE name ILIKE %s
                    OR phone ILIKE %s
                    OR CAST(id AS text) = %s
-                   OR patient_code = COALESCE(%s::bigint, -1)
+                   OR CAST(patient_code AS text) ILIKE %s
                 ORDER BY registration_date DESC, id ASC
                 LIMIT %s
                 """,
-                (search_like, search_like, normalized_query, patient_code, limit),
+                (search_like, search_like, normalized_query, search_like, limit),
             )
             rows = cur.fetchall()
 
