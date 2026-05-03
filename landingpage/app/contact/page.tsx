@@ -100,10 +100,10 @@ export default function ContactPage() {
             <div className="flex flex-col gap-6 md:flex-row md:items-center">
               <div>
                 <h2 className="font-serif text-2xl font-bold">
-                  Cần tư vấn lịch khám?
+                  Cần tư vấn chuyên sâu?
                 </h2>
                 <p className="mt-2 max-w-3xl leading-7 text-white/75">
-                  Chọn ngày và khung giờ phù hợp trên hệ thống đặt lịch online. 
+                  Chọn ngày và khung giờ phù hợp trên hệ thống đặt lịch. BS. Chế Đình Nghĩa sẽ tư vấn trực tiếp qua video call, giúp bạn giải đáp thắc mắc và đưa ra hướng điều trị phù hợp. 
                 </p>
               </div>
               <Link

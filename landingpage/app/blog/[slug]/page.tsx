@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import ShareButtons from "./ShareButtons";
 
 type BlogCategory = {
   id: string;
@@ -265,6 +266,12 @@ export default async function BlogArticlePage(
                   <p className="text-xs uppercase tracking-[0.22em] text-white/55">Thời gian đọc</p>
                   <p className="mt-1 font-semibold text-white">{readTime}</p>
                 </div>
+                <div className="sm:ml-auto">
+                  <p className="text-xs uppercase tracking-[0.22em] text-white/55">Chia sẻ</p>
+                  <div className="mt-2">
+                    <ShareButtons slug={post.slug} title={post.title} />
+                  </div>
+                </div>
               </div>
 
               {post.tags.length > 0 ? (
@@ -343,6 +350,14 @@ export default async function BlogArticlePage(
                   >
                     {post.contentMarkdown}
                   </ReactMarkdown>
+                </div>
+                <div className="mt-10 border-t border-gray-200 pt-6">
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gray-500">
+                    Chia sẻ bài viết
+                  </p>
+                  <div className="mt-3">
+                    <ShareButtons slug={post.slug} title={post.title} />
+                  </div>
                 </div>
               </div>
             </div>
