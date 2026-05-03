@@ -199,6 +199,16 @@ export default function SlotManagement({
                     eventOrder={(a, b) => {
                         const aEvent = a as { extendedProps?: { status?: string }; start?: Date | null };
                         const bEvent = b as { extendedProps?: { status?: string }; start?: Date | null };
+                        const toTimestamp = (value: unknown): number => {
+                            if (value instanceof Date) {
+                                return value.getTime();
+                            }
+                            if (typeof value === "string" || typeof value === "number") {
+                                const parsed = new Date(value).getTime();
+                                return Number.isNaN(parsed) ? 0 : parsed;
+                            }
+                            return 0;
+                        };
                         const rank = (status: string) => {
                             if (status === "confirmed") return 0;
                             if (status === "pending") return 1;
@@ -209,7 +219,7 @@ export default function SlotManagement({
                         const aRank = rank(String(aEvent.extendedProps?.status || ""));
                         const bRank = rank(String(bEvent.extendedProps?.status || ""));
                         if (aRank !== bRank) return aRank - bRank;
-                        return (aEvent.start?.getTime() || 0) - (bEvent.start?.getTime() || 0);
+                        return toTimestamp(aEvent.start) - toTimestamp(bEvent.start);
                     }}
                     events={[...slotlist, ...(tempSlot ? [tempSlot] : [])].map((slot) => ({
                         start: slot.start,
