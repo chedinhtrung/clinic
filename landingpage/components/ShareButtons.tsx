@@ -78,8 +78,9 @@ export default function ShareButtons({ slug, title, variant = "light" }: ShareBu
         aria-label="Sao chép liên kết"
         className={buttonClassName}
       >
-        <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-current">
-          <path d="M9.5 5.75A3.75 3.75 0 0 1 13.25 2h3a3.75 3.75 0 0 1 0 7.5h-2v-1.5h2a2.25 2.25 0 0 0 0-4.5h-3a2.25 2.25 0 0 0-2.25 2.25v2h-1.5v-2ZM7.75 6.5h2v1.5h-2a2.25 2.25 0 0 0-2.25 2.25v3a2.25 2.25 0 0 0 4.5 0v-2h1.5v2a3.75 3.75 0 1 1-7.5 0v-3A3.75 3.75 0 0 1 7.75 6.5Zm1.25 4.75h6v1.5H9v-1.5Z" />
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"  className="h-4 w-4">
+          <path d="M13.5442 10.4558C11.8385 8.75022 9.07316 8.75022 7.36753 10.4558L4.27922 13.5442C2.57359 15.2498 2.57359 18.0152 4.27922 19.7208C5.98485 21.4264 8.75021 21.4264 10.4558 19.7208L12 18.1766" stroke="#ffffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M10.4558 13.5442C12.1614 15.2498 14.9268 15.2498 16.6324 13.5442L19.7207 10.4558C21.4264 8.75021 21.4264 5.98485 19.7207 4.27922C18.0151 2.57359 15.2497 2.57359 13.5441 4.27922L12 5.82338" stroke="#faf9f9ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
       </button>
 
