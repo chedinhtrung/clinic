@@ -360,7 +360,7 @@ def _call_initial_greeting_model(patient_context: dict[str, str] | None = None) 
         {
             "role": "user",
             "content": (
-                "Hãy mở đầu cuộc trò chuyện tiếp nhận trước lịch hẹn. "
+                "Hãy mở đầu cuộc trò chuyện tiếp nhận trước lịch hẹn. Xưng tên, giới thiệu mình là trợ lý của bác sĩ Nghĩa, và giải thích mục đích cuộc trò chuyện. "
                 "Nếu biết tên bệnh nhân, hãy chào bằng tên một cách tự nhiên. "
                 "Nếu bệnh nhân đã gửi ghi chú/lý do đặt lịch, hãy nhắc lại ngắn gọn nội dung đó ở đầu cuộc trò chuyện để thể hiện phòng khám đã chú ý, rồi hỏi câu đào sâu phù hợp tiếp theo. "
                 "Nếu chưa có ghi chú, hãy hỏi câu đầu tiên về lý do đặt lịch hoặc triệu chứng chính. "
