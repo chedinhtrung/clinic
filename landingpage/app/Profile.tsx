@@ -50,11 +50,10 @@ export default function Profile() {
             TS. BS. Chế Đình Nghĩa
           </h2>
           <p className="mt-4 text-base leading-8 text-navy-mid/80 sm:text-lg">
-            Hơn 20 năm công tác tại các bệnh viện tuyến đầu, TS. BS. Chế Đình Nghĩa là chuyên gia
+            <span className="font-bold">Hơn 20 năm công tác tại Bệnh viện Trung ương Quân đội 108</span>, TS. BS. Chế Đình Nghĩa là chuyên gia
             hàng đầu về chấn thương chỉnh hình và phẫu thuật tạo hình.
             Bác sĩ đã điều trị nhiều ca bệnh phức tạp bằng kỹ thuật ít xâm lấn,
-            giúp giảm đau, hạn chế biến chứng và rút ngắn thời gian hồi phục cho
-            người bệnh.
+            giúp hàng ngàn bệnh nhân giảm đau, phục hồi vận động, rút ngắn thời gian hồi phục và tránh phẫu thuật không cần thiết.
           </p>
         </div>
 
@@ -82,7 +81,7 @@ export default function Profile() {
                 {expertise.map((item) => (
                   <div key={item} className="flex items-start gap-2">
                     <span>•</span>
-                    <p className="text-sm leading-7 text-navy-mid sm:text-base">
+                    <p className="text leading-7 text-navy-mid sm:text-base">
                       {item}
                     </p>
                   </div>
@@ -102,7 +101,7 @@ export default function Profile() {
                     <h3 className="font-bold text-navy-dark">
                       {item.title}
                     </h3>
-                    <p className="text-navy-mid/75 text-sm">
+                    <p className="text-navy-mid/90">
                       {item.organization}
                     </p>
                   </div>
