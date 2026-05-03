@@ -81,7 +81,7 @@ export default function Navbar() {
                         alt="TS.BS. Chế Đình Nghĩa"
                         width={48}
                         height={48}
-                        className="hidden h-12 w-12 rounded-full object-cover sm:block"
+                        className="h-12 w-12 rounded-full object-cover sm:block"
                         priority
                     />
                     <Link
