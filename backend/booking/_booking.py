@@ -149,6 +149,17 @@ def _build_chat_link(*, booking_id: str) -> str:
     return f"{BOOKING_PUBLIC_BASE_URL}/booking/chat?token={quote_plus(token)}"
 
 
+def _format_reservation_code_for_display(reservation_code: str | int) -> str:
+    """Format reservation code for patient-facing channels only."""
+    raw = str(reservation_code).strip()
+    digits = "".join(ch for ch in raw if ch.isdigit())
+    if len(digits) >= 9:
+        digits = digits[-9:]
+    else:
+        digits = digits.zfill(9)
+    return f"CDN-{digits[0:3]}-{digits[3:6]}-{digits[6:9]}"
+
+
 def _send_email(*, recipient_email: str, subject: str, body: str, html_body: str | None = None) -> None:
     if not recipient_email:
         raise ValueError("recipient_email is required")
@@ -183,7 +194,8 @@ def send_booking_confirmation_email(
     patient_id: str
 ) -> None:
     """Send a basic confirmation email after a booking has been confirmed."""
-    subject = f"Xác nhận lịch hẹn #{reservation_code}"
+    display_reservation_code = _format_reservation_code_for_display(reservation_code)
+    subject = f"Xác nhận lịch hẹn #{display_reservation_code}"
     greeting_name = recipient_name or "Quý Khách"
     slot_line = ""
     if slot_start_at is not None:
@@ -199,7 +211,7 @@ def send_booking_confirmation_email(
         f"Xin chào {greeting_name}, \n \n" \
         "Cảm ơn bạn đã sử dụng dịch vụ của Phòng khám Cơ Xương Khớp BS. Chế Đình Nghĩa. \n" \
         "Chúng tôi xác nhận lịch hẹn của bạn như sau:\n \n" \
-        f"Mã đặt chỗ: {reservation_code}\n" \
+        f"Mã đặt chỗ: {display_reservation_code}\n" \
         f"{slot_line} \n \n" \
         f"Cuộc gọi trực tuyến: #TODO chèn link online call\n\n" \
         f"Nhằm tiết kiệm thời gian và giúp bác sĩ có cái nhìn tổng quan về tình trạng của bạn, kính mong bạn dành ít phút trả lời các câu hỏi từ trợ lý của BS. Nghĩa trước buổi hẹn: \n" \
@@ -215,7 +227,7 @@ def send_booking_confirmation_email(
         f"<p>Xin chào {escape(str(greeting_name))},</p>"
         "<p>Cảm ơn bạn đã sử dụng dịch vụ của Phòng khám Cơ Xương Khớp BS. Chế Đình Nghĩa.</p>"
         "<p>Chúng tôi xác nhận lịch hẹn của bạn như sau:</p>"
-        f"<p><strong>Mã đặt chỗ: {escape(str(reservation_code))}</strong><br>"
+        f"<p><strong>Mã đặt chỗ: {escape(display_reservation_code)}</strong><br>"
         f"<strong>{escape(slot_line)}</strong></p>"
         "<p>Cuộc gọi trực tuyến: #TODO chèn link online call</p>"
         "<p>Nhằm tiết kiệm thời gian và giúp bác sĩ có cái nhìn tổng quan về tình trạng của bạn, kính mong bạn "
@@ -240,7 +252,8 @@ def send_booking_confirmation_request_email(
     slot_start_at: datetime | None = None,
     slot_end_at: datetime | None = None,
 ) -> None:
-    subject = f"Lịch hẹn chờ xác nhận #{reservation_code}"
+    display_reservation_code = _format_reservation_code_for_display(reservation_code)
+    subject = f"Lịch hẹn chờ xác nhận #{display_reservation_code}"
     greeting_name = recipient_name or "Quý Khách"
     slot_line = ""
     if slot_start_at is not None:
@@ -255,7 +268,7 @@ def send_booking_confirmation_request_email(
         f"Xin chào {greeting_name}, \n \n" \
         "Cảm ơn bạn đã sử dụng dịch vụ của Phòng khám Cơ Xương Khớp BS. Chế Đình Nghĩa. \n" \
         "Chúng tôi đã giữ chỗ lịch hẹn của bạn như sau:\n \n" \
-        f"Mã đặt chỗ: {reservation_code}\n" \
+        f"Mã đặt chỗ: {display_reservation_code}\n" \
         f"{slot_line} \n \n" \
         "Vui lòng click vào link dưới đây để xác nhận lịch hẹn của bạn: \n" \
         f" {confirmation_link}\n \n" \
@@ -267,7 +280,7 @@ def send_booking_confirmation_request_email(
         f"<p>Xin chào {escape(str(greeting_name))},</p>"
         "<p>Cảm ơn bạn đã sử dụng dịch vụ của Phòng khám Cơ Xương Khớp BS. Chế Đình Nghĩa.</p>"
         "<p>Chúng tôi đã giữ chỗ lịch hẹn của bạn như sau:</p>"
-        f"<p><strong>Mã đặt chỗ: {escape(str(reservation_code))}</strong><br>"
+        f"<p><strong>Mã đặt chỗ: {escape(display_reservation_code)}</strong><br>"
         f"<strong>{escape(slot_line)}</strong></p>"
         "<p><strong>Vui lòng click vào link dưới đây để xác nhận lịch hẹn của bạn.</strong></p>"
         f"<p><a href=\"{escape(confirmation_link)}\">{escape(confirmation_link)}</a></p>"
