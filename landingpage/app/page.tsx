@@ -2,6 +2,7 @@ import Navbar from "@/components/Navbar";
 import Intro from "@/app/Intro";
 import Booking from "@/app/Booking";
 import Image from "next/image";
+import { ReactNode } from "react";
 
 const physicianSchema = {
   "@context": "https://schema.org",
@@ -89,6 +90,53 @@ const socialPages = [
   },
 ];
 
+const faqItems: { question: string; answer: ReactNode }[] = [
+  {
+    question: "Tư vấn online là gì?",
+    answer: (
+      <div className="text leading-7 text-navy-mid sm:text-base">
+        <p className="font-semibold">Tư vấn online giúp bạn tiết kiệm thời gian, không phải tới trực tiếp phòng khám khi chưa thực sự cần thiết. <br /><br /></p>
+        <p>Các bước thực hiện tư vấn online:</p>
+        <div className="flex items-start gap-2">
+          <span>•</span><p>Đăng ký tư vấn online qua <a href="/#booking" className="text-navy-600 underline">cổng đăng ký</a></p>
+        </div>
+        <div className="flex items-start gap-2">
+          <span>•</span><p>Trợ lý của BS. Nghĩa ghi nhận triệu chứng và bệnh sử của bạn</p>
+        </div>
+        <div className="flex items-start gap-2">
+          <span>•</span><p>BS. Nghĩa tư vấn qua video call, chỉ định xét nghiệm/chụp chiếu cần thiết hoặc kê đơn thuốc nếu phù hợp và hẹn ngày tái khám</p>
+        </div>
+        <div className="flex items-start gap-2">
+          <span>•</span><p>Bạn làm các xét nghiệm và chụp chiếu tại bệnh viện gần nhất, tiết kiệm thời gian di chuyển</p>
+        </div>
+        <div className="flex items-start gap-2">
+          <span>•</span><p>Trong trường hợp cần thiết, bạn sẽ được hẹn đến khám, tư vấn và điều trị trực tiếp tại phòng khám</p>
+        </div>
+      </div>
+    ),
+  },
+  {
+    question: "Tư vấn online có chính xác không?",
+    answer: (
+      <div className="text leading-7 text-navy-mid sm:text-base">
+        <p>Tư vấn online giúp bác sĩ đánh giá ban đầu dựa trên thông tin bạn cung cấp và trao đổi trực tiếp qua video call.</p>
+        <p>Trong nhiều trường hợp, bác sĩ có thể đưa ra hướng xử lý phù hợp mà không cần khám trực tiếp.</p>
+        <p>Nếu cần thiết, bạn sẽ được hướng dẫn chụp phim hoặc đến khám trực tiếp để đảm bảo chẩn đoán chính xác.</p>
+      </div>
+    ),
+  },
+  {
+    question: "Tôi có cần chụp X-quang / MRI trước không?",
+    answer: (
+      <div className="text leading-7 text-navy-mid sm:text-base">
+        <p className="font-semibold">Bạn không cần phải chụp X-quang hoặc MRI trước khi tư vấn online.</p>
+        <p>Trong quá trình tư vấn, bác sĩ sẽ đánh giá tình trạng của bạn và chỉ định các xét nghiệm/chụp chiếu cần thiết.</p>
+        <p>Nếu đã có kết quả xét nghiệm/chụp chiếu trước đó, bạn có thể cung cấp cho bác sĩ trước buổi hẹn để hỗ trợ quá trình tư vấn.</p>
+      </div>
+    ),
+  },
+];
+
 const commonSymptoms = [
   {
     title: "Đau khớp gối khi đi lại, leo cầu thang",
@@ -119,75 +167,75 @@ const commonSymptoms = [
 function SymptomSearchSection() {
   return (
     <>
-    <script
+      <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(physicianSchema),
         }}
       />
-    <section className="bg-[#eef2f7] px-6 py-14 text-navy-dark sm:px-10 lg:px-20">
-      <div className="mx-auto max-w-7xl">
-        <div className="grid gap-10 lg:grid-cols-[1fr_1.1fr] lg:gap-12">
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#f8fbff] to-white p-7 shadow-[0_20px_45px_rgba(10,35,66,0.08)] sm:p-10">
-            <div className="h-1 w-16 rounded-full bg-gold" />
-            <p className="mt-5 text-xs font-bold uppercase tracking-[0.28em] text-gold sm:text-sm">
-              Bạn đang gặp vấn đề gì?
-            </p>
-            <h2 className="mt-5 font-serif text-2xl font-black leading-tight text-navy sm:text-3xl">
-              Tư vấn chuyên sâu các vấn đề cơ xương khớp thường gặp
-            </h2>
-            <div className="mt-6 h-1 w-20 rounded-full bg-gold/70" />
-            <p className="mt-7 max-w-xl text-base leading-8 text-[#4f6386]">
-              BS. Nghĩa giúp bạn hiểu rõ nguyên nhân và lựa chọn phương pháp điều trị
-              phù hợp, hiệu quả và an toàn.
-            </p>
-            <a
-              href="#booking"
-              className="mt-8 inline-flex items-center gap-3 rounded-xl bg-navy px-6 py-4 text-base font-bold text-white shadow-[0_12px_24px_rgba(11,39,75,0.22)] transition hover:-translate-y-0.5 hover:bg-[#133765]"
-            >
-              <span>📅</span>
-              Đặt lịch tư vấn
-            </a>
+      <section className="bg-[#eef2f7] px-6 py-14 text-navy-dark sm:px-10 lg:px-20">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid gap-10 lg:grid-cols-[1fr_1.1fr] lg:gap-12">
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#f8fbff] to-white p-7 shadow-[0_20px_45px_rgba(10,35,66,0.08)] sm:p-10">
+              <div className="h-1 w-16 rounded-full bg-gold" />
+              <p className="mt-5 text-xs font-bold uppercase tracking-[0.28em] text-gold sm:text-sm">
+                Bạn đang gặp vấn đề gì?
+              </p>
+              <h2 className="mt-5 font-serif text-2xl font-black leading-tight text-navy sm:text-3xl">
+                Tư vấn chuyên sâu các vấn đề cơ xương khớp thường gặp
+              </h2>
+              <div className="mt-6 h-1 w-20 rounded-full bg-gold/70" />
+              <p className="mt-7 max-w-xl text-base leading-8 text-[#4f6386]">
+                BS. Nghĩa giúp bạn hiểu rõ nguyên nhân và lựa chọn phương pháp điều trị
+                phù hợp, hiệu quả và an toàn.
+              </p>
+              <a
+                href="#booking"
+                className="mt-8 inline-flex items-center gap-3 rounded-xl bg-navy px-6 py-4 text-base font-bold text-white shadow-[0_12px_24px_rgba(11,39,75,0.22)] transition hover:-translate-y-0.5 hover:bg-[#133765]"
+              >
+                <span>📅</span>
+                Đặt lịch tư vấn
+              </a>
 
-            <div className="pointer-events-none absolute -bottom-24 -left-16 h-60 w-60 rounded-full bg-gold/10 blur-2xl" />
+              <div className="pointer-events-none absolute -bottom-24 -left-16 h-60 w-60 rounded-full bg-gold/10 blur-2xl" />
+            </div>
+
+            <ul className="grid gap-5" aria-label="Danh sách triệu chứng thường được tìm kiếm">
+              {commonSymptoms.map((symptom, index) => (
+                <li key={symptom.title}>
+                  <a
+                    href={symptom.href}
+                    className="group block rounded-2xl border border-white/90 bg-white p-2 shadow-[0_10px_30px_rgba(10,35,66,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_36px_rgba(10,35,66,0.12)] sm:p-3"
+                  >
+                    <div className="flex items-center gap-4 sm:gap-5">
+                      <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full sm:h-20 sm:w-20">
+                        <Image
+                          src={symptom.icon}
+                          alt={symptom.title}
+                          width={80}
+                          height={80}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-black text-sm font-serif leading-tight text-navy sm:text-md">
+                          {symptom.title}
+                        </h3>
+                        <p className="mt-1 text-sm leading-7 text-[#566b8f] sm:text-base">
+                          {symptom.description}
+                        </p>
+                      </div>
+                      <div className="ml-1 text-3xl font-light text-gold transition group-hover:translate-x-1 sm:block">
+                        ›
+                      </div>
+                    </div>
+                  </a>
+                </li>
+              ))}
+            </ul>
           </div>
-
-          <ul className="grid gap-5" aria-label="Danh sách triệu chứng thường được tìm kiếm">
-            {commonSymptoms.map((symptom, index) => (
-              <li key={symptom.title}>
-                <a
-                  href={symptom.href}
-                  className="group block rounded-2xl border border-white/90 bg-white p-2 shadow-[0_10px_30px_rgba(10,35,66,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_36px_rgba(10,35,66,0.12)] sm:p-3"
-                >
-                  <div className="flex items-center gap-4 sm:gap-5">
-                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full sm:h-20 sm:w-20">
-                      <Image
-                        src={symptom.icon}
-                        alt={symptom.title}
-                        width={80}
-                        height={80}
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <h3 className="font-black text-sm font-serif leading-tight text-navy sm:text-md">
-                        {symptom.title}
-                      </h3>
-                      <p className="mt-1 text-sm leading-7 text-[#566b8f] sm:text-base">
-                        {symptom.description}
-                      </p>
-                    </div>
-                    <div className="ml-1 text-3xl font-light text-gold transition group-hover:translate-x-1 sm:block">
-                      ›
-                    </div>
-                  </div>
-                </a>
-              </li>
-            ))}
-          </ul>
         </div>
-      </div>
-    </section>
+      </section>
     </>
   );
 }
@@ -197,7 +245,7 @@ function SocialPages() {
     <section className="bg-white px-6 py-14 text-navy-dark sm:px-10 lg:px-20">
       <div className="mx-auto max-w-7xl">
         <div className="max-w-3xl">
-          <h2 className="mt-4 font-serif text-2xl font-black tracking-tight sm:text-3xl">
+          <h2 className="mt-2 font-serif text-2xl font-black tracking-tight sm:text-3xl">
             Theo dõi TS. BS. Chế Đình Nghĩa
           </h2>
         </div>
@@ -229,6 +277,35 @@ function SocialPages() {
   );
 }
 
+function FAQSection() {
+  return (
+    <section className="bg-[#f7f9fc] px-6 py-14 text-navy-dark sm:px-10 lg:px-20">
+      <div className="mx-auto max-w-7xl">
+        <h2 className="font-serif text-2xl font-black tracking-tight sm:text-3xl">
+          Câu hỏi thường gặp
+        </h2>
+
+        <div className="mt-8 space-y-4">
+          {faqItems.map((item) => (
+            <details
+              key={item.question}
+              className="group rounded-xl border border-[#d7dfed] bg-white p-5"
+            >
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-base font-bold text-navy">
+                <span>{item.question}</span>
+                <span className="text-xl leading-none text-gold transition group-open:rotate-45">
+                  +
+                </span>
+              </summary>
+              <p className="mt-4 text-sm leading-7 text-[#5a6d8f] whitespace-pre-line">{item.answer}</p>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function Home() {
   return (
     <div>
@@ -236,6 +313,7 @@ export default function Home() {
       <Intro />
       <SymptomSearchSection />
       <Booking />
+      <FAQSection />
       <SocialPages />
     </div>
   );

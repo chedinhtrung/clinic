@@ -364,9 +364,9 @@ export function BookingFlow({
                         Đăng ký tư vấn online
                     </h2>
                     <div className="mt-2 flex items-center justify-center gap-3 text-[#d29a24]">
-                        <span className="h-px w-14 bg-[#d29a24]" />
+                        <span className="inline-block h-0.5 w-14 shrink-0 bg-[#d29a24]" />
                         <span className="text-lg leading-none">★</span>
-                        <span className="h-px w-14 bg-[#d29a24]" />
+                        <span className="inline-block h-0.5 w-14 shrink-0 bg-[#d29a24]" />
                     </div>
                 </div>
 

@@ -50,7 +50,7 @@ export default function Profile() {
             TS. BS. Chế Đình Nghĩa
           </h2>
           <p className="mt-4 text-base leading-8 text-navy-mid/80 sm:text-lg">
-            <span className="font-bold">Hơn 20 năm công tác tại Bệnh viện Trung ương Quân đội 108</span>, TS. BS. Chế Đình Nghĩa là chuyên gia
+            <span className="font-bold">Với hơn 20 năm công tác tại Bệnh viện Trung ương Quân đội 108</span>, TS. BS. Chế Đình Nghĩa là chuyên gia
             hàng đầu về chấn thương chỉnh hình và phẫu thuật tạo hình.
             Bác sĩ đã điều trị nhiều ca bệnh phức tạp bằng kỹ thuật ít xâm lấn,
             giúp hàng ngàn bệnh nhân giảm đau, phục hồi vận động, rút ngắn thời gian hồi phục và tránh phẫu thuật không cần thiết.
