@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ShareButtons from "@/components/ShareButtons";
 
 export default function Intro() {
     return (
@@ -75,13 +76,16 @@ export default function Intro() {
                         </div>
                     </div>
 
-                    <div className="flex gap-4">
+                    <div className="flex w-full items-center gap-4">
                         <Link
                             href="/profile"
                             className="flex items-center gap-2 rounded-lg border border-white/40 px-6 py-3 text-white font-semibold hover:bg-white/10 transition"
                         >
                             TÌM HIỂU THÊM →
                         </Link>
+                        <div className="ml-auto">
+                            <ShareButtons slug="" title="TS.BS. Chế Đình Nghĩa" />
+                        </div>
                     </div>
 
                 </div>

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import ShareButtons from "./ShareButtons";
+import ShareButtons from "@/components/ShareButtons";
 
 type BlogCategory = {
   id: string;
