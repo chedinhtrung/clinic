@@ -356,7 +356,7 @@ export default async function BlogArticlePage(
                     Chia sẻ bài viết
                   </p>
                   <div className="mt-3">
-                    <ShareButtons slug={post.slug} title={post.title} />
+                    <ShareButtons slug={post.slug} title={post.title} variant="dark" />
                   </div>
                 </div>
               </div>
