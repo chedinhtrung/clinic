@@ -27,7 +27,7 @@ export default function Footer() {
                 </div>
 
                 <div className="text-txt-gray flex flex-col sm:flex-row">
-                    <p className="text-center sm:text-left">© 2025 TS.BS Chế Đình Nghĩa</p>
+                    <p className="text-center sm:text-left">© 2026 TS.BS Chế Đình Nghĩa</p>
                     <p className="sm:ml-auto text-center sm:text-left">Nội dung chỉ mang tính tư vấn, không thay thế khám lâm sàng trực tiếp khi cần thiết.</p>
                 </div>
             </div>

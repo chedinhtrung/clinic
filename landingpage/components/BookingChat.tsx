@@ -140,11 +140,9 @@ export default function BookingChat({ token }: BookingChatProps) {
 
   const inputDisabled = isLoading || status === "abuse" || Boolean(errorMessage && messages.length === 0);
   const statusMessage =
-    status === "finished"
-      ? "Em đã cập nhật phần tóm tắt cho bác sĩ. Mình vẫn có thể bổ sung hoặc chỉnh lại thông tin nếu cần."
-      : status === "abuse"
-        ? "Phiên trò chuyện đã được tạm dừng do nhiều nội dung không phù hợp."
-        : null;
+    status === "abuse"
+    ? "Phiên trò chuyện đã bị khóa do nhiều nội dung không phù hợp."
+    : null;
 
   return (
     <div className="mx-auto flex h-[calc(100vh-8rem)] min-h-[520px] w-full max-w-2xl flex-col overflow-hidden rounded-lg bg-white shadow-lg sm:h-[calc(100vh-10rem)]">
