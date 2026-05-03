@@ -77,7 +77,7 @@ export default function Navbar() {
             <div className="flex items-center gap-4">
                 <div className="flex items-center gap-4">
                     <Image
-                        src="/images/logo.png"
+                        src="/images/logo.svg"
                         alt="TS.BS. Chế Đình Nghĩa"
                         width={48}
                         height={48}
@@ -162,7 +162,7 @@ export default function Navbar() {
                 <div className="flex h-16 items-center justify-between border-b border-white/15 px-5">
                     <div className="flex items-center gap-3">
                         <Image
-                            src="/images/logo.png"
+                            src="/images/logo.svg"
                             alt="TS.BS. Chế Đình Nghĩa"
                             width={36}
                             height={36}
