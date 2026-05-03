@@ -13,13 +13,6 @@ export default function Footer() {
                         </p>
                     </div>
                     <div className="sm:ml-auto text-txt-gray sm:min-w-40">
-                        <h3 className=" font-bold flex-col mb-2">DỊCH VỤ</h3>
-                        <a href="#" className=" font-bold hover:text-gold block my-1">Mô hình tư vấn</a>
-                        <a href="#" className=" font-bold hover:text-gold block my-1">Quy trình khám</a>
-                        <a href="#" className=" font-bold hover:text-gold block my-1">Bảng giá</a>
-                        <a href="#" className=" font-bold hover:text-gold block my-1">Đặt lịch</a>
-                    </div>
-                    <div className="text-txt-gray sm:min-w-40">
                         <h3 className="text-txt-gray  font-bold mb-2">THEO DÕI</h3>
                         <a href="https://www.youtube.com/@nghiachedinh" className=" font-bold hover:text-gold block my-1">YouTube</a>
                         <a href="https://www.tiktok.com/@tsnghia_xuongkhop" className=" font-bold hover:text-gold block my-1">TikTok</a>
@@ -27,8 +20,7 @@ export default function Footer() {
                     </div>
                     <div className="text-txt-gray sm:min-w-40">
                         <h3 className="text-txt-gray  font-bold mb-2">LIÊN HỆ</h3>
-                        <a href="#" className=" font-bold hover:text-gold block my-1">Hotline</a>
-                        <a href="" className=" font-bold hover:text-gold block my-1">Email</a>
+                        <a href="mailto:coxuongkhop.bsnghia@gmail.com" className=" font-bold hover:text-gold block my-1">Email</a>
                         <a href="#" className=" font-bold hover:text-gold block my-1">Chính sách bảo mật</a>
                         <a href="#" className=" font-bold hover:text-gold block my-1">Điều khoản dịch vụ</a>
                     </div>
