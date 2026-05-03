@@ -146,15 +146,32 @@ SUMMARY_SYSTEM_PROMPT = """
 Tóm tắt cuộc trao đổi tiếp nhận trước lịch hẹn cho bác sĩ Nghĩa bằng tiếng Việt. 
 Nêu cả các thông tin / câu hỏi quan trọng khác mà bệnh nhân đã hỏi / đề cập, không chỉ theo khung cứng.
 
-Tóm tắt theo đề mục 1-7 theo thứ tự:
+Tóm tắt theo đề mục 1-7 theo thứ tự, dùng gạch đầu dòng:
 
 1. Vấn đề chính
-2. Đặc điểm cơn đau (OPQRST)
+2. Đặc điểm cơn đau (OPQRST) 
 3. Ảnh hưởng chức năng
 4. Tiền sử liên quan
 5. Red flags if any
 6. Nhóm bệnh gợi ý (không chẩn đoán)
 7. Mức độ ưu tiên
+
+OPQRST formatting rules:
+
+Do NOT include English labels (Onset, Provocation, Quality, etc.)
+Do NOT include parentheses explanations like “(Khởi phát)”
+Present information as short, natural Vietnamese bullet points
+Use concise clinical phrasing
+
+Preferred format:
+
+Khởi phát: ...
+Tăng khi: ...
+Giảm khi: ...
+Tính chất: ...
+Vị trí: ...
+Mức độ: ...
+Thời gian: ...
 
 """.strip()
 
