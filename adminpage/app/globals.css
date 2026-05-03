@@ -84,3 +84,7 @@
 .fc-event-mirror {
   background-color: var(--color-primary) !important;
 }
+
+.fc .admin-confirmed-day {
+  background-color: #fce7f3 !important;
+}

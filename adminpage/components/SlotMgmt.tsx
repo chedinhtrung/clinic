@@ -33,6 +33,12 @@ export default function SlotManagement({
     const calendarRef = useRef<FullCalendar | null>(null);
     const visibleRangeRef = useRef<{ start: string, end: string } | undefined>(undefined);
 
+    const confirmedDayKeys = new Set(
+        slotlist
+            .filter((slot) => slot.status === "confirmed")
+            .map((slot) => slot.start.toISOString().slice(0, 10))
+    );
+
     const getSlotsFromRange = useCallback(async (info: DatesSetArg) => {
         visibleRangeRef.current = { start: info.startStr, end: info.endStr };
         if (info.view.type === "dayGridMonth") {
@@ -185,6 +191,25 @@ export default function SlotManagement({
                     }}
                     datesSet={(info) => {
                         getSlotsFromRange(info);
+                    }}
+                    dayCellClassNames={(info) => {
+                        const key = info.date.toISOString().slice(0, 10);
+                        return confirmedDayKeys.has(key) ? ["admin-confirmed-day"] : [];
+                    }}
+                    eventOrder={(a, b) => {
+                        const aEvent = a as { extendedProps?: { status?: string }; start?: Date | null };
+                        const bEvent = b as { extendedProps?: { status?: string }; start?: Date | null };
+                        const rank = (status: string) => {
+                            if (status === "confirmed") return 0;
+                            if (status === "pending") return 1;
+                            if (status === "finished") return 2;
+                            if (status === "creating") return 3;
+                            return 4; // free last
+                        };
+                        const aRank = rank(String(aEvent.extendedProps?.status || ""));
+                        const bRank = rank(String(bEvent.extendedProps?.status || ""));
+                        if (aRank !== bRank) return aRank - bRank;
+                        return (aEvent.start?.getTime() || 0) - (bEvent.start?.getTime() || 0);
                     }}
                     events={[...slotlist, ...(tempSlot ? [tempSlot] : [])].map((slot) => ({
                         start: slot.start,
