@@ -49,6 +49,7 @@ export default function ContactForm({
   nextStep?: "payment" | "email";
   initialValues?: Partial<ContactFormValues>;
 }) {
+  const [hasShownZaloPhoneAlert, setHasShownZaloPhoneAlert] = useState(false);
   const [form, setForm] = useState({
     name: initialValues?.name ?? "",
     email: initialValues?.email ?? "",
@@ -81,6 +82,12 @@ export default function ContactForm({
     initialValues?.phone,
   ])
 
+  useEffect(() => {
+    if (!form.phone.trim()) {
+      setHasShownZaloPhoneAlert(false);
+    }
+  }, [form.phone]);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
@@ -94,6 +101,14 @@ export default function ContactForm({
       [e.target.name]: value,
     })
   }
+
+  const handlePhoneBlur = () => {
+    if (!form.phone.trim() || hasShownZaloPhoneAlert) {
+      return;
+    }
+    alert("Lưu ý: Số điện thoại cần có tài khoản Zalo để bác sỹ liên hệ và tư vấn qua video call.");
+    setHasShownZaloPhoneAlert(true);
+  };
 
   function handleGenderChange(value: string) {
     setForm((current) => ({
@@ -208,6 +223,7 @@ export default function ContactForm({
           name="phone"
           value={form.phone}
           onChange={handleChange}
+          onBlur={handlePhoneBlur}
           className="w-full border rounded p-2"
           required
         />

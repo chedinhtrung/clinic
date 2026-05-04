@@ -103,7 +103,7 @@ function BookingContent() {
         <div className="flex justify-center gap-6 p-6 sm:p-10 flex-col sm:flex-row bg-tinted-gray">
             <div>
                 <h1 className="text-primary font-bold mb-1 text-3xl">ĐẶT CHỖ CỦA BẠN</h1>
-                <p className="text-txt-gray text-sm">Vui lòng điền thông tin liên hệ và chúng tôi sẽ xác nhận lịch hẹn của bạn.</p>
+                <p className="text-txt-gray text-sm">Vui lòng điền thông tin liên hệ và chúng tôi sẽ xác nhận lịch hẹn của bạn qua email.</p>
                 <p className="text-txt-gray text-sm">Thời gian giữ chỗ còn lại: <span className="text-red-600">{minutes}:{seconds}</span></p>
                 {errorMessage ? (
                     <p className="text-red-500 text-sm my-6">{errorMessage}</p>

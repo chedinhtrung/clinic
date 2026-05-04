@@ -83,6 +83,13 @@ function calculateAge(birthdate?: string | null): number | undefined {
     return age;
 }
 
+function buildZaloUrl(phone: string | null | undefined) {
+    if (!phone) return null;
+    const normalizedPhone = phone.replace(/\D/g, "");
+    if (!normalizedPhone) return null;
+    return `https://zalo.me/${normalizedPhone}`;
+}
+
 function statusClassName(status: Slot["status"]): string {
     if (status === "free") {
         return "bg-[#0d6e56]";
@@ -383,7 +390,18 @@ export default function SlotEditor(
                             </div>
                             <div>
                                 <p className="font-semibold text-txt-gray">Số điện thoại</p>
-                                <p>{slot.patient_phone || "Chưa có"}</p>
+                                <p>
+                                    {slot.patient_phone ? (
+                                        <a
+                                            href={buildZaloUrl(slot.patient_phone) || "#"}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="underline decoration-dotted underline-offset-2 hover:text-primary"
+                                        >
+                                            {slot.patient_phone}
+                                        </a>
+                                    ) : "Chưa có"}
+                                </p>
                             </div>
                             <div>
                                 <p className="font-semibold text-txt-gray">Giới tính</p>

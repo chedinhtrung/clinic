@@ -100,6 +100,13 @@ function formatGender(gender: string | null) {
   return gender;
 }
 
+function buildZaloUrl(phone: string | null) {
+  if (!phone) return null;
+  const normalizedPhone = phone.replace(/\D/g, "");
+  if (!normalizedPhone) return null;
+  return `https://zalo.me/${normalizedPhone}`;
+}
+
 function ProfileField({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-md border border-[#ecebe8] bg-[#fcfcfb] px-3 py-2">
@@ -334,7 +341,19 @@ export default function PatientManagement({
                   <div className="truncate font-medium text-[#37352f]">{patient.name || "-"}</div>
                   <div className="text-[#787774]">{formatDate(patient.birthdate)}</div>
                   <div className="text-[#787774]">{formatDate(patient.registrationDate)}</div>
-                  <div className="text-[#787774]">{patient.phone || "-"}</div>
+                  <div className="text-[#787774]">
+                    {patient.phone ? (
+                      <a
+                        href={buildZaloUrl(patient.phone) || "#"}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={(event) => event.stopPropagation()}
+                        className="underline decoration-dotted underline-offset-2 hover:text-[#37352f]"
+                      >
+                        {patient.phone}
+                      </a>
+                    ) : "-"}
+                  </div>
                 </div>
               );
             })}
@@ -386,7 +405,21 @@ export default function PatientManagement({
                     <h4 className="text-xs font-medium uppercase tracking-wide text-[#8b8a86]">Contact</h4>
                     <div className="mt-3 grid gap-3 md:grid-cols-2">
                       <ProfileField label="Email" value={selectedPatient.email || "-"} />
-                      <ProfileField label="Phone" value={selectedPatient.phone || "-"} />
+                      <div className="rounded-md border border-[#ecebe8] bg-[#fcfcfb] px-3 py-2">
+                        <div className="text-xs font-medium uppercase tracking-wide text-[#8b8a86]">Phone</div>
+                        <div className="mt-1 text-sm text-[#37352f]">
+                          {selectedPatient.phone ? (
+                            <a
+                              href={buildZaloUrl(selectedPatient.phone) || "#"}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="underline decoration-dotted underline-offset-2 hover:text-[#111]"
+                            >
+                              {selectedPatient.phone}
+                            </a>
+                          ) : "-"}
+                        </div>
+                      </div>
                     </div>
                   </div>
 
