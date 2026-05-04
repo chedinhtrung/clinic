@@ -1,9 +1,13 @@
 import type { MetadataRoute } from "next";
-import { withBlogApiBase } from "@/app/apiBase";
 
 const SITE_URL = "https://chedinhnghia.com";
 const MAX_BLOG_URLS = 10000;
 const BLOG_PAGE_SIZE = 500;
+const BLOG_API_BASE_URL =
+  process.env.BLOG_API_BASE_URL ??
+  process.env.NEXT_PUBLIC_BLOG_API_BASE_URL ??
+  process.env.NEXT_PUBLIC_API_BASE_URL ??
+  "http://localhost:5002";
 
 type BlogPost = {
   slug: string;
@@ -57,7 +61,7 @@ async function fetchPublishedBlogUrls(): Promise<MetadataRoute.Sitemap> {
 
   while (page <= totalPages && routes.length < MAX_BLOG_URLS) {
     const response = await fetch(
-      withBlogApiBase(`/api/posts?page=${page}&pageSize=${BLOG_PAGE_SIZE}`),
+      `${BLOG_API_BASE_URL}/api/posts?page=${page}&pageSize=${BLOG_PAGE_SIZE}`,
       { cache: "no-store" },
     );
 
