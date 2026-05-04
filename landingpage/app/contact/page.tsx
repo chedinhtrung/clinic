@@ -51,8 +51,23 @@ const contactLinks = [
 ];
 
 export const metadata: Metadata = {
-  title: "Liên hệ TS. BS. Chế Đình Nghĩa",
+  title: "Liên hệ & đặt lịch TS. BS. Chế Đình Nghĩa",
   description: "Thông tin liên hệ, kênh mạng xã hội chính thức và liên kết đặt lịch tư vấn online với TS. BS. Chế Đình Nghĩa.",
+  openGraph: {
+    title: "Liên hệ & đặt lịch TS. BS. Chế Đình Nghĩa",
+    description:
+      "Thông tin liên hệ, kênh mạng xã hội chính thức và liên kết đặt lịch tư vấn online với TS. BS. Chế Đình Nghĩa.",
+    url: "https://chedinhnghia.com/contact",
+    siteName: "TS. BS. Chế Đình Nghĩa",
+    locale: "vi_VN",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Liên hệ & đặt lịch TS. BS. Chế Đình Nghĩa",
+    description:
+      "Thông tin liên hệ và đặt lịch tư vấn với TS. BS. Chế Đình Nghĩa.",
+  },
 };
 
 export default function ContactPage() {
@@ -103,7 +118,7 @@ export default function ContactPage() {
                   Cần tư vấn chuyên sâu?
                 </h2>
                 <p className="mt-2 max-w-3xl leading-7 text-white/75">
-                  Chọn ngày và khung giờ phù hợp trên hệ thống đặt lịch. BS. Chế Đình Nghĩa sẽ tư vấn trực tiếp qua video call, giúp bạn giải đáp thắc mắc và đưa ra hướng điều trị phù hợp. 
+                  Chọn ngày và khung giờ phù hợp trên hệ thống đặt lịch. BS. Chế Đình Nghĩa sẽ tư vấn trực tiếp qua video call, giúp bạn giải đáp thắc mắc và đưa ra hướng điều trị phù hợp.
                 </p>
               </div>
               <Link

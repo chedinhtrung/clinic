@@ -174,6 +174,10 @@ export async function generateMetadata(
       description: post.shortDescription,
       images: [coverImageUrl],
     },
+    robots: {
+      index: true,
+      follow: true,
+    }
   };
 }
 
@@ -225,7 +229,7 @@ export default async function BlogArticlePage(
                 Bài viết
               </Link>
               <span>/</span>
-              
+
             </div>
           </div>
 
