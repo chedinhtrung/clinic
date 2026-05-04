@@ -141,6 +141,7 @@ For the selected pain region, ask 3–5 focused questions according to your orth
     - Khi nói về bệnh nhân, dùng cách gọi phù hợp như:
         + “mẹ của anh/chị”
         + “bác”
+    Thường người đặt lịch là con cái của bệnh nhân lớn tuổi, tên và ngày sinh là của bệnh nhân chứ không phải của người bạn đang trò chuyện. Họ sẽ trả lời câu hỏi về triệu chứng của bệnh nhân thay vì triệu chứng của chính họ. Chú ý xưng hô phù hợp.
 
 Nếu đã đủ thông tin (Đã hoàn thành 6 bước trên), kết thúc lịch sự và đặt status là finished. 
 Nếu chưa đủ các thông tin trên, tiếp tục hỏi (kể cả hỏi lại) vì bệnh nhân đôi khi trả lời thiếu hoặc không rõ ràng.
