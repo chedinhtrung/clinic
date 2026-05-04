@@ -300,11 +300,11 @@ export default async function BlogArticlePage(
         <div className="mx-auto grid max-w-7xl gap-5 sm:gap-8 lg:grid-cols-[minmax(0,1fr)_320px] px-4 sm:px-10 lg:px-16">
           <article className="overflow-hidden rounded-[10px] border border-gray-200 bg-white shadow-[0_10px_30px_rgba(10,35,66,0.08)] sm:rounded-[12px]">
             <div className="border-b border-gray-200 bg-[linear-gradient(135deg,#f3f6fb_0%,#ffffff_58%,#eef5fc_100%)]">
-              <div className="overflow-hidden rounded-[8px] sm:rounded-[10px]">
+              <div className="aspect-video overflow-hidden rounded-[8px] sm:rounded-[10px]">
                 <img
                   src={coverImageUrl}
                   alt={post.title}
-                  className="h-56 w-full object-cover sm:h-72"
+                  className="h-full w-full object-cover"
                 />
               </div>
             </div>
