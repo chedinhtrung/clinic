@@ -126,6 +126,23 @@ const faqItems: { question: string; answer: ReactNode }[] = [
     ),
   },
   {
+    question: "Liên hệ trực tiếp với BS.Nghĩa như thế nào?",
+    answer: (
+      <div className="text leading-7 text-navy-mid sm:text-base">
+        <p className="font-semibold">Bạn có thể liên hệ với BS. Nghĩa qua các kênh sau:</p>
+        <div className="flex items-start gap-2">
+          <span>•</span><p>Đăng ký tư vấn online qua <a href="/#booking" className="text-navy-600 underline">cổng đăng ký</a></p>
+        </div>
+        <div className="flex items-start gap-2">
+          <span>•</span><p>Gửi email tới phòng khám qua <a href="mailto:coxuongkhop.bsnghia@gmail.com" className="text-navy-600 underline">coxuongkhop.bsnghia@gmail.com</a></p>
+        </div>
+        <div className="flex items-start gap-2">
+          <span>•</span><p>Nhắn tin qua <a href="https://web.facebook.com/BSNghiachuyenxuongkhop" className="text-navy-600 underline">trang Facebook chính thức</a></p>
+        </div>
+      </div>
+    ),
+  },
+  {
     question: "Tôi có cần chụp X-quang / MRI trước không?",
     answer: (
       <div className="text leading-7 text-navy-mid sm:text-base">
