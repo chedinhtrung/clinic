@@ -11,6 +11,30 @@ type BookingChangeFormValues = {
   message: string;
 }
 
+function formatBirthdateInput(value: string) {
+  const digits = value.replace(/[^\p{N}]/gu, "").slice(0, 8);
+  const day = digits.slice(0, 2);
+  const month = digits.slice(2, 4);
+  const year = digits.slice(4, 8);
+  return [day, month, year].filter(Boolean).join("/");
+}
+
+function formatBirthdateForDisplay(value: string) {
+  const isoMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (isoMatch) {
+    return `${isoMatch[3]}/${isoMatch[2]}/${isoMatch[1]}`;
+  }
+  return formatBirthdateInput(value);
+}
+
+function birthdateDisplayToIso(value: string) {
+  const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value);
+  if (!match) {
+    return "";
+  }
+  return `${match[3]}-${match[2]}-${match[1]}`;
+}
+
 export default function BookingChangeForm({
   initialValues,
   onSubmit,
@@ -24,7 +48,7 @@ export default function BookingChangeForm({
     name: initialValues?.name ?? "",
     email: initialValues?.email ?? "",
     phone: initialValues?.phone ?? "",
-    birthdate: initialValues?.birthdate ?? "",
+    birthdate: formatBirthdateForDisplay(initialValues?.birthdate ?? ""),
     gender: initialValues?.gender ?? "",
     message: initialValues?.message ?? "",
   });
@@ -36,7 +60,7 @@ export default function BookingChangeForm({
       name: initialValues?.name ?? "",
       email: initialValues?.email ?? "",
       phone: initialValues?.phone ?? "",
-      birthdate: initialValues?.birthdate ?? "",
+      birthdate: formatBirthdateForDisplay(initialValues?.birthdate ?? ""),
       gender: initialValues?.gender ?? "",
       message: initialValues?.message ?? "",
     });
@@ -52,9 +76,13 @@ export default function BookingChangeForm({
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) {
+    const value =
+      e.target.name === "birthdate"
+        ? formatBirthdateInput(e.target.value)
+        : e.target.value;
     setForm((current) => ({
       ...current,
-      [e.target.name]: e.target.value,
+      [e.target.name]: value,
     }));
   }
 
@@ -69,7 +97,10 @@ export default function BookingChangeForm({
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await onSubmit(form);
+      await onSubmit({
+        ...form,
+        birthdate: birthdateDisplayToIso(form.birthdate),
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -106,14 +137,32 @@ export default function BookingChangeForm({
 
       <div>
         <label className="block text-sm font-medium mb-1">Ngày sinh <span className="text-red-500">*</span></label>
-        <input
-          name="birthdate"
-          type="date"
-          value={form.birthdate}
-          onChange={handleChange}
-          className="w-full border rounded p-2"
-          required
-        />
+        <div className="flex gap-2">
+          <input
+            name="birthdate"
+            type="text"
+            value={form.birthdate}
+            onChange={handleChange}
+            className="w-full border rounded p-2"
+            inputMode="numeric"
+            placeholder="dd/mm/yyyy"
+            pattern="\d{2}/\d{2}/\d{4}"
+            maxLength={10}
+            required
+          />
+          <input
+            type="date"
+            aria-label="Chọn ngày sinh"
+            value={birthdateDisplayToIso(form.birthdate)}
+            onChange={(event) =>
+              setForm((current) => ({
+                ...current,
+                birthdate: formatBirthdateForDisplay(event.target.value),
+              }))
+            }
+            className="w-11 shrink-0 cursor-pointer rounded border p-2 text-center"
+          />
+        </div>
       </div>
 
       <div>

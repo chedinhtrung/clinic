@@ -14,7 +14,7 @@ type ContactFormValues = {
 }
 
 function formatBirthdateInput(value: string) {
-  const digits = value.replace(/\D/g, "").slice(0, 8);
+  const digits = value.replace(/[^\p{N}]/gu, "").slice(0, 8);
   const day = digits.slice(0, 2);
   const month = digits.slice(2, 4);
   const year = digits.slice(4, 8);
@@ -191,18 +191,32 @@ export default function ContactForm({
 
       <div>
         <label className="block text-sm font-medium mb-1">Ngày sinh <span className="text-red-500">*</span></label>
-        <input
-          name="birthdate"
-          type="text"
-          value={form.birthdate}
-          onChange={handleChange}
-          className="w-full border rounded p-2"
-          inputMode="numeric"
-          placeholder="dd/mm/yyyy"
-          pattern="\d{2}/\d{2}/\d{4}"
-          maxLength={10}
-          required
-        />
+        <div className="flex gap-2">
+          <input
+            name="birthdate"
+            type="text"
+            value={form.birthdate}
+            onChange={handleChange}
+            className="w-full border rounded p-2"
+            inputMode="numeric"
+            placeholder="dd/mm/yyyy"
+            pattern="\d{2}/\d{2}/\d{4}"
+            maxLength={10}
+            required
+          />
+          <input
+            type="date"
+            aria-label="Chọn ngày sinh"
+            value={birthdateDisplayToIso(form.birthdate)}
+            onChange={(event) =>
+              setForm((current) => ({
+                ...current,
+                birthdate: formatBirthdateForDisplay(event.target.value),
+              }))
+            }
+            className="w-11 shrink-0 cursor-pointer rounded border p-2 text-center"
+          />
+        </div>
       </div>
 
       <div>
