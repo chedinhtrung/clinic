@@ -440,9 +440,9 @@ def db_claim_slot(*, slot_id: str, session_id: str) -> dict[str, str | int]:
                         )
                         slot_row = cur.fetchone()
                         if slot_row is None:
-                            raise ValueError("slot not found")
+                            raise ValueError("Không tìm thấy lịch hẹn này.")
                         if not slot_row[3]:
-                            raise ValueError("slot not found")
+                            raise ValueError("Không tìm thấy lịch hẹn này.")
 
                         # Check whether the selected slot is already held or confirmed.
                         cur.execute(
@@ -496,7 +496,7 @@ def db_claim_slot(*, slot_id: str, session_id: str) -> dict[str, str | int]:
                                 }
 
                             if target_booking_status == "confirmed" or target_booking_session_id != session_id:
-                                raise BookingConflictError("slot is already booked")
+                                raise BookingConflictError("Lịch hẹn đã có người giữ chỗ hoặc xác nhận trước. Vui lòng chọn lịch khác.")
 
                         if existing_pending_booking is not None:
                             cur.execute(
@@ -523,7 +523,7 @@ def db_claim_slot(*, slot_id: str, session_id: str) -> dict[str, str | int]:
                             }
 
                         if target_booking is not None:
-                            raise BookingConflictError("slot is already booked")
+                            raise BookingConflictError("Lịch hẹn đã có người giữ chỗ hoặc xác nhận trước. Vui lòng chọn lịch khác.")
 
                         cur.execute(
                             """
@@ -577,7 +577,7 @@ def db_get_booking(*, booking_id: str, session_id: str) -> dict[str, str | int]:
             row = cur.fetchone()
 
     if row is None:
-        raise BookingAccessError("booking not found")
+        raise BookingAccessError("Không tìm thấy lịch hẹn này.")
 
     return {
         "id": str(row[0]),
@@ -625,7 +625,7 @@ def db_get_booking_for_change_link(*, booking_id: str, patient_id: str) -> dict[
             row = cur.fetchone()
 
     if row is None:
-        raise BookingChangeAccessError("booking not found")
+        raise BookingChangeAccessError("Không tìm thấy lịch hẹn này.")
     if row[2] == "cancelled":
         raise BookingAlreadyCancelledError("Lịch hẹn này đã được hủy trước đó.")
 
@@ -692,13 +692,13 @@ def db_update_booking_contact_for_change_link(
     if not patient_id:
         raise ValueError("patient_id is required")
     if not name:
-        raise ValueError("name is required")
+        raise ValueError("Cần có tên để đặt lịch hẹn")
     if not email:
-        raise ValueError("email is required")
+        raise ValueError("Cần có email để đặt lịch hẹn")
     if not phone:
-        raise ValueError("phone is required")
+        raise ValueError("Cần có số điện thoại để đặt lịch hẹn")
     if not birthdate:
-        raise ValueError("birthdate is required")
+        raise ValueError("Cần có ngày sinh để đặt lịch hẹn")
 
     normalized_email = _normalize_email(email)
 
@@ -804,13 +804,13 @@ def db_prepare_booking_confirmation_for_session(
     if not session_id:
         raise ValueError("session_id is required")
     if not name:
-        raise ValueError("name is required")
+        raise ValueError("Tên là thông tin bắt buộc để đặt lịch hẹn")
     if not email:
-        raise ValueError("email is required")
+        raise ValueError("Cần có email để đặt lịch hẹn")
     if not phone:
-        raise ValueError("phone is required")
+        raise ValueError("Cần có số điện thoại để đặt lịch hẹn")
     if not birthdate:
-        raise ValueError("birthdate is required")
+        raise ValueError("Cần có ngày sinh để đặt lịch hẹn")
 
     normalized_email = _normalize_email(email)
     now_utc = datetime.now(timezone.utc)
@@ -836,7 +836,7 @@ def db_prepare_booking_confirmation_for_session(
                 booking_row = cur.fetchone()
 
                 if booking_row is None:
-                    raise BookingAccessError("booking not found")
+                    raise BookingAccessError("Không tìm thấy lịch hẹn này.")
 
                 booking_id = booking_row[0]
                 patient_id = booking_row[2]
@@ -844,7 +844,7 @@ def db_prepare_booking_confirmation_for_session(
                 expires_at = booking_row[4]
 
                 if booking_status != "pending":
-                    raise BookingAccessError("booking is no longer pending")
+                    raise BookingAccessError("Lịch hẹn không còn trong trạng thái chờ xác nhận.")
 
                 if expires_at <= now_utc:
                     cur.execute(
@@ -855,7 +855,7 @@ def db_prepare_booking_confirmation_for_session(
                         """,
                         (booking_id,),
                     )
-                    raise BookingExpiredError("Bạn cĐã có người khác nhanh tay hơn đặt lịch hẹn này, bạn thử lại nhé!")
+                    raise BookingExpiredError("Giữ chỗ đã hết han. Vui lòng thử đặt lịch hẹn lại từ đầu.")
 
                 matched_patient = _find_patient_by_identity(
                     cur,
@@ -990,7 +990,7 @@ def db_send_booking_confirmation_for_session(*, session_id: str, booking_id: str
                 recipient_name = booking_row[5]
 
                 if booking_status != "pending":
-                    raise BookingAccessError("booking is no longer pending")
+                    raise BookingAccessError("Lịch hẹn không còn trong trạng thái chờ xác nhận.")
                 if expires_at <= now_utc:
                     cur.execute(
                         """
@@ -1000,9 +1000,9 @@ def db_send_booking_confirmation_for_session(*, session_id: str, booking_id: str
                         """,
                         (booking_id,),
                     )
-                    raise BookingExpiredError("Bạn cĐã có người khác nhanh tay hơn đặt lịch hẹn này, bạn thử lại nhé!")
+                    raise BookingExpiredError("Giữ chỗ đã hết hạn. Vui lòng thử đặt lịch hẹn lại từ đầu.")
                 if not recipient_email:
-                    raise ValueError("booking is missing patient email")
+                    raise ValueError("Không thể gửi email xác nhận vì lịch hẹn này không có email liên hệ.")
 
                 # Store a one-time confirmation hash and extend the window for the email click.
                 cur.execute(
