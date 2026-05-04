@@ -192,7 +192,8 @@ def send_booking_confirmation_email(
     booking_id: str,
     slot_start_at: datetime | None = None,
     slot_end_at: datetime | None = None,
-    patient_id: str
+    patient_id: str,
+    patient_phone: str | None = None,
 ) -> None:
     """Send a basic confirmation email after a booking has been confirmed."""
     display_reservation_code = _format_reservation_code_for_display(reservation_code)
@@ -207,6 +208,7 @@ def send_booking_confirmation_email(
         )
     chat_link = _build_chat_link(booking_id=booking_id)
     change_link = _build_change_link(booking_id=booking_id, patient_id=patient_id)
+    display_phone = (patient_phone or "").strip() or "SĐT đã cung cấp"
 
     body = (
         f"Xin chào {greeting_name}, \n \n" \
@@ -214,7 +216,7 @@ def send_booking_confirmation_email(
         "Chúng tôi xác nhận lịch hẹn của bạn như sau:\n \n" \
         f"Mã đặt chỗ: {display_reservation_code}\n" \
         f"{slot_line} \n \n" \
-        f"Cuộc gọi trực tuyến: #TODO chèn link online call\n\n" \
+        f"Bác sỹ Nghĩa sẽ liên hệ qua Zalo của SĐT {display_phone} để tư vấn qua video call.\n\n" \
         f"Nhằm tiết kiệm thời gian và giúp bác sĩ có cái nhìn tổng quan về tình trạng của bạn, kính mong bạn dành ít phút trả lời các câu hỏi từ trợ lý của BS. Nghĩa trước buổi hẹn: \n" \
         f" {chat_link} \n \n" \
         f"Nếu cần thay đổi thông tin liên lạc hoặc hủy lịch hẹn, vui lòng click vào link dưới đây: \n" \
@@ -230,7 +232,7 @@ def send_booking_confirmation_email(
         "<p>Chúng tôi xác nhận lịch hẹn của bạn như sau:</p>"
         f"<p><strong>Mã đặt chỗ: {escape(display_reservation_code)}</strong><br>"
         f"<strong>{escape(slot_line)}</strong></p>"
-        "<p>Cuộc gọi trực tuyến: #TODO chèn link online call</p>"
+        f"<p><strong>Bác sỹ Nghĩa sẽ liên hệ qua Zalo của SĐT {escape(display_phone)}</strong> để tư vấn qua video call.</p>"
         "<p>Nhằm tiết kiệm thời gian và giúp bác sĩ có cái nhìn tổng quan về tình trạng của bạn, kính mong bạn "
         "<strong>dành ít phút trả lời các câu hỏi từ trợ lý của BS. Nghĩa trước buổi hẹn</strong>:</p>"
         f"<p><a href=\"{escape(chat_link)}\">{escape(chat_link)}</a></p>"
@@ -285,6 +287,57 @@ def send_booking_confirmation_request_email(
         f"<strong>{escape(slot_line)}</strong></p>"
         "<p><strong>Vui lòng click vào link dưới đây để xác nhận lịch hẹn của bạn.</strong></p>"
         f"<p><a href=\"{escape(confirmation_link)}\">{escape(confirmation_link)}</a></p>"
+        f"<p>Trân trọng,<br>{escape(str(SMTP_FROM_NAME))}</p>"
+    )
+
+    _send_email(recipient_email=recipient_email, subject=subject, body=body, html_body=html_body)
+
+
+def send_pre_appointment_chat_reminder_email(
+    *,
+    recipient_email: str,
+    recipient_name: str | None,
+    reservation_code: str | int,
+    booking_id: str,
+    patient_id: str,
+    slot_start_at: datetime,
+    slot_end_at: datetime,
+) -> None:
+    display_reservation_code = _format_reservation_code_for_display(reservation_code)
+    subject = f"Nhắc lịch hẹn ngày mai #{display_reservation_code}"
+    greeting_name = recipient_name or "Quý Khách"
+    slot_line = (
+        f"Thời gian: {slot_start_at.astimezone(CLINIC_TZ).strftime('%H:%M')} - "
+        f"{slot_end_at.astimezone(CLINIC_TZ).strftime('%H:%M')} "
+        f"ngày {slot_start_at.astimezone(CLINIC_TZ).strftime('%d/%m/%Y')}"
+    )
+    chat_link = _build_chat_link(booking_id=booking_id)
+    change_link = _build_change_link(booking_id=booking_id, patient_id=patient_id)
+
+    body = (
+        f"Xin chào {greeting_name},\n\n"
+        "Đây là email nhắc lịch hẹn của bạn vào ngày mai tại Phòng khám Cơ Xương Khớp BS. Chế Đình Nghĩa.\n\n"
+        f"Mã đặt chỗ: {display_reservation_code}\n"
+        f"{slot_line}\n\n"
+        "Hệ thống ghi nhận bạn chưa hoàn tất phần chuẩn bị trước buổi hẹn.\n"
+        "Vui lòng dành ít phút hoàn thành để bác sĩ nắm thông tin tốt hơn trước buổi khám:\n"
+        f"{chat_link}\n\n"
+        "Nếu cần thay đổi thông tin liên lạc hoặc hủy lịch hẹn, vui lòng dùng liên kết sau:\n"
+        f"{change_link}\n\n"
+        "Trân trọng,\n"
+        f"{SMTP_FROM_NAME}"
+    )
+
+    html_body = (
+        f"<p>Xin chào {escape(str(greeting_name))},</p>"
+        "<p>Đây là email nhắc lịch hẹn của bạn vào ngày mai tại Phòng khám Cơ Xương Khớp BS. Chế Đình Nghĩa.</p>"
+        f"<p><strong>Mã đặt chỗ: {escape(display_reservation_code)}</strong><br>"
+        f"<strong>{escape(slot_line)}</strong></p>"
+        "<p>Hệ thống ghi nhận bạn chưa hoàn tất phần chuẩn bị trước buổi hẹn.</p>"
+        "<p><strong>Vui lòng dành ít phút hoàn thành ghi nhận bệnh sử để bác sĩ nắm thông tin tốt hơn trước buổi khám:</strong></p>"
+        f"<p><a href=\"{escape(chat_link)}\">{escape(chat_link)}</a></p>"
+        "<p>Nếu cần <strong>thay đổi thông tin liên lạc hoặc hủy lịch hẹn</strong>, vui lòng dùng liên kết sau:</p>"
+        f"<p><a href=\"{escape(change_link)}\">{escape(change_link)}</a></p>"
         f"<p>Trân trọng,<br>{escape(str(SMTP_FROM_NAME))}</p>"
     )
 
@@ -1078,7 +1131,7 @@ def db_confirm_booking_from_email_link(*, booking_id: str, confirmation_token: s
                 cur.execute(
                     """
                     SELECT b.id, b.status, b.expires_at, b.confirmed_at, b.reservation_code, b.confirmation_hash,
-                           p.email, p.name, p.id, s.start_at, s.end_at
+                           p.email, p.name, p.id, p.phone, s.start_at, s.end_at
                     FROM bookings b
                     JOIN slots s ON s.id = b.slot_id
                     LEFT JOIN patients p ON p.id = b.patient_id
@@ -1146,8 +1199,9 @@ def db_confirm_booking_from_email_link(*, booking_id: str, confirmation_token: s
                         "reservationCode": str(booking_row[4]),
                         "bookingId": str(booking_row[0]),
                         "patientId": str(booking_row[8]),
-                        "slotStartAt": booking_row[9].isoformat(),
-                        "slotEndAt": booking_row[10].isoformat(),
+                        "recipientPhone": booking_row[9],
+                        "slotStartAt": booking_row[10].isoformat(),
+                        "slotEndAt": booking_row[11].isoformat(),
                     }
 
     confirmation_email_sent = False
@@ -1158,6 +1212,7 @@ def db_confirm_booking_from_email_link(*, booking_id: str, confirmation_token: s
             reservation_code=confirmation_email_payload["reservationCode"],
             booking_id=confirmation_email_payload["bookingId"],
             patient_id=confirmation_email_payload["patientId"],
+            patient_phone=confirmation_email_payload.get("recipientPhone"),
             slot_start_at=datetime.fromisoformat(confirmation_email_payload["slotStartAt"]),
             slot_end_at=datetime.fromisoformat(confirmation_email_payload["slotEndAt"]),
         )
@@ -1233,7 +1288,7 @@ def db_process_vnpay_callback(
                 # Lock the booking behind this VNPay reservation code before reconciling payment.
                 cur.execute(
                     """
-                    SELECT b.id, b.status, b.confirmed_at, p.email, p.name, p.id, s.start_at, s.end_at
+                    SELECT b.id, b.status, b.confirmed_at, p.email, p.name, p.id, p.phone, s.start_at, s.end_at
                     FROM bookings b
                     LEFT JOIN patients p ON p.id = b.patient_id
                     JOIN slots s ON s.id = b.slot_id
@@ -1255,8 +1310,9 @@ def db_process_vnpay_callback(
                 patient_email = booking_row[3]
                 patient_name = booking_row[4]
                 patient_id = booking_row[5]
-                slot_start_at = booking_row[6]
-                slot_end_at = booking_row[7]
+                patient_phone = booking_row[6]
+                slot_start_at = booking_row[7]
+                slot_end_at = booking_row[8]
                 confirmation_email_sent = False
                 print(
                     "[vnpay-callback] booking row loaded "
@@ -1297,6 +1353,7 @@ def db_process_vnpay_callback(
                         confirmation_email_payload = {
                             "recipientEmail": patient_email,
                             "recipientName": patient_name or "",
+                            "recipientPhone": patient_phone,
                             "reservationCode": str(txn_ref),
                             "bookingId": str(booking_id),
                             "patientId": str(patient_id),
@@ -1371,6 +1428,59 @@ def db_finish_elapsed_confirmed_bookings() -> int:
             with conn.cursor() as cur:
                 cur.execute(query)
                 return cur.rowcount
+
+
+def db_send_pre_appointment_chat_reminders() -> dict[str, int]:
+    """Email patients with confirmed appointments tomorrow when chat is unfinished."""
+    fetch_query = """
+        SELECT b.id, b.reservation_code, p.id, p.email, p.name, s.start_at, s.end_at
+        FROM bookings b
+        JOIN patients p ON p.id = b.patient_id
+        JOIN slots s ON s.id = b.slot_id
+        WHERE b.status = 'confirmed'
+          AND b.chat_status <> 'finished'
+          AND p.email IS NOT NULL
+          AND trim(p.email) <> ''
+          AND s.start_at >= %s
+          AND s.start_at < %s
+        ORDER BY s.start_at ASC
+    """
+
+    now_clinic = datetime.now(CLINIC_TZ)
+    tomorrow_start_clinic = datetime.combine(
+        now_clinic.date() + timedelta(days=1),
+        time.min,
+        tzinfo=CLINIC_TZ,
+    )
+    day_after_start_clinic = tomorrow_start_clinic + timedelta(days=1)
+
+    attempted = 0
+    sent = 0
+    failed = 0
+
+    with DB_POOL.connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(fetch_query, (tomorrow_start_clinic, day_after_start_clinic))
+            rows = cur.fetchall()
+
+    for row in rows:
+        attempted += 1
+        try:
+            send_pre_appointment_chat_reminder_email(
+                recipient_email=row[3],
+                recipient_name=row[4],
+                reservation_code=row[1],
+                booking_id=str(row[0]),
+                patient_id=str(row[2]),
+                slot_start_at=row[5],
+                slot_end_at=row[6],
+            )
+            sent += 1
+        except Exception as exc:
+            failed += 1
+            print(f"[chat-reminder-sweeper] failed for booking_id={row[0]!r}: {exc}")
+
+    return {"attempted": attempted, "sent": sent, "failed": failed}
 
 
 """Validate and parse the YYYY-MM-DD date string sent by the frontend."""

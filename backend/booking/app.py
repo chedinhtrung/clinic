@@ -17,6 +17,8 @@ _expiry_thread_lock = threading.Lock()
 _expiry_thread_started = False
 _finish_thread_lock = threading.Lock()
 _finish_thread_started = False
+_chat_reminder_thread_lock = threading.Lock()
+_chat_reminder_thread_started = False
 
 
 @app.route("/api/session", methods=["GET"])
@@ -386,6 +388,7 @@ def handle_vnpay_ipn():
                 reservation_code=email_payload["reservationCode"],
                 booking_id=email_payload["bookingId"],
                 patient_id=email_payload["patientId"],
+                patient_phone=email_payload.get("recipientPhone"),
                 slot_start_at=datetime.fromisoformat(email_payload["slotStartAt"]),
                 slot_end_at=datetime.fromisoformat(email_payload["slotEndAt"]),
             )
@@ -470,8 +473,38 @@ def start_finished_sweeper_once():
         print(f"[finished-sweeper] started in pid={os.getpid()}")
 
 
+def run_pre_appointment_chat_reminder_sweeper():
+    while True:
+        sleep_seconds = _seconds_until_next_midnight_utc()
+        time.sleep(sleep_seconds)
+        try:
+            result = db_send_pre_appointment_chat_reminders()
+            print(
+                "[chat-reminder-sweeper] "
+                f"attempted={result['attempted']} sent={result['sent']} failed={result['failed']}"
+            )
+        except Exception as exc:
+            print(f"[chat-reminder-sweeper] sweep failed: {exc}")
+
+
+def start_pre_appointment_chat_reminder_sweeper_once():
+    global _chat_reminder_thread_started
+    with _chat_reminder_thread_lock:
+        if _chat_reminder_thread_started:
+            return
+        reminder_thread = threading.Thread(
+            target=run_pre_appointment_chat_reminder_sweeper,
+            daemon=True,
+            name=f"booking-chat-reminder-sweeper-{os.getpid()}",
+        )
+        reminder_thread.start()
+        _chat_reminder_thread_started = True
+        print(f"[chat-reminder-sweeper] started in pid={os.getpid()}")
+
+
 start_expiry_sweeper_once()
 start_finished_sweeper_once()
+start_pre_appointment_chat_reminder_sweeper_once()
 
 
 if __name__=="__main__":
