@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Save } from "lucide-react";
+import { Clock3, Save } from "lucide-react";
 import EditCloseIcon from "./icons/EditCloseIcon";
 import CalendarSVG from "./icons/CalendarSVG";
 import { createSlot } from "./slotApi";
@@ -78,6 +78,24 @@ export default function AddSlotsEditor({
 
         const end = new Date(start.getTime() + duration * count * 60000);
         return `${count} slot, mỗi slot ${duration} phút, từ ${start.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })} đến ${end.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}`;
+    }, [durationMinutes, slotCount, startValue]);
+
+    const previewSlots = useMemo(() => {
+        const start = parseDisplayDateTimeValue(startValue);
+        const duration = Number(durationMinutes);
+        const count = Number(slotCount);
+        if (!start || !Number.isInteger(duration) || !Number.isInteger(count) || duration <= 0 || count <= 0) {
+            return [];
+        }
+
+        const slots: Array<{ start: Date; end: Date }> = [];
+        for (let index = 0; index < count; index += 1) {
+            const slotStart = new Date(start.getTime() + index * duration * 60000);
+            const slotEnd = new Date(slotStart.getTime() + duration * 60000);
+            slots.push({ start: slotStart, end: slotEnd });
+        }
+
+        return slots;
     }, [durationMinutes, slotCount, startValue]);
 
     const handleSave = async () => {
@@ -185,6 +203,20 @@ export default function AddSlotsEditor({
                         </label>
                     </div>
                     {previewText && <p className="mt-3 text-sm text-txt-gray">{previewText}</p>}
+                    {previewSlots.length > 0 && (
+                        <ul className="mt-3 space-y-2 rounded border border-gray-200 bg-bg-tinted p-3">
+                            {previewSlots.map((slot, index) => (
+                                <li key={`${slot.start.toISOString()}-${index}`} className="flex items-center gap-2 text-sm text-txt-dark">
+                                    <Clock3 className="h-4 w-4 text-txt-gray" />
+                                    <span>
+                                        {slot.start.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
+                                        {" - "}
+                                        {slot.end.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
                 </section>
 
                 <div className="sticky bottom-0 -mx-8 flex gap-3 border-t border-gray-200 bg-white px-8 py-4">
