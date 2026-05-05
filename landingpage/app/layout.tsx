@@ -24,13 +24,58 @@ const merriweather = Merriweather({
 });
 
 export const metadata: Metadata = {
-  title: "TS.BS. Chế Đình Nghĩa | Tư vấn chấn thương chỉnh hình online",
+  metadataBase: new URL("https://chedinhnghia.com"),
+
+  title: {
+    default:
+      "TS.BS. Chế Đình Nghĩa | Tư vấn chấn thương chỉnh hình online",
+    template: "%s | TS.BS. Chế Đình Nghĩa",
+  },
+
   description:
     "TS.BS. Chế Đình Nghĩa, chuyên khoa chấn thương chỉnh hình tại Hà Nội. Tư vấn online các vấn đề cơ xương khớp, chấn thương thể thao, khớp gối, khớp vai, khớp háng và phục hồi sau phẫu thuật.",
+
   icons: {
     icon: "/images/logo.png",
     shortcut: "/images/logo.png",
     apple: "/images/logo.png",
+  },
+
+  alternates: {
+    canonical: "/",
+  },
+
+  openGraph: {
+    type: "website",
+    locale: "vi_VN",
+    url: "https://chedinhnghia.com/",
+    siteName: "TS.BS. Chế Đình Nghĩa",
+    title:
+      "TS.BS. Chế Đình Nghĩa | Tư vấn chấn thương chỉnh hình online",
+    description:
+      "Tư vấn online các vấn đề cơ xương khớp, chấn thương thể thao, khớp gối, khớp vai, khớp háng và phục hồi sau phẫu thuật.",
+    images: [
+      {
+        url: "/images/logo.png",
+        width: 1200,
+        height: 630,
+        alt: "TS.BS. Chế Đình Nghĩa - Tư vấn chấn thương chỉnh hình",
+      },
+    ],
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title:
+      "TS.BS. Chế Đình Nghĩa | Tư vấn chấn thương chỉnh hình online",
+    description:
+      "Tư vấn online các vấn đề cơ xương khớp, chấn thương thể thao và phục hồi sau phẫu thuật.",
+    images: ["/images/logo.png"],
+  },
+
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 
