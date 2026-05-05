@@ -11,6 +11,11 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: "Facebot",
         allow: "/",
       },
+      {
+        userAgent: "*",
+        allow: "/",
+      
+      },
     ],
     sitemap: "https://chedinhnghia.com/sitemap.xml",
   };
