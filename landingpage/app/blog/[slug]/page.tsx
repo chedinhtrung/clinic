@@ -315,7 +315,7 @@ export default async function BlogArticlePage(
 
             <div className="px-4 py-7 sm:px-10 sm:py-12">
               <div className="mx-auto max-w-3xl">
-                <div className="mt-6 space-y-6 sm:mt-10 sm:space-y-8">
+                <div className="blog-markdown mt-6 space-y-6 sm:mt-10 sm:space-y-8">
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm]}
                     components={{

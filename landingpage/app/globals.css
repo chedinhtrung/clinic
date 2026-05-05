@@ -93,3 +93,45 @@
 .booking-calendar .rdp-chevron {
   fill: #092452;
 }
+
+/* Blog markdown table styling */
+.blog-markdown table {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid #e3e2df;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.blog-markdown thead th {
+  background: #f7f6f3;
+  color: #37352f;
+  font-weight: 600;
+}
+
+.blog-markdown th,
+.blog-markdown td {
+  border-right: 1px solid #e9e7e2;
+  border-bottom: 1px solid #e9e7e2;
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
+  min-width: 140px;
+}
+
+.blog-markdown th:last-child,
+.blog-markdown td:last-child {
+  border-right: none;
+}
+
+.blog-markdown tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.blog-markdown tbody tr:nth-child(even) td {
+  background: #fcfcfb;
+}
