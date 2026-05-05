@@ -455,16 +455,6 @@ export function BookingFlow({
                                     }}
                                     required={false}
                                 />
-                                <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-[#5f7191]">
-                                    <span className="inline-flex items-center gap-3">
-                                        <span className="h-4 w-4 rounded-full bg-[#f6ead6]" />
-                                        Ngày có lịch khám
-                                    </span>
-                                    <span className="inline-flex items-center gap-3">
-                                        <span className="h-4 w-4 rounded-full bg-[#d29a24]" />
-                                        Ngày được chọn
-                                    </span>
-                                </div>
                             </div>
                             </div>
 
