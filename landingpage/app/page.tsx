@@ -159,7 +159,7 @@ const commonSymptoms = [
     title: "Đau khớp gối khi đi lại, leo cầu thang",
     description: "Đau tăng khi vận động, ảnh hưởng sinh hoạt hằng ngày",
     icon: "/images/kneepain.png",
-    href: "#",
+    href: "https://chedinhnghia.com/blog/dau-khop-goi-huong-dan-toan-dien-tu-a-den-z-2026",
   },
   {
     title: "Đau vai, khó nâng tay hoặc ngủ nghiêng bị đau",
