@@ -3,12 +3,12 @@
 import { useMemo, useState } from "react";
 
 type ShareButtonsProps = {
-  slug: string;
+  url: string;
   title: string;
   variant?: "light" | "dark";
 };
 
-export default function ShareButtons({ slug, title, variant = "light" }: ShareButtonsProps) {
+export default function ShareButtons({ url, title, variant = "light" }: ShareButtonsProps) {
   const [copied, setCopied] = useState(false);
   const isDarkVariant = variant === "dark";
   const buttonClassName = isDarkVariant
@@ -16,31 +16,25 @@ export default function ShareButtons({ slug, title, variant = "light" }: ShareBu
     : "inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/25 bg-white/10 text-white transition hover:-translate-y-0.5 hover:bg-white/20";
   const feedbackClassName = isDarkVariant ? "text-xs text-gray-500" : "text-xs text-white/75";
 
-  const postUrl = useMemo(() => {
-    if (typeof window === "undefined") {
-      return `https://chedinhnghia.com/blog/${encodeURIComponent(slug)}`;
-    }
-
-    return window.location.href;
-  }, [slug]);
+  const shareUrl = useMemo(() => url.trim(), [url]);
 
   const openShareWindow = (url: string) => {
     window.open(url, "_blank", "noopener,noreferrer,width=640,height=640");
   };
 
   const handleFacebookShare = () => {
-    const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(postUrl)}`;
-    openShareWindow(shareUrl);
+    const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+    openShareWindow(facebookShareUrl);
   };
 
   const handleXShare = () => {
-    const shareUrl = `https://x.com/intent/tweet?url=${encodeURIComponent(postUrl)}&text=${encodeURIComponent(title)}`;
-    openShareWindow(shareUrl);
+    const xShareUrl = `https://x.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(title)}`;
+    openShareWindow(xShareUrl);
   };
 
   const handleCopyLink = async () => {
     try {
-      await navigator.clipboard.writeText(postUrl);
+      await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
     } catch {

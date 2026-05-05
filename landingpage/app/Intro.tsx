@@ -84,7 +84,7 @@ export default function Intro() {
                             TÌM HIỂU THÊM →
                         </Link>
                         <div className="ml-auto">
-                            <ShareButtons slug="" title="TS.BS. Chế Đình Nghĩa" />
+                            <ShareButtons url="https://chedinhnghia.com/" title="TS.BS. Chế Đình Nghĩa" />
                         </div>
                     </div>
 

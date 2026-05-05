@@ -273,7 +273,7 @@ export default async function BlogArticlePage(
                 <div className="sm:ml-auto">
                   <p className="text-xs uppercase tracking-[0.22em] text-white/55">Chia sẻ</p>
                   <div className="mt-2">
-                    <ShareButtons slug={post.slug} title={post.title} />
+                    <ShareButtons url={`https://chedinhnghia.com/blog/${post.slug}`} title={post.title} />
                   </div>
                 </div>
               </div>
@@ -360,7 +360,7 @@ export default async function BlogArticlePage(
                     Chia sẻ bài viết
                   </p>
                   <div className="mt-3">
-                    <ShareButtons slug={post.slug} title={post.title} variant="dark" />
+                    <ShareButtons url={`https://chedinhnghia.com/blog/${post.slug}`} title={post.title} variant="dark" />
                   </div>
                 </div>
               </div>
