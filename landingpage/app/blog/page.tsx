@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/images/logo.png",
+        url: "/images/bsnghia.png",
         width: 512,
         height: 512,
         alt: "Bài viết y khoa cơ xương khớp",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     title: "Bài viết y khoa cơ xương khớp | BS. Chế Đình Nghĩa",
     description:
       "Tổng hợp kiến thức và bài viết y khoa từ TS. BS. Chế Đình Nghĩa.",
-    images: ["/images/logo.png"],
+    images: ["/images/bsnghia.png"],
   },
 };
 

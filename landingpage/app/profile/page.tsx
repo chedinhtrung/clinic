@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     type: "profile",
     images: [
       {
-        url: "/images/logo.png",
+        url: "/images/bsnghia.png",
         width: 512,
         height: 512,
         alt: "TS. BS. Chế Đình Nghĩa",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     title: "Giới thiệu BS. Chế Đình Nghĩa | Chuyên gia chấn thương chỉnh hình tại Hà Nội",
     description:
       "Hồ sơ chuyên môn và kinh nghiệm của TS. BS. Chế Đình Nghĩa – chuyên gia chấn thương chỉnh hình tại Hà Nội.",
-    images: ["/images/logo.png"],
+    images: ["/images/bsnghia.png"],
   },
 };
 

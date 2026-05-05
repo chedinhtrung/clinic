@@ -56,7 +56,7 @@ export const metadata: Metadata = {
       "Tư vấn online các vấn đề cơ xương khớp, chấn thương thể thao, khớp gối, khớp vai, khớp háng và phục hồi sau phẫu thuật.",
     images: [
       {
-        url: "/images/logo.png",
+        url: "/images/bsnghia.png",
         width: 1200,
         height: 630,
         alt: "TS.BS. Chế Đình Nghĩa - Tư vấn chấn thương chỉnh hình",
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
       "TS.BS. Chế Đình Nghĩa | Tư vấn chấn thương chỉnh hình online",
     description:
       "Tư vấn online các vấn đề cơ xương khớp, chấn thương thể thao và phục hồi sau phẫu thuật.",
-    images: ["/images/logo.png"],
+    images: ["/images/bsnghia.png"],
   },
 
   robots: {
