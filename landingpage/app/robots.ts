@@ -11,21 +11,6 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: "Facebot",
         allow: "/",
       },
-      {
-        userAgent: "*",
-        allow: "/",
-        disallow: [
-          "/booking",
-          "/booking/",
-          "/booking/*",
-          "/booking-email",
-          "/booking-email/*",
-          "/confirmation",
-          "/confirmation/*",
-          "/payment",
-          "/payment/*",
-        ],
-      },
     ],
     sitemap: "https://chedinhnghia.com/sitemap.xml",
   };
