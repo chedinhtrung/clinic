@@ -63,7 +63,7 @@ export default function AddSlotsEditor({
     onSlotsCreated: (slots: Slot[]) => Promise<void>;
 }) {
     const [startValue, setStartValue] = useState(toDisplayDateTimeValue(new Date()));
-    const [durationMinutes, setDurationMinutes] = useState("30");
+    const [durationMinutes, setDurationMinutes] = useState("15");
     const [slotCount, setSlotCount] = useState("1");
     const [errorMessage, setErrorMessage] = useState<string | undefined>();
     const [isSaving, setIsSaving] = useState(false);
