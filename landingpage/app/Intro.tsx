@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ShareButtons from "@/components/ShareButtons";
+import { Bone, Cog, Dumbbell, Syringe } from "lucide-react";
 
 export default function Intro() {
     return (
@@ -91,7 +92,7 @@ export default function Intro() {
                 </div>
 
                 <div className="w-full rounded-lg bg-navy-light px-4 py-4 text-white shadow-xl sm:px-6 sm:py-5 xl:ml-auto xl:max-w-md xl:rounded-xl xl:px-8 xl:py-6">
-                    <h2 className="text-gold text-xs font-semibold uppercase tracking-[0.2em] sm:text-sm sm:tracking-[0.25em] xl:mt-8">
+                    <h2 className="text-gold text-xs font-bold uppercase tracking-[0.2em] sm:text-base sm:tracking-[0.25em] xl:mt-8">
                         Chuyên khoa điều trị
                     </h2>
 
@@ -100,7 +101,7 @@ export default function Intro() {
                         <Link href="#" className="group block rounded-md border border-white/10 bg-white/5 p-3 xl:rounded-none xl:border-0 xl:bg-transparent xl:px-0 xl:py-6">
                             <div className="flex items-center gap-3 transition-all duration-300 group-hover:translate-x-2 xl:gap-5">
                                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gold/40 bg-white/5 text-sm group-hover:bg-gold/15 xl:h-12 xl:w-12 xl:text-base">
-                                    💉
+                                    <Syringe aria-hidden="true" className="h-4 w-4 text-white xl:h-5 xl:w-5" />
                                 </div>
                                 <div className="flex-1">
                                     <h3 className="text-sm font-bold xl:text-base">Điều trị PRP &amp; Tế bào gốc</h3>
@@ -113,7 +114,7 @@ export default function Intro() {
                         <Link href="#" className="group block rounded-md border border-white/10 bg-white/5 p-3 xl:rounded-none xl:border-0 xl:bg-transparent xl:px-0 xl:py-6">
                             <div className="flex items-center gap-3 transition-all duration-300 group-hover:translate-x-2 xl:gap-5">
                                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gold/40 bg-white/5 text-sm group-hover:bg-gold/15 xl:h-12 xl:w-12 xl:text-base">
-                                    ⚙️
+                                    <Cog aria-hidden="true" className="h-4 w-4 text-white xl:h-5 xl:w-5" />
                                 </div>
                                 <div className="flex-1">
                                     <h3 className="text-sm font-bold xl:text-base">Thay khớp ít xâm lấn</h3>
@@ -126,7 +127,7 @@ export default function Intro() {
                         <Link href="#" className="group block rounded-md border border-white/10 bg-white/5 p-3 xl:rounded-none xl:border-0 xl:bg-transparent xl:px-0 xl:py-6">
                             <div className="flex items-center gap-3 transition-all duration-300 group-hover:translate-x-2 xl:gap-5">
                                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gold/40 bg-white/5 text-sm group-hover:bg-gold/15 xl:h-12 xl:w-12 xl:text-base">
-                                    🦴
+                                    <Bone aria-hidden="true" className="h-4 w-4 text-white xl:h-5 xl:w-5" />
                                 </div>
                                 <div className="flex-1">
                                     <h3 className="text-sm font-bold xl:text-base">Gãy xương &amp; Biến dạng chi thể</h3>
@@ -139,7 +140,7 @@ export default function Intro() {
                         <Link href="#" className="group block rounded-md border border-white/10 bg-white/5 p-3 xl:rounded-none xl:border-0 xl:bg-transparent xl:px-0 xl:py-6">
                             <div className="flex items-center gap-3 transition-all duration-300 group-hover:translate-x-2 xl:gap-5">
                                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gold/40 bg-white/5 text-sm group-hover:bg-gold/15 xl:h-12 xl:w-12 xl:text-base">
-                                    ⚽
+                                    <Dumbbell aria-hidden="true" className="h-4 w-4 text-white xl:h-5 xl:w-5" />
                                 </div>
                                 <div className="flex-1">
                                     <h3 className="text-sm font-bold xl:text-base">Chấn thương Thể thao</h3>
