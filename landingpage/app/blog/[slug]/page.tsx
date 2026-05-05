@@ -207,9 +207,44 @@ export default async function BlogArticlePage(
   });
   const readTime = estimateReadTime(post.contentMarkdown);
   const coverImageUrl = post.coverImageUrl || DEFAULT_BLOG_COVER_IMAGE;
+  const canonicalUrl = `https://chedinhnghia.com/blog/${encodeURIComponent(post.slug)}`;
+  const publishedAtIso = post.publishedAt ?? post.createdAt;
+  const blogPostingJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.shortDescription,
+    image: [coverImageUrl],
+    datePublished: publishedAtIso,
+    dateModified: post.updatedAt,
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": canonicalUrl,
+    },
+    url: canonicalUrl,
+    inLanguage: "vi-VN",
+    articleSection: post.subcategory?.name ?? post.category.name,
+    keywords: post.tags.map((tag) => tag.name).join(", "),
+    author: {
+      "@type": "Person",
+      name: "TS.BS. Chế Đình Nghĩa",
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "TS.BS. Chế Đình Nghĩa",
+      logo: {
+        "@type": "ImageObject",
+        url: "https://chedinhnghia.com/images/logo.png",
+      },
+    },
+  };
 
   return (
     <main className="min-h-screen bg-off-white text-text">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogPostingJsonLd) }}
+      />
       <section className="overflow-hidden bg-gradient-to-br from-navy-dark via-navy to-navy-light text-white">
         <div className="pointer-events-none absolute inset-0 opacity-[0.14] [background-image:radial-gradient(circle_at_center,rgba(255,255,255,0.34)_1.2px,transparent_1.2px)] [background-size:26px_26px]" />
         <div className="relative mx-auto max-w-7xl px-4 py-6 sm:px-10 lg:px-16">

@@ -36,8 +36,31 @@ export const metadata: Metadata = {
 };
 
 export default function BlogPage() {
+  const blogJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    name: "Bài viết y khoa cơ xương khớp",
+    description:
+      "Tổng hợp các bài viết và kiến thức y khoa về cơ xương khớp, chấn thương thể thao và phẫu thuật chỉnh hình từ TS. BS. Chế Đình Nghĩa tại Hà Nội.",
+    url: "https://chedinhnghia.com/blog",
+    inLanguage: "vi-VN",
+    publisher: {
+      "@type": "Organization",
+      name: "TS.BS. Chế Đình Nghĩa",
+      url: "https://chedinhnghia.com",
+      logo: {
+        "@type": "ImageObject",
+        url: "https://chedinhnghia.com/images/logo.png",
+      },
+    },
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogJsonLd) }}
+      />
       <Navbar />
       <Blogs />
     </>

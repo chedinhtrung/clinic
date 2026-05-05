@@ -83,10 +83,36 @@ export default function RootLayout(
   {children}: Readonly<{children: React.ReactNode;}>
 ) 
 {
+  const organizationJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "TS.BS. Chế Đình Nghĩa",
+    url: "https://chedinhnghia.com",
+    logo: "https://chedinhnghia.com/images/logo.png",
+  };
+
+  const websiteJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "TS.BS. Chế Đình Nghĩa",
+    url: "https://chedinhnghia.com",
+    inLanguage: "vi-VN",
+  };
+
   return (
     <html
       lang="vi"
     >
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+        />
+      </head>
       <body className={`${sourceSans.className} ${sourceSans.variable} ${merriweather.variable} min-h-full flex flex-col`}>
         
         {children}

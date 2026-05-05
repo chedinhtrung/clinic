@@ -71,8 +71,61 @@ export const metadata: Metadata = {
 };
 
 export default function ContactPage() {
+  const contactPageJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ContactPage",
+    name: "Liên hệ & đặt lịch TS. BS. Chế Đình Nghĩa",
+    url: "https://chedinhnghia.com/contact",
+    inLanguage: "vi-VN",
+    mainEntity: {
+      "@type": "Person",
+      name: "TS.BS. Chế Đình Nghĩa",
+      description: "TS.BS. Chế Đình Nghĩa là bác sĩ chuyên khoa chấn thương chỉnh hình, tư vấn và điều trị các bệnh lý cơ xương khớp, chấn thương thể thao và phục hồi sau phẫu thuật.",
+      medicalSpecialty: "Orthopedic",
+      knowsAbout: [
+        "Chấn thương chỉnh hình",
+        "Cơ xương khớp",
+        "Chấn thương thể thao",
+        "Khớp gối",
+        "Khớp vai",
+        "PRP"
+      ],
+      alumniOf: [
+        {
+          "@type": "EducationalOrganization",
+          name: "Viện nghiên cứu Khoa học Y Dược Lâm sàng 108"
+        },
+        {
+          "@type": "CollegeOrUniversity",
+          name: "Đại học Y Hà Nội"
+        }
+      ],
+      email: "mailto:coxuongkhop.bsnghia@gmail.com",
+      sameAs: [
+        "https://web.facebook.com/BSNghiachuyenxuongkhop",
+        "https://www.youtube.com/@nghiachedinh",
+        "https://www.tiktok.com/@tsnghia_xuongkhop",
+        "https://vnexpress.net/suc-khoe/cac-benh/bac-si/974-ts-bs-che-dinh-nghia",
+        "https://www.benhvien108.vn/thong-tin-bac-si.htm?id=9c878eb1-634d-4cbe-8091-35622470c601",
+        "https://tamanhhospital.vn/chuyen-gia/che-dinh-nghia/"
+      ],
+      contactPoint: [
+        {
+          "@type": "ContactPoint",
+          contactType: "customer support",
+          email: "coxuongkhop.bsnghia@gmail.com",
+          availableLanguage: ["vi"]
+        }
+      ]
+    }
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(contactPageJsonLd) }}
+      />
       <Navbar />
       <main className="bg-[#f7f9fc] px-6 py-14 text-navy-dark sm:px-10 lg:px-20">
         <section className="mx-auto max-w-7xl">

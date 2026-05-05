@@ -36,8 +36,58 @@ export const metadata: Metadata = {
 };
 
 export default function ProfilePage() {
+  const profileJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ProfilePage",
+    name: "Giới thiệu BS. Chế Đình Nghĩa",
+    url: "https://chedinhnghia.com/profile",
+    inLanguage: "vi-VN",
+    mainEntity: {
+      "@type": "Person",
+      name: "TS.BS. Chế Đình Nghĩa",
+      description: "TS.BS. Chế Đình Nghĩa là bác sĩ chuyên khoa chấn thương chỉnh hình, tư vấn và điều trị các bệnh lý cơ xương khớp, chấn thương thể thao và phục hồi sau phẫu thuật.",
+      medicalSpecialty: "Orthopedic",
+      knowsAbout: [
+        "Chấn thương chỉnh hình",
+        "Cơ xương khớp",
+        "Chấn thương thể thao",
+        "Khớp gối",
+        "Khớp vai",
+        "PRP"
+      ],
+      alumniOf: [
+        {
+          "@type": "EducationalOrganization",
+          name: "Viện nghiên cứu Khoa học Y Dược Lâm sàng 108"
+        },
+        {
+          "@type": "CollegeOrUniversity",
+          name: "Đại học Y Hà Nội"
+        }
+      ],
+      image: "https://chedinhnghia.com/images/bsnghia.png",
+      jobTitle: "Bác sĩ chấn thương chỉnh hình",
+      worksFor: {
+        "@type": "Organization",
+        name: "TS.BS. Chế Đình Nghĩa"
+      },
+      sameAs: [
+        "https://web.facebook.com/BSNghiachuyenxuongkhop",
+        "https://www.youtube.com/@nghiachedinh",
+        "https://www.tiktok.com/@tsnghia_xuongkhop",
+        "https://vnexpress.net/suc-khoe/cac-benh/bac-si/974-ts-bs-che-dinh-nghia",
+        "https://www.benhvien108.vn/thong-tin-bac-si.htm?id=9c878eb1-634d-4cbe-8091-35622470c601",
+        "https://tamanhhospital.vn/chuyen-gia/che-dinh-nghia/"
+      ]
+    }
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(profileJsonLd) }}
+      />
       <Navbar />
       <Profile />
     </>
