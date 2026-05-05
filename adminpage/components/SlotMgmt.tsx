@@ -183,6 +183,8 @@ export default function SlotManagement({
                     initialView="dayGridMonth"
                     dayMaxEvents={3}
                     allDaySlot={false}
+                    slotDuration="00:15:00"
+                    slotLabelInterval="01:00:00"
                     locale={viLocale}
                     height="100%"
                     selectable={true}
