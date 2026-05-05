@@ -88,3 +88,45 @@
 .fc .admin-confirmed-day {
   background-color: #fce7f3 !important;
 }
+
+/* Blog markdown table styling */
+.w-md-editor .wmde-markdown table {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid #e3e2df;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.w-md-editor .wmde-markdown thead th {
+  background: #f7f6f3;
+  color: #37352f;
+  font-weight: 600;
+}
+
+.w-md-editor .wmde-markdown th,
+.w-md-editor .wmde-markdown td {
+  border-right: 1px solid #e9e7e2;
+  border-bottom: 1px solid #e9e7e2;
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
+  min-width: 140px;
+}
+
+.w-md-editor .wmde-markdown th:last-child,
+.w-md-editor .wmde-markdown td:last-child {
+  border-right: none;
+}
+
+.w-md-editor .wmde-markdown tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.w-md-editor .wmde-markdown tbody tr:nth-child(even) td {
+  background: #fcfcfb;
+}
