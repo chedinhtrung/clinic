@@ -31,6 +31,7 @@ export default function SlotManagement({
     const [isLoadingSlots, setIsLoadingSlots] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | undefined>();
     const [isAddPanelOpen, setIsAddPanelOpen] = useState(false);
+    const [addPanelDefaults, setAddPanelDefaults] = useState<{ start: Date; durationMinutes: number; slotCount: number } | undefined>(undefined);
 
     const calendarRef = useRef<FullCalendar | null>(null);
     const visibleRangeRef = useRef<{ start: string, end: string } | undefined>(undefined);
@@ -109,16 +110,18 @@ export default function SlotManagement({
         if (info.allDay) {
             return; // fix the whole day event bug
         }
-        const newSlot: Slot = {
-            id: "",
-            start: info.start,
-            end: info.end,
-            status: "creating",
-            title: "Lịch hẹn trống"
-        }
+        const durationMinutes = 15;
+        const dragMinutes = Math.max(0, Math.round((info.end.getTime() - info.start.getTime()) / 60000));
+        const slotCount = Math.max(1, Math.floor(dragMinutes / durationMinutes));
 
-        setSelectedSlot(newSlot);
-        setTempSlot(newSlot);
+        setAddPanelDefaults({
+            start: info.start,
+            durationMinutes,
+            slotCount,
+        });
+        setIsAddPanelOpen(true);
+        setSelectedSlot(undefined);
+        setTempSlot(undefined);
         setErrorMessage(undefined);
     };
 
@@ -193,18 +196,7 @@ export default function SlotManagement({
                     headerToolbar={{
                         left: "prev,next today",
                         center: "title",
-                        right: "addSlot dayGridMonth,timeGridWeek",
-                    }}
-                    customButtons={{
-                        addSlot: {
-                            text: "Tạo lịch hẹn +",
-                            click: () => {
-                                setIsAddPanelOpen(true);
-                                setSelectedSlot(undefined);
-                                setTempSlot(undefined);
-                                setErrorMessage(undefined);
-                            },
-                        },
+                        right: "dayGridMonth,timeGridWeek",
                     }}
                     dateClick={(info) => {
                         const api = calendarRef.current?.getApi();
@@ -296,6 +288,9 @@ export default function SlotManagement({
                     <AddSlotsEditor
                         onClose={() => setIsAddPanelOpen(false)}
                         onSlotsCreated={handleBatchSlotsCreated}
+                        initialStart={addPanelDefaults?.start}
+                        initialDurationMinutes={addPanelDefaults?.durationMinutes}
+                        initialSlotCount={addPanelDefaults?.slotCount}
                     />
                 )}
             </div>

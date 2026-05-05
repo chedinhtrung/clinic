@@ -58,13 +58,19 @@ function parseDisplayDateTimeValue(value: string): Date | undefined {
 export default function AddSlotsEditor({
     onClose,
     onSlotsCreated,
+    initialStart,
+    initialDurationMinutes = 15,
+    initialSlotCount = 1,
 }: {
     onClose: () => void;
     onSlotsCreated: (slots: Slot[]) => Promise<void>;
+    initialStart?: Date;
+    initialDurationMinutes?: number;
+    initialSlotCount?: number;
 }) {
-    const [startValue, setStartValue] = useState(toDisplayDateTimeValue(new Date()));
-    const [durationMinutes, setDurationMinutes] = useState("15");
-    const [slotCount, setSlotCount] = useState("1");
+    const [startValue, setStartValue] = useState(toDisplayDateTimeValue(initialStart ?? new Date()));
+    const [durationMinutes, setDurationMinutes] = useState(String(initialDurationMinutes));
+    const [slotCount, setSlotCount] = useState(String(initialSlotCount));
     const [errorMessage, setErrorMessage] = useState<string | undefined>();
     const [isSaving, setIsSaving] = useState(false);
 
