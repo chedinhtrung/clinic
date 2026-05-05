@@ -13,6 +13,7 @@ import viLocale from '@fullcalendar/core/locales/vi'
 
 import SlotEditor from "./SlotEditor";
 import { fetchSlot, fetchSlotsByRange } from "./slotApi";
+import AddSlotsEditor from "./AddSlotsEditor";
 
 export default function SlotManagement({
     bookingToOpenId,
@@ -29,6 +30,7 @@ export default function SlotManagement({
     const [tempSlot, setTempSlot] = useState<Slot | undefined>(undefined); // For adding a new slot 
     const [isLoadingSlots, setIsLoadingSlots] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | undefined>();
+    const [isAddPanelOpen, setIsAddPanelOpen] = useState(false);
 
     const calendarRef = useRef<FullCalendar | null>(null);
     const visibleRangeRef = useRef<{ start: string, end: string } | undefined>(undefined);
@@ -123,7 +125,15 @@ export default function SlotManagement({
     const handleSlotSaved = async (slot: Slot) => {
         setSelectedSlot(slot);
         setTempSlot(undefined);
+        setIsAddPanelOpen(false);
         await refreshVisibleSlots();
+    };
+
+    const handleBatchSlotsCreated = async (slots: Slot[]) => {
+        await refreshVisibleSlots();
+        if (slots.length > 0) {
+            setSelectedSlot(slots[0]);
+        }
     };
 
     const handleSlotDeleted = async () => {
@@ -181,7 +191,18 @@ export default function SlotManagement({
                     headerToolbar={{
                         left: "prev,next today",
                         center: "title",
-                        right: "dayGridMonth,timeGridWeek",
+                        right: "addSlot dayGridMonth,timeGridWeek",
+                    }}
+                    customButtons={{
+                        addSlot: {
+                            text: "Tạo +",
+                            click: () => {
+                                setIsAddPanelOpen(true);
+                                setSelectedSlot(undefined);
+                                setTempSlot(undefined);
+                                setErrorMessage(undefined);
+                            },
+                        },
                     }}
                     dateClick={(info) => {
                         const api = calendarRef.current?.getApi();
@@ -193,6 +214,7 @@ export default function SlotManagement({
                             api?.changeView("timeGridWeek", info.event.start);
                             return;
                         }
+                        setIsAddPanelOpen(false);
                         onSlotClick(info);
                     }}
                     datesSet={(info) => {
@@ -261,6 +283,18 @@ export default function SlotManagement({
                     onSlotDeleted={handleSlotDeleted}
                     onOpenPatient={onOpenPatient}
                     ></SlotEditor>
+                )}
+            </div>
+            <div
+                className={`absolute right-0 top-0 z-10 transition-transform duration-300 ease-out ${
+                    isAddPanelOpen ? "translate-x-0" : "translate-x-full pointer-events-none"
+                }`}
+            >
+                {isAddPanelOpen && (
+                    <AddSlotsEditor
+                        onClose={() => setIsAddPanelOpen(false)}
+                        onSlotsCreated={handleBatchSlotsCreated}
+                    />
                 )}
             </div>
         </div>
