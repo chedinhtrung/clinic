@@ -83,19 +83,26 @@ async function getBlogPostBySlug(slug: string): Promise<BlogPostRecord | null> {
 
 async function getRelatedPosts({
   categorySlug,
+  subcategorySlug,
   excludeSlug,
   page,
 }: {
   categorySlug: string;
+  subcategorySlug?: string;
   excludeSlug: string;
   page: number;
 }): Promise<BlogPostsResponse> {
   const params = new URLSearchParams({
-    category: categorySlug,
     excludeSlug,
     page: String(page),
     pageSize: "4",
   });
+
+  if (subcategorySlug) {
+    params.set("subcategory", subcategorySlug);
+  } else {
+    params.set("category", categorySlug);
+  }
 
   const response = await fetch(`${BLOG_API_BASE_URL}/api/posts?${params.toString()}`, {
     cache: "no-store",
@@ -202,6 +209,7 @@ export default async function BlogArticlePage(
   const relatedPage = Number.isFinite(relatedPageValue) ? Math.max(1, Math.floor(relatedPageValue)) : 1;
   const relatedPosts = await getRelatedPosts({
     categorySlug: post.category.slug,
+    subcategorySlug: post.subcategory?.slug,
     excludeSlug: post.slug,
     page: relatedPage,
   });

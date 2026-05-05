@@ -105,6 +105,7 @@ def _published_post_query(where_sql: str) -> str:
 def db_get_published_posts(
     *,
     category_slug: str | None = None,
+    subcategory_slug: str | None = None,
     tag_slug: str | None = None,
     exclude_slug: str | None = None,
     page: int = 1,
@@ -118,6 +119,10 @@ def db_get_published_posts(
     if category_slug:
         where_clauses.append("bc.slug = %s")
         params.append(category_slug)
+
+    if subcategory_slug:
+        where_clauses.append("bsc.slug = %s")
+        params.append(subcategory_slug)
 
     if tag_slug:
         where_clauses.append(

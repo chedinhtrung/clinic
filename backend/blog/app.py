@@ -24,12 +24,14 @@ def healthcheck():
 @app.route("/blog-api/api/posts", methods=["GET"])
 def get_posts():
     category_slug = (request.args.get("category") or "").strip().lower()
+    subcategory_slug = (request.args.get("subcategory") or "").strip().lower()
     tag_slug = (request.args.get("tag") or "").strip().lower()
     exclude_slug = (request.args.get("excludeSlug") or "").strip().lower()
     page = min(max(int(request.args.get("page", 1)), 1), 100000)
     page_size = min(max(int(request.args.get("pageSize", request.args.get("limit", 50))), 1), 100)
     result = db_get_published_posts(
         category_slug=category_slug or None,
+        subcategory_slug=subcategory_slug or None,
         tag_slug=tag_slug or None,
         exclude_slug=exclude_slug or None,
         page=page,
