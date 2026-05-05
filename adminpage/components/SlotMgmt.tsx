@@ -195,7 +195,7 @@ export default function SlotManagement({
                     }}
                     customButtons={{
                         addSlot: {
-                            text: "Tạo +",
+                            text: "Tạo lịch hẹn +",
                             click: () => {
                                 setIsAddPanelOpen(true);
                                 setSelectedSlot(undefined);
