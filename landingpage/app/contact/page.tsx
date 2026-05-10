@@ -18,7 +18,7 @@ const contactLinks = [
   {
     title: "Facebook",
     description: "Theo dõi, cập nhật và gửi tin nhắn qua trang Facebook chính thức.",
-    href: "https://web.facebook.com/BSNghiachuyenxuongkhop",
+    href: "https://web.facebook.com/TsNghia.xuongkhop",
     label: "Mở Facebook",
     icon: (
       <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 fill-current">
