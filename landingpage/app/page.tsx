@@ -137,7 +137,7 @@ const faqItems: { question: string; answer: ReactNode }[] = [
           <span>•</span><p>Gửi email tới phòng khám qua <a href="mailto:coxuongkhop.bsnghia@gmail.com" className="text-navy-600 underline">coxuongkhop.bsnghia@gmail.com</a></p>
         </div>
         <div className="flex items-start gap-2">
-          <span>•</span><p>Nhắn tin qua <a href="https://web.facebook.com/BSNghiachuyenxuongkhop" className="text-navy-600 underline">trang Facebook chính thức</a></p>
+          <span>•</span><p>Nhắn tin qua <a href="https://web.facebook.com/TsNghia.xuongkhop" className="text-navy-600 underline">trang Facebook chính thức</a></p>
         </div>
       </div>
     ),

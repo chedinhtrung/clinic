@@ -16,7 +16,7 @@ const menuItems = [
 const socialLinks = [
     {
         label: "Facebook",
-        href: "https://web.facebook.com/BSNghiachuyenxuongkhop",
+        href: "https://web.facebook.com/TsNghia.xuongkhop",
         icon: (
             <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-current">
                 <path d="M14 8.5V6.75c0-.58.39-.75.67-.75H16V3.8c-.23-.03-1.02-.1-1.94-.1-1.92 0-3.23 1.17-3.23 3.32V8.5H8.75V11h2.08v7.2H13.4V11h2.13l.34-2.5H14Z" />

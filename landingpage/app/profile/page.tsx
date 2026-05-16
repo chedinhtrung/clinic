@@ -72,7 +72,7 @@ export default function ProfilePage() {
         name: "TS.BS. Chế Đình Nghĩa"
       },
       sameAs: [
-        "https://web.facebook.com/BSNghiachuyenxuongkhop",
+        "https://web.facebook.com/TsNghia.xuongkhop",
         "https://www.youtube.com/@nghiachedinh",
         "https://www.tiktok.com/@tsnghia_xuongkhop",
         "https://vnexpress.net/suc-khoe/cac-benh/bac-si/974-ts-bs-che-dinh-nghia",
