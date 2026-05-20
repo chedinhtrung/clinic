@@ -422,7 +422,7 @@ export function BookingFlow({
                                     <path d="M8 2v4M16 2v4M3 10h18M9 15l2 2 4-5" />
                                 </svg>
                             </span>
-                            <h3 className="text-base font-black uppercase tracking-[0.22em] text-[#092452]">
+                            <h3 className="text-base font-black uppercase text-[#092452]">
                                 Đặt lịch
                             </h3>
                         </div>
@@ -460,7 +460,7 @@ export function BookingFlow({
 
                             <div className="mt-8 border-[#e1e6ef] md:mt-0 md:border-l md:pl-8">
                             <div className="flex items-center">
-                                <h3 className="text-base font-black uppercase tracking-[0.22em] text-[#092452]">
+                                <h3 className="text-base font-black uppercase text-[#092452]">
                                     Khung giờ
                                 </h3>
                             </div>
