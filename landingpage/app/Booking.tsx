@@ -379,7 +379,7 @@ export function BookingFlow({
                                     <path d="m12 7 1.1 3.2 3.4.1-2.7 2 1 3.2-2.8-1.9-2.8 1.9 1-3.2-2.7-2 3.4-.1L12 7Z" />
                                 </svg>
                             </span>
-                            <h3 className="text-base font-black uppercase tracking-[0.22em] text-[#092452]">
+                            <h3 className="text-base font-black uppercase text-[#092452]">
                                 Quy trình khám
                             </h3>
                         </div>
