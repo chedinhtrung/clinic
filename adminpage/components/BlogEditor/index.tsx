@@ -266,7 +266,7 @@ export default function BlogEditor() {
   }
 
   return (
-    <main className="relative flex min-w-0 flex-1 overflow-hidden bg-[#fbfbfa] text-[#37352f]">
+    <main className="relative flex min-w-0 flex-1 bg-[#fbfbfa] text-[#37352f]">
       <section className="flex min-w-0 flex-1 flex-col px-10 py-8">
         <div className="flex items-start justify-between gap-4">
           <div>
