@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
-import Blogs from "@/app/Blogs";
+import Blogs from "@/app/blog/Blogs";
 
 export const metadata: Metadata = {
   title: "Bài viết y khoa cơ xương khớp | BS. Chế Đình Nghĩa",

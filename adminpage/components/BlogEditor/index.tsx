@@ -238,7 +238,7 @@ export default function BlogEditor() {
       return;
     }
 
-    const shouldDelete = window.confirm("Ban co that su muon xoa bai blog nay?");
+    const shouldDelete = window.confirm("Bạn có thật sự muốn xóa bài này?");
     if (!shouldDelete) {
       return;
     }

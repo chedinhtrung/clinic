@@ -9,7 +9,7 @@ const menuItems = [
     { id: "home", label: "TRANG CHỦ", href: "/" },
     { id: "profile", label: "GIỚI THIỆU", href: "/profile" },
     //{ id: "injuries", label: "CHẤN THƯƠNG", href: "/injuries" },
-    { id: "blog", label: "BÀI VIẾT", href: "/blog" },
+    { id: "blog", label: "KIẾN THỨC Y KHOA", href: "/blog" },
     { id: "contact", label: "LIÊN HỆ", href: "/contact" },
 ];
 

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import ShareButtons from "@/components/ShareButtons";
+import rehypeRaw from "rehype-raw";
 
 type BlogCategory = {
   id: string;
@@ -361,6 +362,7 @@ export default async function BlogArticlePage(
                 <div className="blog-markdown mt-6 space-y-6 sm:mt-10 sm:space-y-8">
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm]}
+                    rehypePlugins={[rehypeRaw]}
                     components={{
                       h1: ({ children }) => <h1 className="mt-8 font-serif text-4xl font-black tracking-tight text-navy">{children}</h1>,
                       h2: ({ children }) => <h2 className="mt-8 font-serif text-3xl font-black tracking-tight text-navy">{children}</h2>,
