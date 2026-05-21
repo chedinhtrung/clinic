@@ -5,41 +5,8 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import ShareButtons from "@/components/ShareButtons";
 import rehypeRaw from "rehype-raw";
-
-type BlogCategory = {
-  id: string;
-  name: string;
-  slug: string;
-};
-
-type BlogSubcategory = {
-  id: string;
-  name: string;
-  slug: string;
-};
-
-type BlogTag = {
-  id: string;
-  name: string;
-  slug: string;
-};
-
-type BlogPostRecord = {
-  id: string;
-  title: string;
-  slug: string;
-  url: string;
-  shortDescription: string;
-  coverImageUrl: string | null;
-  status: "draft" | "published";
-  publishedAt: string | null;
-  createdAt: string;
-  updatedAt: string;
-  category: BlogCategory;
-  subcategory: BlogSubcategory | null;
-  tags: BlogTag[];
-  contentMarkdown: string;
-};
+import RelatedPostsClient from "./RelatedPostsClient";
+import type { BlogPostRecord, BlogPostResponse, BlogPostsResponse } from "../types";
 
 const BLOG_API_BASE_URL =
   process.env.BLOG_API_BASE_URL ??
@@ -49,18 +16,6 @@ const BLOG_API_BASE_URL =
 
 const DEFAULT_BLOG_COVER_IMAGE =
   "https://t4.ftcdn.net/jpg/16/79/44/21/360_F_1679442196_OEsi0AFKie6hYMBpvmXwwRgRYGV4U6Lz.jpg";
-
-type BlogPostResponse = {
-  post: BlogPostRecord;
-};
-
-type BlogPostsResponse = {
-  posts: BlogPostRecord[];
-  page: number;
-  pageSize: number;
-  totalPosts: number;
-  totalPages: number;
-};
 
 async function getBlogPostBySlug(slug: string): Promise<BlogPostRecord | null> {
   const response = await fetch(
@@ -149,10 +104,11 @@ export async function generateMetadata(
   const tagKeywords = post.tags.map((tag) => tag.name).filter(Boolean).slice(0, 8);
   const canonicalUrl = `https://chedinhnghia.com/blog/${encodeURIComponent(post.slug)}`;
   const coverImageUrl = post.coverImageUrl || DEFAULT_BLOG_COVER_IMAGE;
+  const metadataDescription = post.shortDescription ?? undefined;
 
   return {
     title: `${post.title} | TS.BS. Chế Đình Nghĩa`,
-    description: post.shortDescription,
+    description: metadataDescription,
     keywords: [
       "chấn thương chỉnh hình",
       "cơ xương khớp",
@@ -164,7 +120,7 @@ export async function generateMetadata(
     },
     openGraph: {
       title: `${post.title} | TS.BS. Chế Đình Nghĩa`,
-      description: post.shortDescription,
+      description: metadataDescription,
       url: canonicalUrl,
       siteName: "TS.BS. Chế Đình Nghĩa",
       locale: "vi_VN",
@@ -179,7 +135,7 @@ export async function generateMetadata(
     twitter: {
       card: "summary_large_image",
       title: `${post.title} | TS.BS. Chế Đình Nghĩa`,
-      description: post.shortDescription,
+      description: metadataDescription,
       images: [coverImageUrl],
     },
     robots: {
@@ -192,27 +148,22 @@ export async function generateMetadata(
 export default async function BlogArticlePage(
   {
     params,
-    searchParams,
   }: {
     params: Promise<{ slug: string }>;
-    searchParams: Promise<{ relatedPage?: string }>;
   },
 ) {
   const { slug } = await params;
-  const resolvedSearchParams = await searchParams;
   const post = await getBlogPostBySlug(slug);
 
   if (!post || post.status !== "published") {
     notFound();
   }
 
-  const relatedPageValue = Number(resolvedSearchParams.relatedPage ?? "1");
-  const relatedPage = Number.isFinite(relatedPageValue) ? Math.max(1, Math.floor(relatedPageValue)) : 1;
   const relatedPosts = await getRelatedPosts({
     categorySlug: post.category.slug,
     subcategorySlug: post.subcategory?.slug,
     excludeSlug: post.slug,
-    page: relatedPage,
+    page: 1,
   });
   const readTime = estimateReadTime(post.contentMarkdown);
   const coverImageUrl = post.coverImageUrl || DEFAULT_BLOG_COVER_IMAGE;
@@ -409,7 +360,7 @@ export default async function BlogArticlePage(
                   </div>
                 </div>
 
-                <div className="mt-10 rounded-[8px] bg-navy px-6 py-8 text-white shadow-[0_20px_55px_rgba(9,36,82,0.16)] sm:px-8 hidden sm:block">
+                <div className="mt-10 rounded-[8px] bg-navy px-6 py-8 text-white shadow-[0_20px_55px_rgba(9,36,82,0.16)] sm:px-8">
                   <div className="flex flex-col gap-6 md:flex-row md:items-center">
                     <div>
                       <h2 className="font-serif text-2xl font-bold">
@@ -433,90 +384,14 @@ export default async function BlogArticlePage(
           </article>
 
           <aside className="space-y-4 sm:space-y-6">
-
-            <div className="rounded-[10px] border border-gray-200 bg-[linear-gradient(180deg,#ffffff_0%,#f7f9fd_100%)] p-4 shadow-[0_10px_26px_rgba(10,35,66,0.06)] sm:rounded-[12px] sm:p-6">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gold">
-                Bài viết liên quan
-              </p>
-              <div className="mt-3 space-y-3 sm:mt-4 sm:space-y-4">
-                {relatedPosts.posts.length === 0 ? (
-                  <div className="rounded-[6px] border border-gray-200 bg-white p-3 text-sm leading-6 text-gray-600 sm:rounded-[8px] sm:p-4">
-                    Chưa có bài viết nào khác trong cùng chuyên mục.
-                  </div>
-                ) : (
-                  relatedPosts.posts.map((relatedPost) => (
-                    <Link
-                      key={relatedPost.id}
-                      href={`/blog/${relatedPost.slug}`}
-                      className="block rounded-[6px] border border-gray-200 bg-white p-3 transition hover:border-navy/25 hover:shadow-sm sm:rounded-[8px] sm:p-4"
-                    >
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">
-                        {relatedPost.subcategory?.name ?? relatedPost.category.name}
-                      </p>
-                      <p className="font-serif mt-2 text-base font-bold leading-6 text-navy">
-                        {relatedPost.title}
-                      </p>
-                      {relatedPost.publishedAt ? (
-                        <p className="mt-2 text-xs font-medium text-gray-500">
-                          {formatPublishedDate(relatedPost.publishedAt)}
-                        </p>
-                      ) : null}
-                      {relatedPost.shortDescription ? (
-                        <p className="mt-2 text-sm leading-6 text-gray-600">
-                          {relatedPost.shortDescription}
-                        </p>
-                      ) : null}
-                    </Link>
-                  ))
-                )}
-              </div>
-
-              {relatedPosts.totalPages > 1 ? (
-                <div className="mt-4 flex items-center justify-between gap-2 border-t border-gray-200 pt-3 text-sm sm:mt-5 sm:gap-3 sm:pt-4">
-                  {relatedPosts.page > 1 ? (
-                    <Link
-                      href={`/blog/${post.slug}?relatedPage=${relatedPosts.page - 1}`}
-                      className="rounded-[5px] border border-gray-200 bg-white px-2.5 py-2 font-semibold text-gray-700 transition hover:bg-[#edf3fb] sm:rounded-[6px] sm:px-3"
-                    >
-                      Trang trước
-                    </Link>
-                  ) : (
-                    <span className="rounded-[5px] border border-gray-200 bg-[#f7f9fd] px-2.5 py-2 font-semibold text-gray-400 sm:rounded-[6px] sm:px-3">
-                      Trang trước
-                    </span>
-                  )}
-
-                  <span className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
-                    {relatedPosts.page}/{relatedPosts.totalPages}
-                  </span>
-
-                  {relatedPosts.page < relatedPosts.totalPages ? (
-                    <Link
-                      href={`/blog/${post.slug}?relatedPage=${relatedPosts.page + 1}`}
-                      className="rounded-[5px] border border-gray-200 bg-white px-2.5 py-2 font-semibold text-gray-700 transition hover:bg-[#edf3fb] sm:rounded-[6px] sm:px-3"
-                    >
-                      Trang sau
-                    </Link>
-                  ) : (
-                    <span className="rounded-[5px] border border-gray-200 bg-[#f7f9fd] px-2.5 py-2 font-semibold text-gray-400 sm:rounded-[6px] sm:px-3">
-                      Trang sau
-                    </span>
-                  )}
-                </div>
-              ) : null}
-
-              <Link
-                href="/#booking"
-                className="mt-4 block rounded-[6px] border border-gold/35 bg-[#fffaf0] p-3 transition hover:border-gold/60 hover:bg-[#fff5df] sm:mt-5 sm:rounded-[8px] sm:p-4"
-              >
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">
-                  Đặt lịch khám
-                </p>
-                <p className="font-serif mt-2 text-base font-bold leading-6 text-navy">
-                  Cần tư vấn trực tiếp? Đặt lịch với TS.BS. Chế Đình Nghĩa
-                </p>
-              </Link>
-            </div>
+            <RelatedPostsClient
+              blogApiBaseUrl={BLOG_API_BASE_URL}
+              categorySlug={post.category.slug}
+              subcategorySlug={post.subcategory?.slug}
+              excludeSlug={post.slug}
+              bookingHref="/#booking"
+              initialData={relatedPosts}
+            />
           </aside>
         </div>
       </section>

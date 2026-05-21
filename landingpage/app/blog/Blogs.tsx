@@ -3,51 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { withBlogApiBase } from "@/app/apiBase";
-
-type BlogCategory = {
-  id: string;
-  name: string;
-  slug: string;
-};
-
-type BlogSubcategory = {
-  id: string;
-  name: string;
-  slug: string;
-};
-
-type BlogTag = {
-  id: string;
-  name: string;
-  slug: string;
-};
-
-type BlogPost = {
-  id: string;
-  title: string;
-  slug: string;
-  url: string;
-  shortDescription: string | null;
-  coverImageUrl: string | null;
-  publishedAt: string | null;
-  createdAt: string;
-  updatedAt: string;
-  category: BlogCategory;
-  subcategory: BlogSubcategory | null;
-  tags: BlogTag[];
-};
-
-type PostsResponse = {
-  posts: BlogPost[];
-  page: number;
-  pageSize: number;
-  totalPosts: number;
-  totalPages: number;
-};
-
-type CategoriesResponse = {
-  categories: BlogCategory[];
-};
+import type { BlogCategory, BlogCategoryResponse, BlogPost, BlogPostsResponse } from "./types";
 
 type FilterCategory = {
   id: string;
@@ -86,7 +42,7 @@ async function fetchPosts({
 }: {
   categorySlug?: string;
   page: number;
-}): Promise<PostsResponse> {
+}): Promise<BlogPostsResponse> {
   const params = new URLSearchParams();
 
   if (categorySlug) {
@@ -105,7 +61,7 @@ async function fetchPosts({
     throw new Error("Failed to load blog posts");
   }
 
-  return response.json() as Promise<PostsResponse>;
+  return response.json() as Promise<BlogPostsResponse>;
 }
 
 async function fetchCategories(): Promise<BlogCategory[]> {
@@ -115,7 +71,7 @@ async function fetchCategories(): Promise<BlogCategory[]> {
     throw new Error("Failed to load blog categories");
   }
 
-  const data: CategoriesResponse = await response.json();
+  const data: BlogCategoryResponse = await response.json();
   return data.categories;
 }
 
