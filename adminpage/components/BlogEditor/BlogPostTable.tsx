@@ -29,7 +29,7 @@ export default function BlogPostTable({
   const paginationItems = createPaginationItems(currentPage, totalPages);
 
   return (
-    <div className="mt-6 overflow-hidden border-y border-[#e3e2df] bg-white">
+    <div className="mt-6 border-y border-[#e3e2df] bg-white">
       <div className="grid grid-cols-[2.4fr_1fr_1fr_1.4fr_0.8fr_0.7fr] border-b border-[#e3e2df] bg-[#f7f6f3] px-3 py-2 text-xs font-medium text-[#787774]">
         <div>Name</div>
         <div>Category</div>

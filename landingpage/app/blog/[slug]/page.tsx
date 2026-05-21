@@ -408,6 +408,26 @@ export default async function BlogArticlePage(
                     <ShareButtons url={`https://chedinhnghia.com/blog/${post.slug}`} title={post.title} variant="dark" />
                   </div>
                 </div>
+
+                <div className="mt-10 rounded-[8px] bg-navy px-6 py-8 text-white shadow-[0_20px_55px_rgba(9,36,82,0.16)] sm:px-8 hidden sm:block">
+                  <div className="flex flex-col gap-6 md:flex-row md:items-center">
+                    <div>
+                      <h2 className="font-serif text-2xl font-bold">
+                        Cần tư vấn chuyên sâu?
+                      </h2>
+                      <p className="mt-2 max-w-3xl leading-7 text-white/75">
+                        Chọn ngày và khung giờ phù hợp trên hệ thống đặt lịch. BS. Chế Đình Nghĩa sẽ tư vấn trực tiếp qua video call, giúp bạn giải đáp thắc mắc và đưa ra hướng điều trị phù hợp.
+                      </p>
+                    </div>
+                    <Link
+                      href="/#booking"
+                      className="inline-flex shrink-0 items-center justify-center rounded-sm bg-gold px-5 py-3 font-bold uppercase text-white transition hover:bg-gold-light mx-auto"
+                    >
+                      Đặt lịch khám →
+                    </Link>
+                  </div>
+                </div>
+
               </div>
             </div>
           </article>
