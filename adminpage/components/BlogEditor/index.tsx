@@ -267,7 +267,7 @@ export default function BlogEditor() {
 
   return (
     <main className="relative flex min-w-0 flex-1 bg-[#fbfbfa] text-[#37352f]">
-      <section className="flex min-w-0 flex-1 flex-col px-10 py-8 max-h-[100vh]">
+      <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-10 py-8 max-h-[100vh]">
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2 className="mt-2 text-4xl font-bold tracking-tight text-[#37352f]">Bài viết</h2>
