@@ -59,6 +59,12 @@ export async function createDraftBlogPost(): Promise<BlogPost> {
   return data.post;
 }
 
+export async function fetchBlogPost(postId: string): Promise<BlogPost> {
+  const response = await fetch(`${ADMIN_API_BASE_URL}/blog/posts/${postId}`);
+  const data = await readJson<BlogPostResponse>(response);
+  return data.post;
+}
+
 export async function autosaveBlogPost(post: BlogPost): Promise<{ savedAt: string; post: BlogPost }> {
   const response = await fetch(`${ADMIN_API_BASE_URL}/blog/posts/${post.id}`, {
     method: "PATCH",

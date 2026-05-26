@@ -78,10 +78,10 @@ def _serialize_lookup_row(row: dict[str, Any]) -> dict[str, str]:
     return {"id": str(row["id"]), "name": row["name"]}
 
 
-def _serialize_post(row: dict[str, Any]) -> dict[str, Any]:
+def _serialize_post(row: dict[str, Any], *, include_content_fields: bool = True) -> dict[str, Any]:
     # Convert one SQL result row into the blog post API shape, keeping domain
     # values canonical so the frontend can decide how to present them.
-    return {
+    post = {
         "id": str(row["id"]),
         "title": row["title"] or "",
         "slug": row["slug"],
@@ -94,13 +94,15 @@ def _serialize_post(row: dict[str, Any]) -> dict[str, Any]:
         "tags": row["tags"] or [],
         "status": row["status"],
         "updatedAt": row["updated_at"].isoformat() if isinstance(row["updated_at"], datetime) else str(row["updated_at"]),
-        "shortDescription": row["short_description"] or "",
         "coverImageUrl": row["cover_image_url"],
-        "contentMarkdown": row["content_markdown"] or "",
     }
+    if include_content_fields:
+        post["shortDescription"] = row["short_description"] or ""
+        post["contentMarkdown"] = row["content_markdown"] or ""
+    return post
 
 
-def _get_post_query(where_clause: str) -> str:
+def _get_post_query(where_clause: str, *, include_content_fields: bool = True) -> str:
     # Shared base query for post list/detail reads.
     # It joins the post to category and optional subcategory metadata, and
     # aggregates the many-to-many tag relation back into one JSON array so the
@@ -110,11 +112,11 @@ def _get_post_query(where_clause: str) -> str:
           bp.id,
           bp.title,
           bp.slug,
-          bp.short_description,
           bp.cover_image_url,
           bp.status,
           bp.updated_at,
-          bp.content_markdown,
+          {"bp.short_description," if include_content_fields else ""}
+          {"bp.content_markdown," if include_content_fields else ""}
           bc.id AS category_id,
           bc.name AS category_name,
           bsc.id AS subcategory_id,
@@ -397,7 +399,7 @@ def db_get_blog_posts_page(
             # Second query: fetch only the requested page, ordered by latest
             # updates first so recently edited drafts float to the top.
             cur.execute(
-                _get_post_query(where_sql)
+                _get_post_query(where_sql, include_content_fields=False)
                 + """
                     ORDER BY bp.updated_at DESC, bp.created_at DESC
                     LIMIT %s
@@ -405,7 +407,7 @@ def db_get_blog_posts_page(
                 """,
                 [*params, safe_page_size, offset],
             )
-            posts = [_serialize_post(row) for row in cur.fetchall()]
+            posts = [_serialize_post(row, include_content_fields=False) for row in cur.fetchall()]
 
     return {
         "posts": posts,
@@ -469,7 +471,7 @@ def db_get_blog_post(*, post_id: str) -> dict[str, Any]:
         with conn.cursor() as cur:
             # Reuse the shared post query so detail reads and list reads stay in
             # sync on shape and aggregation behavior.
-            cur.execute(_get_post_query("WHERE bp.id = %s"), (post_id,))
+            cur.execute(_get_post_query("WHERE bp.id = %s", include_content_fields=True), (post_id,))
             row = cur.fetchone()
 
     if row is None:

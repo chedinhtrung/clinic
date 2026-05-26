@@ -1,10 +1,10 @@
 "use client";
 
-import type { BlogPost, PostLoadStatus } from "./types";
+import type { BlogPostSummary, PostLoadStatus } from "./types";
 import { createPaginationItems, formatBlogStatus, formatBlogUpdatedAt, isPublishedStatus } from "./utils";
 
 type BlogPostTableProps = {
-  posts: BlogPost[];
+  posts: BlogPostSummary[];
   selectedPostId: string | null;
   currentPage: number;
   totalPages: number;

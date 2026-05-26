@@ -31,6 +31,8 @@ export type BlogPost = {
   contentMarkdown: string;
 };
 
+export type BlogPostSummary = Omit<BlogPost, "shortDescription" | "contentMarkdown">;
+
 export type PostLoadStatus = "idle" | "loading" | "error";
 
 export type BlogAutosaveStatus = "idle" | "saving" | "saved" | "error";
@@ -42,7 +44,7 @@ export type BlogLookupData = {
 };
 
 export type BlogPostPageResponse = {
-  posts: BlogPost[];
+  posts: BlogPostSummary[];
   page: number;
   pageSize: number;
   totalPosts: number;

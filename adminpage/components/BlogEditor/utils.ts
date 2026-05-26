@@ -1,4 +1,4 @@
-import type { BlogPost } from "./types";
+import type { BlogPost, BlogPostSummary } from "./types";
 
 export const BLOG_POST_PAGE_SIZE = 50;
 export const FALLBACK_CATEGORY = { id: "cat-medical", name: "Y khoa" };
@@ -47,7 +47,7 @@ export function createPaginationItems(currentPage: number, totalPages: number) {
   return items;
 }
 
-export function getTagNames(posts: BlogPost[]) {
+export function getTagNames(posts: BlogPostSummary[]) {
   return Array.from(new Map(posts.flatMap((post) => post.tags).map((tag) => [tag.id, tag])).values()).sort(
     (firstTag, secondTag) => firstTag.name.localeCompare(secondTag.name)
   );

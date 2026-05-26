@@ -1,15 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { autosaveBlogPost, createDraftBlogPost, deleteBlogPost, fetchBlogLookupData, fetchBlogPostsPage } from "./api";
+import { autosaveBlogPost, createDraftBlogPost, deleteBlogPost, fetchBlogLookupData, fetchBlogPost, fetchBlogPostsPage } from "./api";
 import BlogPostEditorAside from "./BlogPostEditorAside";
 import BlogPostTable from "./BlogPostTable";
-import type { BlogAutosaveStatus, BlogCategory, BlogPost, BlogSubcategory, BlogTag, PostLoadStatus } from "./types";
+import type { BlogAutosaveStatus, BlogCategory, BlogPost, BlogPostSummary, BlogSubcategory, BlogTag, PostLoadStatus } from "./types";
 import { BLOG_POST_PAGE_SIZE, getTagNames, isPublishedStatus } from "./utils";
 
 export default function BlogEditor() {
   // Post list and pagination state drive the table on the left side of the admin view.
-  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [posts, setPosts] = useState<BlogPostSummary[]>([]);
+  const [postDetailsById, setPostDetailsById] = useState<Record<string, BlogPost>>({});
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -101,10 +102,26 @@ export default function BlogEditor() {
   }, [activeFilterText, activeSearchText, currentPage]);
 
   // Resolve the selected post from the current page data instead of duplicating editable post state.
-  const selectedPost = useMemo(
-    () => posts.find((post) => post.id === selectedPostId) ?? null,
-    [posts, selectedPostId]
-  );
+  const selectedPost = useMemo(() => (selectedPostId ? postDetailsById[selectedPostId] ?? null : null), [postDetailsById, selectedPostId]);
+
+  useEffect(() => {
+    if (!selectedPostId || postDetailsById[selectedPostId]) {
+      return;
+    }
+    let isCurrentLoad = true;
+    void fetchBlogPost(selectedPostId)
+      .then((post) => {
+        if (!isCurrentLoad) return;
+        setPostDetailsById((current) => ({ ...current, [post.id]: post }));
+        setPostLoadStatus("idle");
+      })
+      .catch(() => {
+        if (isCurrentLoad) setPostLoadStatus("error");
+      });
+    return () => {
+      isCurrentLoad = false;
+    };
+  }, [postDetailsById, selectedPostId]);
 
   // Merge backend tags with tags already visible on the current page so newly created tags stay selectable.
   const tagOptions = useMemo(() => {
@@ -146,7 +163,12 @@ export default function BlogEditor() {
             return;
           }
 
-          setPosts((currentPosts) => currentPosts.map((currentPost) => (currentPost.id === post.id ? post : currentPost)));
+          setPosts((currentPosts) =>
+            currentPosts.map((currentPost) =>
+              currentPost.id === post.id ? { ...currentPost, ...post } : currentPost
+            )
+          );
+          setPostDetailsById((currentPosts) => ({ ...currentPosts, [post.id]: post }));
           setAutosaveStatus("saved");
           setAutosavedAt(savedAt);
           dirtyPostIdsRef.current.delete(post.id);
@@ -171,16 +193,15 @@ export default function BlogEditor() {
     dirtyPostIdsRef.current.add(postId);
     setAutosaveStatus("saving");
 
+    const nextUpdatedAt = new Date().toISOString();
+    setPostDetailsById((currentPosts) => {
+      const existingPost = currentPosts[postId];
+      if (!existingPost) return currentPosts;
+      const updatedPost = { ...existingPost, ...changes, updatedAt: nextUpdatedAt };
+      return { ...currentPosts, [postId]: updatedPost };
+    });
     setPosts((currentPosts) =>
-      currentPosts.map((post) =>
-        post.id === postId
-          ? {
-              ...post,
-              ...changes,
-              updatedAt: new Date().toISOString(),
-            }
-          : post
-      )
+      currentPosts.map((post) => (post.id === postId ? { ...post, ...changes, updatedAt: nextUpdatedAt } : post))
     );
   }
 
@@ -227,6 +248,7 @@ export default function BlogEditor() {
 
     loadedPostIdsRef.current.add(draft.id);
     setPosts((currentPosts) => [draft, ...currentPosts].slice(0, BLOG_POST_PAGE_SIZE));
+    setPostDetailsById((current) => ({ ...current, [draft.id]: draft }));
     setTotalPosts(nextTotalPosts);
     setTotalPages(Math.max(1, Math.ceil(nextTotalPosts / BLOG_POST_PAGE_SIZE)));
     selectPostForEditing(draft.id);
@@ -247,6 +269,11 @@ export default function BlogEditor() {
     dirtyPostIdsRef.current.delete(selectedPost.id);
     loadedPostIdsRef.current.delete(selectedPost.id);
     setPosts((currentPosts) => currentPosts.filter((post) => post.id !== selectedPost.id));
+    setPostDetailsById((current) => {
+      const next = { ...current };
+      delete next[selectedPost.id];
+      return next;
+    });
     selectPostForEditing(null);
     setTotalPosts((currentTotalPosts) => Math.max(0, currentTotalPosts - 1));
   }
